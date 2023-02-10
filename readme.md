@@ -1,6 +1,8 @@
 # WeMod Launcher (For Linux)
 
 ## This is a small tool made to launch the popular Game Trainer / Cheat tool WeMod along with your game (made for steam-runtime version in Linux). I have tested this only on a handful of games and you are welcome to report your findings / suggestions.
+
+## If this Helps you, please star the project.
 <p align="center">
   <img src="https://www.wemod.com/static/images/wemod-logo-40777eae11.webp" alt="WeMod logo"/>
 </p>
