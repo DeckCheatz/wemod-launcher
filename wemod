@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+SCRIPT_PATH=os.path.dirname(os.path.realpath(__file__))
+WEMOD_BAT = "C:\\\\windows\\\\system32\\\\start.exe Z:" + "\\\\".join(SCRIPT_PATH.split("/")) + "\\\\wemod.bat"
+
+def run():
+  ARGS= " ".join(sys.argv[1:])
+  AARGS=ARGS.split(" -- ")
+  REAPER_CMD=" -- ".join(AARGS[:-1])
+  PROTON_CMD=AARGS[-1].split(" ")
+  PROTON=PROTON_CMD[0]
+  COMMAND=" ".join(PROTON_CMD[2:])
+
+  WIN_CMD=COMMAND.split(" ")[0].split("/")[-1] + " " + " ".join(COMMAND.split(" ")[1:])
+
+  FINAL=REAPER_CMD + " -- " + PROTON + " waitforexitandrun "  + WEMOD_BAT + " " + WIN_CMD
+  PROCESS = os.popen(FINAL)
+  RESP = PROCESS.read()
+  return RESP
+
+RESP=""
+try:
+  RESP = run()
+except Exception as e:
+  RESP="ERR:\n" + str(e)
+
+# if WEMOD_LOG env variable is declared, write the outputs to the file
+if "WEMOD_LOG" in os.environ:
+  with open(os.environ, "w+") as f:
+    f.write(str(RESP) + "\n\n\n")
