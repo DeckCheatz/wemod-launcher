@@ -31,6 +31,7 @@ As stated earlier, installing WeMod has some challenges under linux (Due to *squ
 - Go to [https://api.wemod.com/client/download](https://api.wemod.com/client/download), which would trigger the download of the latest version of WeMod offline / full installer.
 - Once downloaded, open "7-Zip File Manager" (for those whose distro does not ship "7zip FM" and installed this in wine, the installation is located in the "C:\Program Files\7-Zip" directory inside your WINE_PREFIX)
 - In 7Zip FM, navigate your way to the path where you downloaded the WeMod installer and right click on it and select "Open Inside"
+- Here you shall see a file which ends with `.nupkg`, right-click on this and select "Open Inside" again
 - Here you shall see a directory named "lib", go inside it and then there would be another directory named "net45", this folder contains the WeMod installation.
 - Rightclick on "net45" and select "Copy To", then select where you want to extract / install WeMod to and click "OK"
 - Once the copy / extraction / installation completes, you are done and you could start the actual installation of this utility as detailed in the **Installation** section above.
