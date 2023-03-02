@@ -3,7 +3,7 @@
 import sys
 import os
 SCRIPT_PATH=os.path.dirname(os.path.realpath(__file__))
-WEMOD_BAT = "C:\\\\windows\\\\system32\\\\start.exe Z:" + "\\\\".join(SCRIPT_PATH.split("/")) + "\\\\wemod.bat"
+WEMOD_BAT = "C:\\\\windows\\\\system32\\\\start.exe Z:" + "\\\\".join(SCRIPT_PATH.split("/")) + "\\\\WeMod.bat"
 
 def run():
   ARGS= " ".join(sys.argv[1:])
@@ -14,6 +14,15 @@ def run():
   COMMAND=" ".join(PROTON_CMD[2:])
 
   WIN_CMD=COMMAND.split(" ")[0].split("/")[-1] + " " + " ".join(COMMAND.split(" ")[1:])
+
+  WIN_PATHS=WIN_CMD.split("/")
+
+  DIR_CONTS = os.listdir(".")
+
+  CORRECT_PATH = list(filter( lambda x: x in DIR_CONTS, WIN_PATHS ))
+
+  if len(CORRECT_PATH) > 0:
+    WIN_CMD = WIN_CMD[WIN_CMD.index(CORRECT_PATH[0]):]
 
   FINAL=REAPER_CMD + " -- " + PROTON + " waitforexitandrun "  + WEMOD_BAT + " " + WIN_CMD
   PROCESS = os.popen(FINAL)
