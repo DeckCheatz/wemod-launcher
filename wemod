@@ -1,9 +1,112 @@
 #!/usr/bin/env python3
 
+import shutil
 import sys
 import os
+import subprocess
+from util import exit_with_message, popup_dowload, winetricks, log, popup_execute
+
 SCRIPT_PATH=os.path.dirname(os.path.realpath(__file__))
 WEMOD_BAT = "C:\\\\windows\\\\system32\\\\start.exe Z:" + "\\\\".join(SCRIPT_PATH.split("/")) + "\\\\WeMod.bat"
+WINEPREFIX = os.path.join(os.getenv("STEAM_COMPAT_DATA_PATH"), "pfx")
+WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
+INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
+
+def init(proton:str) -> None:
+  import PySimpleGUI as sg
+
+  # if wineprefix doesnt exist
+  if not os.path.isdir(WINEPREFIX):
+    os.makedirs(os.getenv("STEAM_COMPAT_DATA_PATH"), exist_ok=True)
+    os.makedirs(WINEPREFIX, exist_ok=True)
+
+  # check if WINEPREFIX is already inited
+  
+  log("Looking for init file '{}' in '{}'".format(INIT_FILE, WINEPREFIX))
+  
+  if os.path.exists(INIT_FILE):
+    log("Found init file. Continuing launch...")
+    return
+
+  log("Init file not found! Attempting to prepare the WINEPREFIX")
+  
+  should_build_prefix = sg.popup_yes_no("Would you like to attempt to build/modify your prefix?", title="Select yes to build/modify your own prefix and select no to download a prefix which has been already setup and should work.")
+
+  proton_dir = proton.split("/")[:-1]
+  proton_dir.append("files")
+  proton_dir.append("bin")
+  proton_dir = "/".join(proton_dir)
+  log("Using wine from Proton at path: '{}'".format(proton_dir))
+
+  if should_build_prefix:
+    build_prefix(proton_dir)
+  else:
+    download_prefix(proton_dir)
+
+def download_prefix(proton_dir:str) -> None:
+  file_name = "wemod_prefix.tar.zst"
+  link = "https://danimv.top/storage/" + file_name
+  prefix_path = os.path.join(SCRIPT_PATH, file_name)
+
+  if os.path.isfile(prefix_path):
+    log("Downloaded prefix file found...")
+    return ""
+
+  log("Attempting to download prefix...")
+
+  popup_dowload("Downloading Prefix...", link, prefix_path)
+  
+  if os.path.isdir(WINEPREFIX):
+    log("Found existing prefix..., moving it")
+    bak_dir = WINEPREFIX + "_bak"
+
+    if os.path.isdir(bak_dir):
+      log("Found existing backup dir, removing...")
+      shutil.rmtree(bak_dir)
+    shutil.move(WINEPREFIX, bak_dir)
+  
+  log("Unpacking prefix...")
+  command = "$(sh -c \"pv -petr '{}' || cat '{}'\")| zstd -T0 -d -c | tar -xvf - -C '{}'".\
+    format(prefix_path, prefix_path, WINEPREFIX)
+  
+  exit_code = popup_execute("Unpacking prefix...", command)
+  if exit_code != 0:
+    exit_message = "Prefix unpacking failed with code '{}'".format(exit_code)
+    exit_with_message("ERROR", exit_message, exit_code)
+
+  log("Installing vkd3d and dxvk2010...")
+  exit_code = winetricks("-q vkd3d dxvk2010")
+
+  if exit_code == 0:
+    log("Finished dependencies installation. Writing init file...")
+    open(INIT_FILE, "a").close()
+  else:
+    exit_message = "dxvk and vkd3d installation failed with code '{}'".format(exit_code)
+    exit_with_message("ERROR", exit_message, exit_code)
+
+def build_prefix(proton_dir:str) -> None:
+  path = proton_dir + ":" + os.getenv("PATH")
+
+  deps = [
+    "-q dotnet48",
+    "-q sdl cjkfonts vkd3d dxvk2010"
+  ]
+  
+  log("Running dependencies installation. This could take a while...")
+
+  resp = 0
+  dep_i = -1
+  while resp == 0 and (len(deps) - 1) > dep_i:
+    dep_i = dep_i + 1
+    resp = winetricks(deps[dep_i], path)
+
+  if resp == 0:
+    log("Finished dependencies installation. Writing init file...")
+    open(INIT_FILE, "a").close()
+    return None
+  else:
+    exit_with_message("ERROR", "Failed dependencies installation with code '{}'. Aborting...".format(resp), resp)
+
 
 def run():
   ARGS= " ".join(sys.argv[1:])
@@ -11,6 +114,9 @@ def run():
   REAPER_CMD=" -- ".join(AARGS[:-1])
   PROTON_CMD=AARGS[-1].split(" ")
   PROTON=PROTON_CMD[0]
+
+  init(PROTON)
+
   COMMAND=" ".join(PROTON_CMD[2:])
 
   WIN_CMD=COMMAND.split(" ")[0].split("/")[-1] + " " + " ".join(COMMAND.split(" ")[1:])
@@ -23,11 +129,35 @@ def run():
 
   if len(CORRECT_PATH) > 0:
     WIN_CMD = WIN_CMD[WIN_CMD.index(CORRECT_PATH[0]):]
+  
+  log("WIN_CMD: '{}'".format(WIN_CMD))
 
-  FINAL=REAPER_CMD + " -- " + PROTON + " waitforexitandrun "  + WEMOD_BAT + " " + WIN_CMD
-  PROCESS = os.popen(FINAL)
-  RESP = PROCESS.read()
-  return RESP
+  FINAL=REAPER_CMD + " -- " + PROTON + " waitforexitandrun "  + WEMOD_BAT + " " + WIN_CMD + ""
+  log("Executing:\n\t{}\n".format(FINAL))
+
+  process = subprocess.Popen(FINAL, stdout=subprocess.PIPE, shell=True)
+  for line in iter(process.stdout.readline,''):
+    if line == None or line == b'':
+      break
+    log(line.decode("utf8"))
+
+  resp = process.wait()
+  log("Exit command with '{}'".format(resp))
+  return "EXIT"
+
+log("Ensuring Dependencies...")
+requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
+process = subprocess.Popen("pip install -r " + requirements_txt, shell=True, stdout=subprocess.PIPE)
+
+for line in iter(process.stdout.readline,''):
+  if line == None or line == b'':
+    break
+  log(line.decode("utf8"))
+
+process.wait()
+if process.returncode != 0:
+  log("Failed to install dependencies. Exiting...")
+  exit(process.returncode)
 
 RESP=""
 try:
@@ -35,7 +165,4 @@ try:
 except Exception as e:
   RESP="ERR:\n" + str(e)
 
-# if WEMOD_LOG env variable is declared, write the outputs to the file
-if "WEMOD_LOG" in os.environ:
-  with open(os.environ, "w+") as f:
-    f.write(str(RESP) + "\n\n\n")
+log(str(RESP) + "\n\n\n")

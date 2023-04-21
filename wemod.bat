@@ -2,7 +2,7 @@
 @title Wemod Launcher
 
 SET mypath=%~dp0
-SET wemodpath=%mypath:~0,-1%\WeMod.exe
+SET wemodpath=%mypath:~0,-1%\wemod_bin\WeMod.exe
 
 echo Hello from WeMod Launcher
 echo WEMOD EXE: "%wemodpath%"
