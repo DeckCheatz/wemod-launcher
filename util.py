@@ -6,6 +6,34 @@ from typing import Callable
 SCRIPT_PATH=os.path.dirname(os.path.realpath(__file__))
 WINEPREFIX = os.path.join(os.getenv("STEAM_COMPAT_DATA_PATH"), "pfx")
 
+def pip(command:str) -> int:
+  pip_pyz = os.path.join(SCRIPT_PATH, "pip.pyz")
+
+  if os.path.isfile(pip_pyz):
+    log("pip not found. Downloading...")
+    process = subprocess.Popen("wget https://bootstrap.pypa.io/pip/pip.pyz -O '{}'".format(pip_pyz), shell=True, stdout=subprocess.PIPE)
+    
+    for line in iter(process.stdout.readline,''):
+      if line == None or line == b'':
+        break
+      log(line.decode("utf8"))
+
+    return_code = process.wait()
+
+    if return_code != 0:
+      log("CRITICAL: Failed to download pip. Exiting!")
+      sys.exit(return_code)
+
+  process = subprocess.Popen("{} {}".format(pip_pyz, command), shell=True, stdout=subprocess.PIPE)
+    
+  for line in iter(process.stdout.readline,''):
+    if line == None or line == b'':
+      break
+    log(line.decode("utf8"))
+
+  return process.wait()
+  
+
 def log(message:str):
   if "WEMOD_LOG" in os.environ:
     message = str(message)
