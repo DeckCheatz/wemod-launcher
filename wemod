@@ -4,7 +4,7 @@ import shutil
 import sys
 import os
 import subprocess
-from util import exit_with_message, popup_dowload, winetricks, log, popup_execute
+from util import exit_with_message, popup_dowload, winetricks, log, popup_execute, pip
 
 SCRIPT_PATH=os.path.dirname(os.path.realpath(__file__))
 WEMOD_BAT = "C:\\\\windows\\\\system32\\\\start.exe Z:" + "\\\\".join(SCRIPT_PATH.split("/")) + "\\\\WeMod.bat"
@@ -147,17 +147,12 @@ def run():
 
 log("Ensuring Dependencies...")
 requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
-process = subprocess.Popen("pip install -r " + requirements_txt, shell=True, stdout=subprocess.PIPE)
 
-for line in iter(process.stdout.readline,''):
-  if line == None or line == b'':
-    break
-  log(line.decode("utf8"))
+return_code = pip("install -r {}".format(requirements_txt))
 
-process.wait()
-if process.returncode != 0:
-  log("Failed to install dependencies. pip Exited with code '{}'".format(process.returncode))
-  exit(process.returncode)
+if return_code != 0:
+  log("Failed to install dependencies. pip Exited with code '{}'".format(return_code))
+  exit(return_code)
 
 RESP=""
 try:
