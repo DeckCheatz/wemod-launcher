@@ -156,7 +156,7 @@ for line in iter(process.stdout.readline,''):
 
 process.wait()
 if process.returncode != 0:
-  log("Failed to install dependencies. Exiting...")
+  log("Failed to install dependencies. pip Exited with code '{}'".format(process.returncode))
   exit(process.returncode)
 
 RESP=""
