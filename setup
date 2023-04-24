@@ -3,9 +3,8 @@
 import stat
 import sys
 import os
-import subprocess
 import tempfile
-from util import download_progress
+from util import download_progress, pip
 
 SCRIPT_PATH=os.path.dirname(os.path.realpath(__file__))
 
@@ -142,11 +141,10 @@ def main():
 def init():
   print("Ensuring Dependencies...")
   requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
-  process = subprocess.Popen("pip install -r " + requirements_txt, shell=True)
-  process.wait()
-  if process.returncode != 0:
+  return_code = pip("install -r " + requirements_txt, shell=True)
+  if return_code != 0:
     print("Failed to install dependencies. Exiting...")
-    exit(process.returncode)
+    exit(return_code)
   else:
     main()
 
