@@ -2,6 +2,7 @@ import subprocess
 import os
 import sys
 from typing import Callable
+from urllib import request
 
 SCRIPT_PATH=os.path.dirname(os.path.realpath(__file__))
 WINEPREFIX = os.path.join(os.getenv("STEAM_COMPAT_DATA_PATH"), "pfx")
@@ -9,22 +10,15 @@ WINEPREFIX = os.path.join(os.getenv("STEAM_COMPAT_DATA_PATH"), "pfx")
 def pip(command:str) -> int:
   pip_pyz = os.path.join(SCRIPT_PATH, "pip.pyz")
 
-  if os.path.isfile(pip_pyz):
+  if not os.path.isfile(pip_pyz):
     log("pip not found. Downloading...")
-    process = subprocess.Popen("wget https://bootstrap.pypa.io/pip/pip.pyz -O '{}'".format(pip_pyz), shell=True, stdout=subprocess.PIPE)
-    
-    for line in iter(process.stdout.readline,''):
-      if line == None or line == b'':
-        break
-      log(line.decode("utf8"))
+    request.urlretrieve("https://bootstrap.pypa.io/pip/pip.pyz", pip_pyz)
 
-    return_code = process.wait()
-
-    if return_code != 0:
+    if not os.path.isfile(pip_pyz):
       log("CRITICAL: Failed to download pip. Exiting!")
-      sys.exit(return_code)
+      sys.exit(1)
 
-  process = subprocess.Popen("{} {}".format(pip_pyz, command), shell=True, stdout=subprocess.PIPE)
+  process = subprocess.Popen("python3 {} {}".format(pip_pyz, command), shell=True, stdout=subprocess.PIPE)
     
   for line in iter(process.stdout.readline,''):
     if line == None or line == b'':
@@ -47,25 +41,42 @@ def popup_execute(title:str, command:str, onwrite:Callable[[str], None] = None) 
 
   sg.theme("systemdefault")
 
-  text_str = ""
-  text = sg.Multiline(text_str, disabled=True, autoscroll=True, size=(100, 100))
+  text_str = [""]
+  text = sg.Multiline("", disabled=True, autoscroll=True, size=(80, 30))
   layout = [ [text] ]
   window = sg.Window(title, layout, finalize=True)
+  exitcode = [-1]
 
-  process = sp.Popen(command, stdout=subprocess.PIPE, shell=True)
-  for line in iter(process.stdout.readline,''):
-    if line == None or line == b'':
-      break
-    s_line = line.decode("utf8")
-    log(s_line)
-    text_str += s_line + "\n"
-    text.update(text_str)
-    if onwrite != None:
-      onwrite(s_line)
-  
+
+  def process_func():
+    process = sp.Popen(command, stdout=subprocess.PIPE, shell=True)
+    for line in iter(process.stdout.readline,''):
+      if line == None or line == b'':
+        break
+      s_line = line.decode("utf8")
+      log(s_line)
+      text_str[0] = text_str[0] + s_line + "\n"
+      if onwrite != None:
+        onwrite(s_line)
+    exitcode[0] = process.wait()
+
+
+  window.perform_long_operation(process_func,"-PROCESS COMPLETE-")
+
+  while True:             # Event Loop
+      event, values = window.read(timeout=1000)
+      if event == "-PROCESS COMPLETE-":
+          break
+      elif event == None:
+          sys.exit(0)
+      else:
+          if(len(text_str[0]) < 1):
+              continue
+          text.update(text_str[0])
+
   window.close()
-  exitcode = process.wait()
-  return exitcode
+  
+  return exitcode[0]
 
 def popup_dowload(title:str, link:str, file_name:str):
     import PySimpleGUI as sg
@@ -133,7 +144,7 @@ def winetricks(command:str, proton_bin:str) -> int:
     "export WINEPREFIX='{}' && ".format(WINEPREFIX) + \
     winetricks_sh + " " + command
   
-  resp = popup_execute(command)
+  resp = popup_execute("winetricks", command)
   return resp
 
 
@@ -144,3 +155,7 @@ def exit_with_message(title:str,exit_message:str, exit_code:int = 1) -> None:
   log(exit_message)
   sg.popup_ok(exit_message)
   sys.exit(exit_code)
+
+
+if __name__ == "__main__":
+  popup_execute("HELLO", "sh -c \"echo hello && sleep 5 && echo bye\"")

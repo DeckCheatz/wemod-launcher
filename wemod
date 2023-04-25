@@ -69,6 +69,8 @@ def download_prefix(proton_dir:str) -> None:
   command = "$(sh -c \"pv -petr '{}' || cat '{}'\")| zstd -T0 -d -c | tar -xvf - -C '{}'".\
     format(prefix_path, prefix_path, WINEPREFIX)
   
+  log("Using command '{}'".format(command))
+
   exit_code = popup_execute("Unpacking prefix...", command)
   if exit_code != 0:
     exit_message = "Prefix unpacking failed with code '{}'".format(exit_code)
