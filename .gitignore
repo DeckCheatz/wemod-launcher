@@ -3,3 +3,4 @@ wemod_bin/
 winetricks
 __pycache__/
 wemod_prefix.tar.zst
+pip.pyz
