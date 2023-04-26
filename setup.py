@@ -109,7 +109,7 @@ def main():
     if os.path.isfile(winetricks):
       shutil.rmtree(winetricks)
     log("Winetricks not found...")
-    log("Downloading...")
+    log("Downloading latest winetricks...")
 
     sg.popup("Winetricks", "Fetching latest winetricks...", any_key_closes=True, auto_close_duration=10)
     download_progress(
@@ -133,7 +133,7 @@ def main():
         "\" before \"%command%\" in your game \"LAUNCH OPTIONS\".")
       
       if not unpacked:
-        print("Failed to unpack WeMod.")
+        log("Failed to unpack WeMod.")
         sg.popup("Failed to unpack WeMod.", "Failed to unpack WeMod.")
         sys.exit(1)
 
