@@ -4,7 +4,7 @@ import stat
 import sys
 import os
 import tempfile
-from util import download_progress, pip
+from util import download_progress, pip, log
 
 SCRIPT_PATH=os.path.dirname(os.path.realpath(__file__))
 
@@ -37,8 +37,8 @@ def download_wemod(temp_dir:str) -> str:
     status.append(total)
     
   setup_file = os.path.join(temp_dir, "wemod_setup.exe")
-  download_func = lambda: download_progress("https://api.wemod.com/client/download", setup_file, lambda dl,total: update_log(status, dl, total))
-  # download_func = lambda: download_progress("http://localhost:8000/WeMod-8.3.15.exe", setup_file, lambda dl,total: update_log(status, dl, total))
+  # download_func = lambda: download_progress("https://api.wemod.com/client/download", setup_file, lambda dl,total: update_log(status, dl, total))
+  download_func = lambda: download_progress("http://localhost:8000/WeMod-8.3.15.exe", setup_file, lambda dl,total: update_log(status, dl, total))
 
   window.perform_long_operation(download_func,"-DL COMPLETE-")
 
@@ -108,6 +108,8 @@ def main():
   if os.getenv("FORCE_UPDATE_WEMOD", "0") == "1" or not os.path.isfile(winetricks):
     if os.path.isfile(winetricks):
       shutil.rmtree(winetricks)
+    log("Winetricks not found...")
+    log("Downloading...")
 
     sg.popup("Winetricks", "Fetching latest winetricks...", any_key_closes=True, auto_close_duration=10)
     download_progress(
