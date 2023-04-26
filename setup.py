@@ -37,8 +37,8 @@ def download_wemod(temp_dir:str) -> str:
     status.append(total)
     
   setup_file = os.path.join(temp_dir, "wemod_setup.exe")
-  # download_func = lambda: download_progress("https://api.wemod.com/client/download", setup_file, lambda dl,total: update_log(status, dl, total))
-  download_func = lambda: download_progress("http://localhost:8000/WeMod-8.3.15.exe", setup_file, lambda dl,total: update_log(status, dl, total))
+  download_func = lambda: download_progress("https://api.wemod.com/client/download", setup_file, lambda dl,total: update_log(status, dl, total))
+  # download_func = lambda: download_progress("http://localhost:8000/WeMod-8.3.15.exe", setup_file, lambda dl,total: update_log(status, dl, total))
 
   window.perform_long_operation(download_func,"-DL COMPLETE-")
 
