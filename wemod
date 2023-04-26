@@ -5,6 +5,7 @@ import sys
 import os
 import subprocess
 from util import exit_with_message, popup_dowload, winetricks, log, popup_execute, pip
+from setup import main
 
 SCRIPT_PATH=os.path.dirname(os.path.realpath(__file__))
 WEMOD_BAT = "C:\\\\windows\\\\system32\\\\start.exe Z:" + "\\\\".join(SCRIPT_PATH.split("/")) + "\\\\WeMod.bat"
@@ -95,6 +96,8 @@ def build_prefix(proton_dir:str) -> None:
   ]
   
   log("Running dependencies installation. This could take a while...")
+
+  main()
 
   resp = 0
   dep_i = -1
