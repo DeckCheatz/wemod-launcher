@@ -4,7 +4,7 @@ import shutil
 import sys
 import os
 import subprocess
-from util import exit_with_message, popup_dowload, winetricks, log, popup_execute, pip
+from util import exit_with_message, get_dotnet48, popup_dowload, wine, winetricks, log, popup_execute, pip, popup_options
 from setup import main
 
 SCRIPT_PATH=os.path.dirname(os.path.realpath(__file__))
@@ -88,12 +88,20 @@ def download_prefix(proton_dir:str) -> None:
     exit_with_message("ERROR", exit_message, exit_code)
 
 def build_prefix(proton_dir:str) -> None:
+  import PySimpleGUI as sg
   path = proton_dir + ":" + os.getenv("PATH")
 
-  deps = [
-    "-q dotnet48",
-    "-q sdl cjkfonts vkd3d dxvk2010"
-  ]
+  deps = []
+
+  dotnet48_method = popup_options("dotnet48",
+    "Would you like to install dotnet48 with winetricks (default) or with wemod-launcher?",
+    [ "winetricks", "wemod-launcher" ]
+  )
+
+  deps.append("-q sdl cjkfonts vkd3d dxvk2010")
+  
+  if dotnet48_method == "winetricks":
+    deps.append("-q dotnet48")
   
   log("Running dependencies installation. This could take a while...")
 
@@ -104,6 +112,15 @@ def build_prefix(proton_dir:str) -> None:
   while resp == 0 and (len(deps) - 1) > dep_i:
     dep_i = dep_i + 1
     resp = winetricks(deps[dep_i], path)
+
+  if dotnet48_method == "wemod-launcher":
+    dotnet48 = get_dotnet48()
+    log("Installing dotnet48...")
+    wine("winecfg -v win7", path)
+    dotnet48_result = wine(dotnet48, path)
+
+    if dotnet48_result != 0:
+      exit_with_message("dotnet48 install error", "dotnet48 installation exited with code '{}'".format(dotnet48_result))
 
   if resp == 0:
     log("Finished dependencies installation. Writing init file...")

@@ -1,3 +1,4 @@
+import io
 import subprocess
 import os
 import sys
@@ -35,6 +36,26 @@ def log(message:str):
     with open(os.getenv("WEMOD_LOG"), "a") as f:
       f.write(message)
 
+def popup_options(title:str, message:str, options:list[str]) -> str:
+  import PySimpleGUI as sg
+  
+  layout = [ 
+    [ sg.Text(message, auto_size_text=True) ],
+    [
+      list(map(lambda option: sg.Button(option),options))
+    ]
+  ]
+  window = sg.Window(title, layout, finalize=True)
+
+  selected = None
+  while selected == None:             # Event Loop
+    event, values = window.read()
+    selected = event if options.index(event) > -1 else None
+
+  window.close()
+
+  return selected
+
 def popup_execute(title:str, command:str, onwrite:Callable[[str], None] = None) -> int:
   import PySimpleGUI as sg
   import subprocess as sp
@@ -64,15 +85,15 @@ def popup_execute(title:str, command:str, onwrite:Callable[[str], None] = None) 
   window.perform_long_operation(process_func,"-PROCESS COMPLETE-")
 
   while True:             # Event Loop
-      event, values = window.read(timeout=1000)
-      if event == "-PROCESS COMPLETE-":
-          break
-      elif event == None:
-          sys.exit(0)
-      else:
-          if(len(text_str[0]) < 1):
-              continue
-          text.update(text_str[0])
+    event, values = window.read(timeout=1000)
+    if event == "-PROCESS COMPLETE-":
+        break
+    elif event == None:
+        sys.exit(0)
+    else:
+        if(len(text_str[0]) < 1):
+            continue
+        text.update(text_str[0])
 
   window.close()
   
@@ -147,6 +168,14 @@ def winetricks(command:str, proton_bin:str) -> int:
   resp = popup_execute("winetricks", command)
   return resp
 
+def wine(command:str, proton_bin:str) -> int:
+  command = "export PATH='{}' && ".format(proton_bin) + \
+    "export WINEPREFIX='{}' && ".format(WINEPREFIX) + \
+    " wine " + command
+  
+  resp = popup_execute("wine", command)
+  return resp
+
 
 def exit_with_message(title:str,exit_message:str, exit_code:int = 1) -> None:
   import PySimpleGUI as sg
@@ -156,6 +185,28 @@ def exit_with_message(title:str,exit_message:str, exit_code:int = 1) -> None:
   sg.popup_ok(exit_message)
   sys.exit(exit_code)
 
+
+def cache(file_path:str, default:Callable[[str], None]) -> str:
+  CACHE=os.path.join(SCRIPT_PATH, ".cache")
+  if not os.path.isdir(CACHE):
+    log("Cache dir not found. Creating...")
+    os.mkdir(CACHE)
+  
+  FILE=os.path.join(CACHE, file_path)
+  if os.path.isfile(FILE):
+    log("Cached file found. Returning '{}'".format(FILE))
+    return FILE
+
+  log("Cached file not found: '{}'".format(FILE))
+  default(FILE)
+  return FILE
+
+def get_dotnet48() -> str:
+  LINK="https://download.visualstudio.microsoft.com/download/pr/7afca223-55d2-470a-8edc-6a1739ae3252/abd170b4b0ec15ad0222a809b761a036/ndp48-x86-x64-allos-enu.exe"
+  cache_func = lambda FILE: popup_dowload("Downloading dotnet48", LINK, FILE)
+
+  dotnet48 = cache("ndp48-x86-x64-allos-enu.exe", cache_func)
+  return dotnet48
 
 if __name__ == "__main__":
   popup_execute("HELLO", "sh -c \"echo hello && sleep 5 && echo bye\"")
