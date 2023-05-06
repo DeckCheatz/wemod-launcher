@@ -31,7 +31,7 @@ def init(proton:str) -> None:
 
   log("Init file not found! Attempting to prepare the WINEPREFIX")
   
-  should_build_prefix = sg.popup_yes_no("Would you like to attempt to build/modify your prefix?", title="Select yes to build/modify your own prefix and select no to download a prefix which has been already setup and should work.")
+  prefix_op = popup_options("Prefix Setup", "Would you like to build/modify your prefix or download an already setup one?", [ "build", "download" ])
 
   proton_dir = proton.split("/")[:-1]
   proton_dir.append("files")
@@ -39,7 +39,7 @@ def init(proton:str) -> None:
   proton_dir = "/".join(proton_dir)
   log("Using wine from Proton at path: '{}'".format(proton_dir))
 
-  if should_build_prefix:
+  if prefix_op == "build":
     build_prefix(proton_dir)
   else:
     download_prefix(proton_dir)
