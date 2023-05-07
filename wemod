@@ -4,7 +4,7 @@ import shutil
 import sys
 import os
 import subprocess
-from util import exit_with_message, get_dotnet48, popup_dowload, wine, winetricks, log, popup_execute, pip, popup_options
+from util import cache, exit_with_message, get_dotnet48, popup_dowload, wine, winetricks, log, popup_execute, pip, popup_options
 from setup import main
 
 SCRIPT_PATH=os.path.dirname(os.path.realpath(__file__))
@@ -45,17 +45,12 @@ def init(proton:str) -> None:
     download_prefix(proton_dir)
 
 def download_prefix(proton_dir:str) -> None:
+  from shutil import which
   file_name = "wemod_prefix.tar.zst"
   link = "https://danimv.top/storage/" + file_name
-  prefix_path = os.path.join(SCRIPT_PATH, file_name)
 
-  if os.path.isfile(prefix_path):
-    log("Downloaded prefix file found...")
-    return ""
-
-  log("Attempting to download prefix...")
-
-  popup_dowload("Downloading Prefix...", link, prefix_path)
+  # Get Prefix from cache, or download and cache
+  prefix_path = cache(file_name, lambda name: popup_dowload("Dowloading Prefix...", link, name))
   
   if os.path.isdir(WINEPREFIX):
     log("Found existing prefix..., moving it")
@@ -67,8 +62,9 @@ def download_prefix(proton_dir:str) -> None:
     shutil.move(WINEPREFIX, bak_dir)
   
   log("Unpacking prefix...")
-  command = "$(sh -c \"pv -petr '{}' || cat '{}'\")| zstd -T0 -d -c | tar -xvf - -C '{}'".\
-    format(prefix_path, prefix_path, WINEPREFIX)
+  read_binary = "pv -petrs" if which("pv") is not None else "cat"
+  command = "sh -c \"{} '{}' | zstd -T0 -d -c | tar -xvf - -C '{}'\"".\
+    format(read_binary, prefix_path, prefix_path, WINEPREFIX)
   
   log("Using command '{}'".format(command))
 
@@ -114,8 +110,8 @@ def build_prefix(proton_dir:str) -> None:
     resp = winetricks(deps[dep_i], path)
 
   if dotnet48_method == "wemod-launcher":
-    dotnet48 = get_dotnet48()
     log("Installing dotnet48...")
+    dotnet48 = get_dotnet48()
     wine("winecfg -v win7", path)
     dotnet48_result = wine(dotnet48, path)
 
