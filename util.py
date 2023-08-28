@@ -161,6 +161,19 @@ def download_progress(link:str, file_name:str, set_progress):
 
 def winetricks(command:str, proton_bin:str) -> int:
   winetricks_sh = os.path.join(SCRIPT_PATH, "winetricks")
+
+  if not os.path.isfile(winetricks_sh):
+    log("winetricks not found. Downloading...")
+    request.urlretrieve("https://github.com/Winetricks/winetricks/raw/master/src/winetricks", winetricks_sh)
+    log("setting exec permissions on '{}'".format(winetricks_sh))
+    process = subprocess.Popen("sh -c 'chmod +x {}'".format(winetricks_sh), shell=True)
+    exit_code = process.wait()
+
+    if exit_code != 0:
+      message = "failed to set exec permission on '{}'".format(winetricks_sh)
+      log(message)
+      exit_with_message("ERROR", message)
+
   command = "export PATH='{}' && ".format(proton_bin) + \
     "export WINEPREFIX='{}' && ".format(WINEPREFIX) + \
     winetricks_sh + " " + command
