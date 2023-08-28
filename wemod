@@ -8,7 +8,7 @@ from util import cache, exit_with_message, get_dotnet48, popup_dowload, wine, wi
 from setup import main
 
 SCRIPT_PATH=os.path.dirname(os.path.realpath(__file__))
-WEMOD_BAT = "C:\\\\windows\\\\system32\\\\start.exe Z:" + "\\\\".join(SCRIPT_PATH.split("/")) + "\\\\WeMod.bat"
+WEMOD_BAT = "C:\\\\windows\\\\system32\\\\start.exe Z:" + "\\\\".join(SCRIPT_PATH.split("/")) + "\\\\wemod.bat"
 WINEPREFIX = os.path.join(os.getenv("STEAM_COMPAT_DATA_PATH"), "pfx")
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
@@ -46,26 +46,35 @@ def init(proton:str) -> None:
 
 def download_prefix(proton_dir:str) -> None:
   from shutil import which
+  import PySimpleGUI as sg
+
+  path = proton_dir + ":" + os.getenv("PATH")
+
   file_name = "wemod_prefix.tar.zst"
   link = "https://danimv.top/storage/" + file_name
 
   # Get Prefix from cache, or download and cache
   prefix_path = cache(file_name, lambda name: popup_dowload("Dowloading Prefix...", link, name))
   
-  if os.path.isdir(WINEPREFIX):
-    log("Found existing prefix..., moving it")
-    bak_dir = WINEPREFIX + "_bak"
+  # First Launch
+  if not os.path.exists(WINEPREFIX + "/drive_c"):
+    log(WINEPREFIX)
+    exit_with_message("First Launch","First Launch Detected: Please run the game once without wemod first.")
 
-    if os.path.isdir(bak_dir):
-      log("Found existing backup dir, removing...")
-      shutil.rmtree(bak_dir)
-    shutil.move(WINEPREFIX, bak_dir)
-  
+  # if os.path.isdir(WINEPREFIX):
+  #   log("Found existing prefix..., moving it")
+  #   bak_dir = WINEPREFIX + "_bak"
+
+    # if os.path.isdir(bak_dir):
+    #   log("Found existing backup dir, removing...")
+    #   shutil.rmtree(bak_dir)
+    # shutil.move(WINEPREFIX, bak_dir)
+
+  # Unpack prefix
   log("Unpacking prefix...")
-  read_binary = "pv -petrs" if which("pv") is not None else "cat"
+  read_binary = "pv -petr" if which("pv") is not None else "cat"
   command = "sh -c \"{} '{}' | zstd -T0 -d -c | tar -xvf - -C '{}'\"".\
-    format(read_binary, prefix_path, prefix_path, WINEPREFIX)
-  
+    format(read_binary, prefix_path, WINEPREFIX)
   log("Using command '{}'".format(command))
 
   exit_code = popup_execute("Unpacking prefix...", command)
@@ -74,7 +83,7 @@ def download_prefix(proton_dir:str) -> None:
     exit_with_message("ERROR", exit_message, exit_code)
 
   log("Installing vkd3d and dxvk2010...")
-  exit_code = winetricks("-q vkd3d dxvk2010")
+  exit_code = winetricks("-q vkd3d dxvk2010", path)
 
   if exit_code == 0:
     log("Finished dependencies installation. Writing init file...")
@@ -115,7 +124,7 @@ def build_prefix(proton_dir:str) -> None:
     wine("winecfg -v win7", path)
     dotnet48_result = wine(dotnet48, path)
 
-    if dotnet48_result != 0:
+    if dotnet48_result != 0 and dotnet48_result != 194:
       exit_with_message("dotnet48 install error", "dotnet48 installation exited with code '{}'".format(dotnet48_result))
 
   if resp == 0:
@@ -126,14 +135,15 @@ def build_prefix(proton_dir:str) -> None:
     exit_with_message("ERROR", "Failed dependencies installation with code '{}'. Aborting...".format(resp), resp)
 
 
-def run():
+def run(skip_init=False):
   ARGS= " ".join(sys.argv[1:])
   AARGS=ARGS.split(" -- ")
   REAPER_CMD=" -- ".join(AARGS[:-1])
   PROTON_CMD=AARGS[-1].split(" ")
   PROTON=PROTON_CMD[0]
 
-  init(PROTON)
+  if not skip_init:
+    init(PROTON)
 
   COMMAND=" ".join(PROTON_CMD[2:])
 
@@ -150,7 +160,8 @@ def run():
   
   log("WIN_CMD: '{}'".format(WIN_CMD))
 
-  FINAL=REAPER_CMD + " -- " + PROTON + " waitforexitandrun "  + WEMOD_BAT + " " + WIN_CMD + ""
+  FINAL=REAPER_CMD + " -- " + PROTON + " waitforexitandrun "  + WEMOD_BAT + " \"" + WIN_CMD + "\""
+  # log("ARGS:\n\n" + " ".join(sys.argv) + " \n\n")
   log("Executing:\n\t{}\n".format(FINAL))
 
   process = subprocess.Popen(FINAL, stdout=subprocess.PIPE, shell=True)
@@ -163,10 +174,12 @@ def run():
   log("Exit command with '{}'".format(resp))
   return "EXIT"
 
+log(sys.version)
+
 log("Ensuring Dependencies...")
 requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
 
-return_code = pip("install -r {}".format(requirements_txt))
+return_code = pip("install --break-system-packages -r {}".format(requirements_txt))
 
 if return_code != 0:
   log("Failed to install dependencies. pip Exited with code '{}'".format(return_code))
