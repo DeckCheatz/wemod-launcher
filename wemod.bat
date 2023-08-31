@@ -7,7 +7,7 @@ SET wemodpath=%mypath:~0,-1%\wemod_bin\WeMod.exe
 echo Hello from WeMod Launcher
 echo WEMOD EXE: "%wemodpath%"
 echo PWD: "%cd%"
-echo command: "%*"
+echo command: %*
 pause
-start "" "%wemodpath%"
+start "" %wemodpath%
 start "" %*

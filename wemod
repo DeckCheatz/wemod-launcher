@@ -157,11 +157,16 @@ def run(skip_init=False):
 
   if len(CORRECT_PATH) > 0:
     WIN_CMD = WIN_CMD[WIN_CMD.index(CORRECT_PATH[0]):]
-  
-  log("WIN_CMD: '{}'".format(WIN_CMD))
 
-  FINAL=REAPER_CMD + " -- " + PROTON + " waitforexitandrun "  + WEMOD_BAT + " \"" + WIN_CMD + "\""
-  # log("ARGS:\n\n" + " ".join(sys.argv) + " \n\n")
+  
+  WIN_CMD_SPLIT = WIN_CMD.split(".exe")
+  WIN_CMD = WIN_CMD_SPLIT[0] + ".exe"
+  LAUNCH_OPTIONS=""
+
+  if len(WIN_CMD_SPLIT) > 0:
+    LAUNCH_OPTIONS = ".exe".join(WIN_CMD_SPLIT[1:])
+
+  FINAL=REAPER_CMD + " -- " + PROTON + " waitforexitandrun "  + WEMOD_BAT + " \"" + WIN_CMD + "\"" + LAUNCH_OPTIONS
   log("Executing:\n\t{}\n".format(FINAL))
 
   process = subprocess.Popen(FINAL, stdout=subprocess.PIPE, shell=True)
