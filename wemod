@@ -48,7 +48,7 @@ def download_prefix(proton_dir:str) -> None:
   from shutil import which
   import PySimpleGUI as sg
 
-  path = proton_dir + ":" + os.getenv("PATH")
+  path = os.path.join(SCRIPT_PATH, "bin") + ":" + proton_dir + ":" + os.getenv("PATH")
 
   file_name = "wemod_prefix.tar.zst"
   link = "https://danimv.top/storage/" + file_name
@@ -94,7 +94,7 @@ def download_prefix(proton_dir:str) -> None:
 
 def build_prefix(proton_dir:str) -> None:
   import PySimpleGUI as sg
-  path = proton_dir + ":" + os.getenv("PATH")
+  path = os.path.join(SCRIPT_PATH, "bin") + ":" + proton_dir + ":" + os.getenv("PATH")
 
   deps = []
 
