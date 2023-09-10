@@ -8,38 +8,106 @@
 </p>
 
 
-## Requirements
-- Need a version of Wine/Proton which has the dotnet48 bug fixed (GE-Proton-3x should work) - set in the compatibility menu in gameoptions.
-- Need the WINE_PREFIX to have dotnet48,allfonts,sdl installed (You need to install these using a version of Wine/Proton as stated in the point above).
-  eg: `PATH="$HOME/.local/share/Steam/compatibilitytools.d/GE-Proton7-39/files/bin:$PATH" WINEPREFIX=$HOME/.local/share/Steam/steamapps/compatdata/409720/pfx winetricks allfonts dotnet48 sdl` should get you started.
-- A clean WINE_PREFIX is *recommended* as a wrong version (such as GE-Proton-4x) may introduce some bugs which would cause WeMod to fail. If you have ever used a Wine/Proton version that is not compatible, your game's WINE_PREFIX may be dirty and thus make WeMod not run properly.
+![:wemod:](https://cdn.discordapp.com/emojis/761419420211740672.webp?size=44&quality=lossless) **How to Install WeMod on a Steam Deck (Linux)** In this guide, we'll walk you through the process of installing WeMod on a Steam Deck running Linux. We'll cover all the steps required to set up the necessary components and configurations to seamlessly integrate WeMod with your games. ‎
 
-## Installation
-- Download and unpack/install WeMod - In my testing, WeMod's installer has some issues running under wine (I believe it relates to UAC) and so may fail to run. A workaround would be to either copy the files from a Windows PC or with the steps in the next section.
-- Clone or download this repository
-- Copy "wemod.bat" and "wemod" files from this repo to WeMod's location
-- Open Steam, select your desired game, go to Mnage->Properties->GENERAL->LAUNCH OPTIONS and add the full path to the "wemod" file (from this repo) just before " %command%".
-    For example, if your LAUNCH OPTIONS looks like this `ENABLE_VKBASALT=1 WINE_FULLSCREEN_FSR=1 DXVK_ASYNC=1 PROTON_NO_ESYNC=1 DXVK_HUD=fps gamemoderun %command% +com_showLoadingScreen 0 +r_skipDOF 1`, once you apply the change(s) mentioned, your LAUNCH OPTIONS may look like this: `ENABLE_VKBASALT=1 WINE_FULLSCREEN_FSR=1 DXVK_ASYNC=1 PROTON_NO_ESYNC=1 DXVK_HUD=fps gamemoderun /home/user/WeMod/WeMod.sh %command% +com_showLoadingScreen 0 +r_skipDOF 1`
-- You are all set, please verify that you have done all the steps correctly
+![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728375444258956/sl.png?width=550&height=17)
 
+![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728445338124338/123.jpg?width=550&height=309)
 
-## WeMod download / install / unpack
-As stated earlier, installing WeMod has some challenges under linux (Due to *squirrel* and UAC presumably), so here I detail a way to obtain WeMod and unpack it all in linux.
+![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728475117690960/sl.png?width=550&height=17)
 
-- If "7zip FM" is available in your distro, install that, or go to [https://www.7-zip.org/download.html](https://www.7-zip.org/download.html), and download the 7zip installer for your platform. If unsure, select the very first one.
-- Once downloaded, open the setup file in your regular system wine (or any other if you prefer), and complete the setup.
-- Go to [https://api.wemod.com/client/download](https://api.wemod.com/client/download), which would trigger the download of the latest version of WeMod offline / full installer.
-- Once downloaded, open "7-Zip File Manager" (for those whose distro does not ship "7zip FM" and installed this in wine, the installation is located in the "C:\Program Files\7-Zip" directory inside your WINE_PREFIX)
-- In 7Zip FM, navigate your way to the path where you downloaded the WeMod installer and right click on it and select "Open Inside"
-- Here you shall see a file which ends with `.nupkg`, right-click on this and select "Open Inside" again
-- Here you shall see a directory named "lib", go inside it and then there would be another directory named "net45", this folder contains the WeMod installation.
-- Rightclick on "net45" and select "Copy To", then select where you want to extract / install WeMod to and click "OK"
-- Once the copy / extraction / installation completes, you are done and you could start the actual installation of this utility as detailed in the **Installation** section above.
+![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728565966311424/1.png?width=550&height=46)
 
+‎
 
-## Important Notes
-- The `sdl` requirement is not confirmed
-- The `allfonts` is not strictly required, you could get away with just the *needed* fonts, but I did not take my time to figure this out
-- I did not test many versions of Wine / Proton, and so cannot guarantee that this would work for *any* other versions, but I ***highly recommend*** that you try other versions and share your experience
-- I tested this on "steam-runtime" with a handful of games, so I cannot say how this would fare with the native and flatpak versions of steam or without steam at all. If you would like to support these, you are more than welcome to open a PR and contribute your efforts.
-- ***If you have any suggestions / improvements / issues, please feel free to submit a pull request or create an issue***
+*   Steam Deck running Linux (or any Linux-based x86\_64 system).
+*   External Mouse and Keyboard (Recommended for Steam Deck).
+*   WeMod Pro Subscription (Recommended for Steam Deck).
+*   Stable Internet Connection.
+
+‎ ![:1_:](https://cdn.discordapp.com/emojis/1113579886439833690.webp?size=44&quality=lossless) **NOTE:** If you have access to another PC and wish to control the Steam Deck remotely, consider using **AnyDesk** for an easier setup. ‎‎
+
+![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728689358557184/sl.png?width=550&height=17)
+
+![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728715765886976/3.png?width=550&height=46)
+
+‎ **Step 1: Access Desktop Mode and Discovery Store**
+
+1.  Go to the Desktop Mode on your Steam Deck _(Skip if you are not using a Steam Deck)_.
+2.  Open the Discovery Store _(or any other Flatpak-compatible store on your OS)_.
+3.  Search for and install **"ProtonUp-QT"** in the store.
+4.  Search for and install **“Protontricks”** in the store _(this is used to find the Game ID for your games - if you know how to find the Game ID without Protontricks you can skip this step)_.
+
+![:1_:](https://cdn.discordapp.com/emojis/1113579886439833690.webp?size=44&quality=lossless) **NOTE:** You can use any alternative approach to install **"ProtonUp-QT"** that is available in your distro.
+
+**Step 2: Install Recommended Version of Proton**
+
+1.  Open **"ProtonUp-QT"**
+2.  Click on "Add Version" under GE-Proton and select **"GE-Proton7-35"** and download it
+3.  Restart Steam Deck _(or Steam if you are not on Steam OS)_.
+
+**Step 3: Installing WeMod Launcher**
+
+1.  Open Konsole/Terminal and run: `git clone https://github.com/DaniAsh551/wemod-launcher.git`
+2.  In Dolphin/File Browser, navigate to home/deck to find the **wemod-launcher** folder and make sure it's there. ‎
+
+![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728815854563388/sl.png?width=550&height=17)
+
+![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728863829016666/2.png?width=550&height=46)
+
+‎ **Meta Step:** Deleting Game Prefix _(If Needed)_
+
+![:alert:](https://cdn.discordapp.com/emojis/1049837871772729354.webp?size=44&quality=lossless) **IMPORTANT:** If you've played the game before with any other proton version or if you are unsure, follow these steps to delete its prefix:
+
+1.  Open Protontricks and note the "Game ID" next to the game.
+2.  Open Dolphin file manager and enable "Show Hidden Files".
+3.  Navigate to the ".steam" directory (on the drive where you installed your game): `‘home/deck/.steam/steam/steamapps/compatdata/GameID’`
+4.  Delete the folder with the corresponding Game ID.
+
+**Step 1: Configure Steam Play Compatibility**
+
+1.  **C**lick the game you want to use WeMod with from Steam.
+2.  Click on the gear icon and select "Properties".
+3.  Go to the Compatibility tab.
+4.  Enable "Force the use of a specific Steam Play compatibility tool".
+5.  Choose "GE-Proton7-35" _(restart Steam if not listed)_.
+6.  Launch the game and exit after you reach the game's Main Menu.
+
+**Step 2: Configure Launch Options**
+
+1.  Click the game you want to use WeMod with from Steam.
+2.  Click the gear icon again.
+3.  Under Launch Options and paste: `WEMOD_LOG=/home/deck/wemod-launcher/wemod.log /home/deck/wemod-launcher/wemod %command%`
+
+**Step 3: Install WeMod for Your Game**
+
+1.  Launch the game.
+2.  Select "Build" and then "WeMod launcher" _(this process takes around 10 minutes on a Steam Deck)_.
+3.  Once the build is complete, launch the game _(in Desktop mode again, if you are on a Steam Deck)_.
+
+**Step 4: Configuring WeMod Account and Installing Game Mods**
+
+1.  When you launch the game now WeMod should Launch with it
+2.  If not logged in, log in or create an account in WeMod _(One time only)_.
+3.  Search for the game you launched in WeMod.
+4.  Click the arrow next to install.
+5.  Locate the game's executable file: Navigate to `/home/deck/`.
+6.  Type in the file name ".local" and pick an exe file.
+7.  It should take you to the ".local" folder and then go to `share/steam/steamapps/common/Game/Game.exe`.  
+    ![:alert:](https://cdn.discordapp.com/emojis/1049837871772729354.webp?size=44&quality=lossless) **IMPORTANT:** You might have a different installation location than the one provided in the guide, especially if your game is installed on your SD card. This location can vary from person to person. To locate it, you'll need to determine the drive where your SD card is located and then navigate to `/run/media/SDCardName/steamapps/common/Game/Game.exe`.
+8.  Restart Steam.
+9.  Launch the game from SteamOS or Desktop Mode. ‎
+
+![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728947538923580/sl.png?width=550&height=17)
+
+‎ ![:1_:](https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=44&quality=lossless) **NOTE:** If you wish to enable or disable mods within SteamOS, a WeMod Pro subscription is required for controlling cheats using a mobile device. However, with the free version of WeMod, you can solely manage toggle settings within Desktop Mode. Consequently, you will need to initiate game launches from there. Also, It's important to be aware that certain games may require launching exclusively through WeMod in desktop mode to access its features.
+
+![:alert:](https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=44&quality=lossless) This guide is designed to remain adaptable and open to improvements in the future. We welcome any ideas, suggestions, or feedback you may have. Please feel free to share them in the ⁠guide-feedback channel, as we strive to ensure this guide continues to provide the best possible assistance to our users. Your input is valuable in making this guide a valuable resource.
+
+‎![:wemodapp:](https://cdn.discordapp.com/emojis/761419274945953842.webp?size=44&quality=lossless) **Video Tutorial:** Soon!
+
+‎ ![:2_:](https://cdn.discordapp.com/emojis/1113579884749529198.gif?size=44&quality=lossless) **Guide is written by Trippin (Discord: Trippixn)**
+
+![:2_:](https://cdn.discordapp.com/emojis/1113579884749529198.gif?size=44&quality=lossless) **WeMod Linux is developed by DaniAsh551**
+
+‎![:birb:](https://cdn.discordapp.com/emojis/999743709677633536.gif?size=44&quality=lossless) If you find this guide helpful, we encourage you to star the project.
