@@ -3,6 +3,24 @@
 ## This is a small tool made to launch the popular Game Trainer / Cheat tool WeMod along with your game (made for steam-runtime version in Linux). I have tested this only on a handful of games and you are welcome to report your findings / suggestions.
 
 ## If this Helps you, please star the project.
+If you would like to support me and/or the project, you could:
+<br/>
+<p align="center">
+  <a href="https://www.buymeacoffee.com/TIjUvF1" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-violet.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+</p>
+<p align="center"><b>OR</b></p>
+
+<p align="center">
+  <a href="https://www.patreon.com/daniash551" target="_blank"><img src="https://c5.patreon.com/external/logo/become_a_patron_button.png" alt="Become a Patreon" style="height: 60px !important;width: 217px !important;" ></a>
+</p>
+<p align="center"><b>OR</b></p>
+
+<p align="center">
+  <a href="https://www.paypal.com/donate/?hosted_button_id=D7Y43PT9HUEUY" target="_blank"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" alt="Donate via PayPal" style="height: 60px !important;width: 217px !important;" ></a>
+</p>
+
+<hr/>
+
 <p align="center">
   <img src="https://www.wemod.com/static/images/wemod-logo-40777eae11.webp" alt="WeMod logo"/>
 </p>
