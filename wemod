@@ -7,74 +7,69 @@ import subprocess
 from util import cache, exit_with_message, get_dotnet48, popup_dowload, wine, winetricks, log, popup_execute, pip, popup_options
 from setup import main
 
-SCRIPT_PATH=os.path.dirname(os.path.realpath(__file__))
+# Define paths and constants
+SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 WEMOD_BAT = "C:\\\\windows\\\\system32\\\\start.exe Z:" + "\\\\".join(SCRIPT_PATH.split("/")) + "\\\\wemod.bat"
 WINEPREFIX = os.path.join(os.getenv("STEAM_COMPAT_DATA_PATH"), "pfx")
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
 
-def init(proton:str) -> None:
+# Initialize the environment
+def init(proton: str) -> None:
   import PySimpleGUI as sg
 
-  # if wineprefix doesnt exist
+  # Create wineprefix directory if it doesn't exist
   if not os.path.isdir(WINEPREFIX):
     os.makedirs(os.getenv("STEAM_COMPAT_DATA_PATH"), exist_ok=True)
     os.makedirs(WINEPREFIX, exist_ok=True)
 
-  # check if WINEPREFIX is already inited
-  
+  # Check for the initialization file in the wineprefix
   log("Looking for init file '{}' in '{}'".format(INIT_FILE, WINEPREFIX))
-  
   if os.path.exists(INIT_FILE):
     log("Found init file. Continuing launch...")
     return
 
   log("Init file not found! Attempting to prepare the WINEPREFIX")
   
+  # User choice for prefix setup
   prefix_op = popup_options("Prefix Setup", "Would you like to build/modify your prefix or download an already setup one?", [ "build", "download" ])
 
+  # Determine proton directory
   proton_dir = proton.split("/")[:-1]
   proton_dir.append("files")
   proton_dir.append("bin")
   proton_dir = "/".join(proton_dir)
   log("Using wine from Proton at path: '{}'".format(proton_dir))
 
+  # Call appropriate function based on user choice
   if prefix_op == "build":
     build_prefix(proton_dir)
   else:
     download_prefix(proton_dir)
 
-def download_prefix(proton_dir:str) -> None:
+# Function to download and unpack a pre-configured wineprefix
+def download_prefix(proton_dir: str) -> None:
   from shutil import which
   import PySimpleGUI as sg
 
+  # Set environment path
   path = os.path.join(SCRIPT_PATH, "bin") + ":" + proton_dir + ":" + os.getenv("PATH")
 
   file_name = "wemod_prefix.tar.zst"
   link = "https://danimv.top/storage/" + file_name
 
-  # Get Prefix from cache, or download and cache
+  # Download or use cached prefix
   prefix_path = cache(file_name, lambda name: popup_dowload("Dowloading Prefix...", link, name))
-  
-  # First Launch
+
+  # Check and prepare for first launch
   if not os.path.exists(WINEPREFIX + "/drive_c"):
     log(WINEPREFIX)
     exit_with_message("First Launch","First Launch Detected: Please run the game once without wemod first.")
 
-  # if os.path.isdir(WINEPREFIX):
-  #   log("Found existing prefix..., moving it")
-  #   bak_dir = WINEPREFIX + "_bak"
-
-    # if os.path.isdir(bak_dir):
-    #   log("Found existing backup dir, removing...")
-    #   shutil.rmtree(bak_dir)
-    # shutil.move(WINEPREFIX, bak_dir)
-
-  # Unpack prefix
+  # Unpack the downloaded prefix
   log("Unpacking prefix...")
   read_binary = "pv -petr" if which("pv") is not None else "cat"
-  command = "sh -c \"{} '{}' | zstd -T0 -d -c | tar -xvf - -C '{}'\"".\
-    format(read_binary, prefix_path, WINEPREFIX)
+  command = "sh -c \"{} '{}' | zstd -T0 -d -c | tar -xvf - -C '{}'\"".format(read_binary, prefix_path, WINEPREFIX)
   log("Using command '{}'".format(command))
 
   exit_code = popup_execute("Unpacking prefix...", command)
@@ -82,9 +77,11 @@ def download_prefix(proton_dir:str) -> None:
     exit_message = "Prefix unpacking failed with code '{}'".format(exit_code)
     exit_with_message("ERROR", exit_message, exit_code)
 
+  # Install additional dependencies
   log("Installing vkd3d and dxvk2010...")
   exit_code = winetricks("-q vkd3d dxvk2010", path)
 
+  # Finalize the setup
   if exit_code == 0:
     log("Finished dependencies installation. Writing init file...")
     open(INIT_FILE, "a").close()
@@ -92,32 +89,39 @@ def download_prefix(proton_dir:str) -> None:
     exit_message = "dxvk and vkd3d installation failed with code '{}'".format(exit_code)
     exit_with_message("ERROR", exit_message, exit_code)
 
-def build_prefix(proton_dir:str) -> None:
+# Function to build a new wineprefix
+def build_prefix(proton_dir: str) -> None:
   import PySimpleGUI as sg
+
+  # Set environment path
   path = os.path.join(SCRIPT_PATH, "bin") + ":" + proton_dir + ":" + os.getenv("PATH")
 
   deps = []
 
+  # Choose method to install dotnet48
   dotnet48_method = popup_options("dotnet48",
     "Would you like to install dotnet48 with winetricks (default) or with wemod-launcher?",
     [ "winetricks", "wemod-launcher" ]
   )
 
+  # Add dependencies to the list
   deps.append("-q sdl cjkfonts vkd3d dxvk2010")
   
   if dotnet48_method == "winetricks":
     deps.append("-q dotnet48")
   
+  # Install dependencies
   log("Running dependencies installation. This could take a while...")
-
   main()
 
+  # Install each dependency
   resp = 0
   dep_i = -1
   while resp == 0 and (len(deps) - 1) > dep_i:
     dep_i = dep_i + 1
     resp = winetricks(deps[dep_i], path)
 
+  # Install dotnet48 using wemod-launcher if selected
   if dotnet48_method == "wemod-launcher":
     log("Installing dotnet48...")
     dotnet48 = get_dotnet48()
@@ -127,14 +131,14 @@ def build_prefix(proton_dir:str) -> None:
     if dotnet48_result != 0 and dotnet48_result != 194 and dotnet48_result != -15:
       exit_with_message("dotnet48 install error", "dotnet48 installation exited with code '{}'".format(dotnet48_result))
 
+  # Finalize setup
   if resp == 0:
     log("Finished dependencies installation. Writing init file...")
     open(INIT_FILE, "a").close()
-    return None
   else:
     exit_with_message("ERROR", "Failed dependencies installation with code '{}'. Aborting...".format(resp), resp)
 
-
+# Main run function
 def run(skip_init=False):
   ARGS= " ".join(sys.argv[1:])
   AARGS=ARGS.split(" -- ")
@@ -142,23 +146,21 @@ def run(skip_init=False):
   PROTON_CMD=AARGS[-1].split(" ")
   PROTON=PROTON_CMD[0]
 
+  # Initialize environment if not skipped
   if not skip_init:
     init(PROTON)
 
+  # Parse command to be executed
   COMMAND=" ".join(PROTON_CMD[2:])
-
   WIN_CMD=COMMAND.split(" ")[0].split("/")[-1] + " " + " ".join(COMMAND.split(" ")[1:])
-
   WIN_PATHS=WIN_CMD.split("/")
-
   DIR_CONTS = os.listdir(".")
 
-  CORRECT_PATH = list(filter( lambda x: x in DIR_CONTS, WIN_PATHS ))
+  CORRECT_PATH = list(filter(lambda x: x in DIR_CONTS, WIN_PATHS))
 
   if len(CORRECT_PATH) > 0:
     WIN_CMD = WIN_CMD[WIN_CMD.index(CORRECT_PATH[0]):]
 
-  
   WIN_CMD_SPLIT = WIN_CMD.split(".exe")
   WIN_CMD = WIN_CMD_SPLIT[0] + ".exe"
   LAUNCH_OPTIONS=""
@@ -169,6 +171,7 @@ def run(skip_init=False):
   FINAL=REAPER_CMD + " -- " + PROTON + " waitforexitandrun "  + WEMOD_BAT + " \"" + WIN_CMD + "\"" + LAUNCH_OPTIONS
   log("Executing:\n\t{}\n".format(FINAL))
 
+  # Execute the final command
   process = subprocess.Popen(FINAL, stdout=subprocess.PIPE, shell=True)
   for line in iter(process.stdout.readline,''):
     if line == None or line == b'':
@@ -179,21 +182,23 @@ def run(skip_init=False):
   log("Exit command with '{}'".format(resp))
   return "EXIT"
 
+# Log Python version and ensure dependencies
 log(sys.version)
-
 log("Ensuring Dependencies...")
 requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
-
 return_code = pip("install --break-system-packages -r {}".format(requirements_txt))
 
+# Handle dependency installation errors
 if return_code != 0:
   log("Failed to install dependencies. pip Exited with code '{}'".format(return_code))
   exit(return_code)
 
-RESP=""
+# Main execution block
+RESP = ""
 try:
   RESP = run()
 except Exception as e:
-  RESP="ERR:\n" + str(e)
+  RESP = "ERR:\n" + str(e)
 
+# Log final response or error
 log(str(RESP) + "\n\n\n")
