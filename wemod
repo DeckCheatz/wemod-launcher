@@ -4,7 +4,7 @@ import shutil
 import sys
 import os
 import subprocess
-from util import cache, exit_with_message, get_dotnet48, popup_dowload, wine, winetricks, log, popup_execute, pip, popup_options
+from util import cache, exit_with_message, get_dotnet48, popup_download, wine, winetricks, log, popup_execute, pip, popup_options
 from setup import main
 
 # Define paths and constants
@@ -59,7 +59,7 @@ def download_prefix(proton_dir: str) -> None:
   link = "https://danimv.top/storage/" + file_name
 
   # Download or use cached prefix
-  prefix_path = cache(file_name, lambda name: popup_dowload("Dowloading Prefix...", link, name))
+  prefix_path = cache(file_name, lambda name: popup_download("Dowloading Prefix...", link, name))
 
   # Check and prepare for first launch
   if not os.path.exists(WINEPREFIX + "/drive_c"):
