@@ -169,7 +169,7 @@ def winetricks(command: str, proton_bin: str) -> int:
     # Download winetricks if not present
     if not os.path.isfile(winetricks_sh):
         log("winetricks not found. Downloading...")
-        request.urlretrieve("https://github.com/Winetricks/winetricks/raw/master/src/winetricks", winetricks_sh)
+        request.urlretrieve("https://raw.githubusercontent.com/Winetricks/winetricks/20240105/src/winetricks", winetricks_sh)
         log(f"setting exec permissions on '{winetricks_sh}'")
         process = subprocess.Popen(f"sh -c 'chmod +x {winetricks_sh}'", shell=True)
         exit_code = process.wait()
