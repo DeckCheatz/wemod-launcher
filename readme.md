@@ -129,3 +129,5 @@ If you would like to support me and/or the project, you could:
 ![:2_:](https://cdn.discordapp.com/emojis/1113579884749529198.gif?size=44&quality=lossless) **WeMod Linux is developed by DaniAsh551**
 
 ‎![:birb:](https://cdn.discordapp.com/emojis/999743709677633536.gif?size=44&quality=lossless) If you find this guide helpful, we encourage you to star the project.
+
+[![Star History Chart](https://api.star-history.com/svg?repos=DaniAsh551/wemod-launcher&type=Date)](https://star-history.com/#DaniAsh551/wemod-launcher&Date)
