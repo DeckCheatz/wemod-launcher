@@ -1,2 +1,2 @@
-PySimpleGUI
+PySimpleGUI==4.60.3
 requests
