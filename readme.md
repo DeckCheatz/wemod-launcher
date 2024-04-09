@@ -25,6 +25,8 @@ If you would like to support me and/or the project, you could:
   <img src="https://www.wemod.com/static/images/wemod-logo-40777eae11.webp" alt="WeMod logo"/>
 </p>
 
+## Changes
+- Prefix Windows directory dereferenced (fixes dotnet4.8 bug on Proton Version 8 and above) - thanks to reddit user /u/pickworthi for finding it out
 
 ![:wemod:](https://cdn.discordapp.com/emojis/761419420211740672.webp?size=44&quality=lossless) **How to Install WeMod on a Steam Deck (Linux)** In this guide, we'll walk you through the process of installing WeMod on a Steam Deck running Linux. We'll cover all the steps required to set up the necessary components and configurations to seamlessly integrate WeMod with your games. ‎
 
@@ -61,7 +63,7 @@ If you would like to support me and/or the project, you could:
 **Step 2: Install Recommended Version of Proton**
 
 1.  Open **"ProtonUp-QT"**
-2.  Click on "Add Version" under GE-Proton and select **"GE-Proton7-35"** and download it
+2.  Click on "Add Version" under GE-Proton and select **"GE-Proton7-35"** or any **"GE-Proton8"** or  any **"GE-Proton9"** version and download it
 3.  Restart Steam Deck _(or Steam if you are not on Steam OS)_.
 
 **Step 3: Installing WeMod Launcher**
@@ -102,6 +104,10 @@ If you would like to support me and/or the project, you could:
 1.  Launch the game.
 2.  Select "Build" and then "WeMod launcher" _(this process takes around 10 minutes on a Steam Deck)_.
 3.  Once the build is complete, launch the game _(in Desktop mode again, if you are on a Steam Deck)_.
+
+NOTE: if the installer asks you whether you want to use wemod-launcher or winetricks to install:
+ - Choose wemod-launcher if you are using Proton version 7 or earlier
+ - Choose winetricks if you are using Proton version 8 or later
 
 **Step 4: Configuring WeMod Account and Installing Game Mods**
 
