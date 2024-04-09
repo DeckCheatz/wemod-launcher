@@ -4,6 +4,7 @@ import os
 import sys
 from typing import Callable
 from urllib import request
+import tempfile
 
 # Set the script path and define the Wine prefix for Windows compatibility
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -227,6 +228,48 @@ def get_dotnet48() -> str:
 
     dotnet48 = cache("ndp48-x86-x64-allos-enu.exe", cache_func)
     return dotnet48
+
+def deref(path):
+    """
+    Dereferences symbolic links in the specified directory and its subdirectories.
+
+    Args:
+        path (str): The root directory to search for symbolic links.
+
+    Returns:
+        None
+
+    Steps:
+        1. Finds symbolic links using the `find` command.
+        2. Generates a shell script to replace links with their targets.
+        3. Creates a temporary file and writes the script to it.
+        4. Executes the temporary shell script to perform dereferencing.
+        5. Displays progress as the script executes.
+
+    Notes:
+        - Uses a temporary file to avoid potential issues with complex shell commands.
+        - Displays progress using echo statements within the script.
+    """
+    links = []
+
+    command = f"find {path} -type l -ls"
+    popup_execute("Dereference: Discovering", command, lambda x: links.append([f"{x.split()[10]}", f"{x.split()[12]}"]))
+    
+    script=""
+
+    for i in range(len(links)):
+        link = links[i]
+        target = link[0]
+        src = link[1]
+        perc = round(((i+1) / len(links)) * 100, 2)
+
+        script += "rm '{}' && cat '{}' > '{}' && echo 'Progress: {}%';".format(target, src, target, perc)
+    
+    with tempfile.NamedTemporaryFile() as tmp:
+        tmp.write(script.encode())
+        popup_execute("Dereference", f"sh {tmp.name}")
+
+
 
 # Main execution block, example of using popup_execute
 if __name__ == "__main__":
