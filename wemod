@@ -4,7 +4,7 @@ import shutil
 import sys
 import os
 import subprocess
-from util import cache, exit_with_message, get_dotnet48, popup_download, wine, winetricks, log, popup_execute, pip, popup_options
+from util import cache, exit_with_message, get_dotnet48, popup_download, wine, winetricks, log, popup_execute, pip, popup_options, deref
 from setup import main
 
 # Define paths and constants
@@ -95,6 +95,11 @@ def build_prefix(proton_dir: str) -> None:
 
   # Set environment path
   path = os.path.join(SCRIPT_PATH, "bin") + ":" + proton_dir + ":" + os.getenv("PATH")
+
+  #deref
+  winpath = os.path.join(WINEPREFIX, "drive_c", "windows")
+  log(f"Dereferencing '{winpath}'")
+  deref(winpath)
 
   deps = []
 
