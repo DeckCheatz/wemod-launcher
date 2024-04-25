@@ -8,6 +8,6 @@ echo Hello from WeMod Launcher
 echo WEMOD EXE: "%wemodpath%"
 echo PWD: "%cd%"
 echo command: %*
-pause
+choice /C Y /N /T 30 /D Y /M "Press Y to continue or wait 30 seconds: "
 start "" %wemodpath%
 start "" %*
