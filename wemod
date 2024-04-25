@@ -170,11 +170,13 @@ def run(skip_init=False):
   WIN_CMD = WIN_CMD_SPLIT[0] + ".exe"
   LAUNCH_OPTIONS=""
 
-  if len(WIN_CMD_SPLIT) > 0:
+  if len(WIN_CMD_SPLIT) > 1:
     LAUNCH_OPTIONS = ".exe".join(WIN_CMD_SPLIT[1:])
 
-  FINAL=REAPER_CMD + " -- " + PROTON + " waitforexitandrun "  + WEMOD_BAT + " \"" + WIN_CMD + "\"" + LAUNCH_OPTIONS
-  log("Executing:\n\t{}\n".format(FINAL))
+  QUOTED_WEMOD_BAT = f'\'{WEMOD_BAT}\'' if WEMOD_BAT else WEMOD_BAT
+
+  FINAL = f'{REAPER_CMD} -- {PROTON} waitforexitandrun {QUOTED_WEMOD_BAT} \'{WIN_CMD}\'{LAUNCH_OPTIONS}'
+  log(f"Executing:\n\t{FINAL}\n")
 
   # Execute the final command
   process = subprocess.Popen(FINAL, stdout=subprocess.PIPE, shell=True)
@@ -184,7 +186,7 @@ def run(skip_init=False):
     log(line.decode("utf8"))
 
   resp = process.wait()
-  log("Exit command with '{}'".format(resp))
+  log(f"Exit command with '{resp}'")
   return "EXIT"
 
 # Log Python version and ensure dependencies
