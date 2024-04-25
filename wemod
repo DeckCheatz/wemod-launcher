@@ -173,7 +173,8 @@ def run(skip_init=False):
   if len(WIN_CMD_SPLIT) > 1:
     LAUNCH_OPTIONS = ".exe".join(WIN_CMD_SPLIT[1:])
 
-  QUOTED_WEMOD_BAT = f'\'{WEMOD_BAT}\'' if WEMOD_BAT else WEMOD_BAT
+  SPLIT_WEMOD_BAT = WEMOD_BAT.split(" ")
+  QUOTED_WEMOD_BAT = f'\'{SPLIT_WEMOD_BAT[0]}\' \'{" ".join(SPLIT_WEMOD_BAT[1:])}\''
 
   FINAL = f'{REAPER_CMD} -- {PROTON} waitforexitandrun {QUOTED_WEMOD_BAT} \'{WIN_CMD}\'{LAUNCH_OPTIONS}'
   log(f"Executing:\n\t{FINAL}\n")
