@@ -1,5 +1,8 @@
 # WeMod Launcher (For Linux)
 
+## DISCLAIMER: For everyone asking: This project is *NOT* affiliated with / funded or paid by / made by WeMod.
+The works done here are purely from the contributors who donate their time and efforts. WeMod (the company) makes WeMod (the mod tool). We (`wemod-launcher`) enable you to run it on Linux (and by extension the Steam Deck).
+
 ## This is a small tool made to launch the popular Game Trainer / Cheat tool WeMod along with your game (made for steam-runtime version in Linux). I have tested this only on a handful of games and you are welcome to report your findings / suggestions.
 
 ## If this Helps you, please star the project.
