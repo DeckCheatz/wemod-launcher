@@ -78,8 +78,8 @@ def download_prefix(proton_dir: str) -> None:
     exit_with_message("ERROR", exit_message, exit_code)
 
   # Install additional dependencies
-  log("Installing vkd3d and dxvk2010...")
-  exit_code = winetricks("-q vkd3d dxvk2010", path)
+  log("Installing vkd3d and dxvk2030...")
+  exit_code = winetricks("-q vkd3d dxvk2030", path)
 
   # Finalize the setup
   if exit_code == 0:
@@ -110,7 +110,7 @@ def build_prefix(proton_dir: str) -> None:
   )
 
   # Add dependencies to the list
-  deps.append("-q sdl cjkfonts vkd3d dxvk2010")
+  deps.append("-q sdl cjkfonts vkd3d dxvk2030")
   
   if dotnet48_method == "winetricks":
     deps.append("-q dotnet48")
