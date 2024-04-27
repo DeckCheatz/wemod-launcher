@@ -136,6 +136,8 @@ def build_prefix(proton_dir: str) -> None:
     if dotnet48_result != 0 and dotnet48_result != 194 and dotnet48_result != -15:
       exit_with_message("dotnet48 install error", "dotnet48 installation exited with code '{}'".format(dotnet48_result))
 
+  wine("winecfg -v win10", path) # Set Windows version to Windows 10
+
   # Finalize setup
   if resp == 0:
     log("Finished dependencies installation. Writing init file...")
