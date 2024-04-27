@@ -19,10 +19,14 @@ PREFIX_IN_WEMOD_FOLDER = os.path.join(SCRIPT_PATH, "proton")
 def init(proton: str) -> None:
   import PySimpleGUI as sg
 
-  # Create wineprefix directory if it doesn't exist
+  # Create wemod wineprefix directory if it doesn't exist
   if not os.path.isdir(WINEPREFIX):
     os.makedirs(os.getenv("STEAM_COMPAT_DATA_PATH"), exist_ok=True)
     os.makedirs(WINEPREFIX, exist_ok=True)
+
+  # Create wineprefix directory if it doesn't exist
+  if not os.path.isdir(PREFIX_IN_WEMOD_FOLDER):
+    os.makedirs(PREFIX_IN_WEMOD_FOLDER, exist_ok=True)
 
   # Check for the initialization file in the wineprefix
   log("Looking for init file '{}' in '{}'".format(INIT_FILE, WINEPREFIX))
