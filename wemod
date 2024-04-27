@@ -13,6 +13,7 @@ WEMOD_BAT = "C:\\\\windows\\\\system32\\\\start.exe Z:" + "\\\\".join(SCRIPT_PAT
 WINEPREFIX = os.path.join(os.getenv("STEAM_COMPAT_DATA_PATH"), "pfx")
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
+PREFIX_IN_WEMOD_FOLDER = os.path.join(SCRIPT_PATH, "proton")
 
 # Initialize the environment
 def init(proton: str) -> None:
@@ -25,6 +26,20 @@ def init(proton: str) -> None:
 
   # Check for the initialization file in the wineprefix
   log("Looking for init file '{}' in '{}'".format(INIT_FILE, WINEPREFIX))
+  gameprefix_ready = os.path.exists(INIT_FILE)
+
+   # Check for ready prefix in wemod folder
+  ready_prefix_in_wemod_folder = os.path.exists(os.path.join(PREFIX_IN_WEMOD_FOLDER, ".wemod_installer"))
+
+   # Decide the action based on prefix status
+  if gameprefix_ready and not ready_prefix_in_wemod_folder:
+    shutil.copytree(WINEPREFIX, PREFIX_IN_WEMOD_FOLDER, dirs_exist_ok=True)
+    log("Copied game prefix to WEMOD folder")
+  elif not gameprefix_ready and ready_prefix_in_wemod_folder:
+    shutil.copytree(PREFIX_IN_WEMOD_FOLDER, WINEPREFIX, dirs_exist_ok=True)
+    log("Copied prefix in WEMOD folder to game prefix")
+
+  # Check once more for the initialization file in the wineprefix
   if os.path.exists(INIT_FILE):
     log("Found init file. Continuing launch...")
     return
