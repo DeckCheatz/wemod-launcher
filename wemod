@@ -13,13 +13,13 @@ SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 WEMOD_BAT = "C:\\\\windows\\\\system32\\\\start.exe Z:" + "\\\\".join(SCRIPT_PATH.split("/")) + "\\\\wemod.bat"
 BASE_STEAM_COMPAT = os.getenv("STEAM_COMPAT_DATA_PATH")
 WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
-STEAM_COMPAT_FOLDER = os.path.abspath(os.path.join(WINEPREFIX, os.pardir))
+STEAM_COMPAT_FOLDER = os.path.abspath(os.path.join(os.path.abspath(os.path.join(WINEPREFIX, os.pardir)), os.pardir))
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
 
 def parse_version(version_str = None):
   # Replace '-' with '.' and ',' with '.'
-  if version_str:
+  if version_str and isinstance(version_str, str):
     dot_version = version_str.replace("-", ".").replace(",", ".")
 
     # Remove the Everything except for numbers and dots
@@ -39,6 +39,8 @@ def parse_version(version_str = None):
       return float(version_number)
     except ValueError:
       return None
+  elif isinstance(version_str, int) or isinstance(version_str, float):
+    return float(version_str)
   return None
 
 def read_version(version_file): # read file
@@ -49,7 +51,7 @@ def read_version(version_file): # read file
         return None
 
 # Scan the steam compat folder for wemod installed prefixes
-def scanforversionfolder(current_proton_version: str):
+def scanfolderforversions(current_proton_version: str):
   # At default we dont know of any available version
   closest_version_folder = None
   closest_version_number = None
@@ -84,17 +86,17 @@ def init(proton: str) -> None:
     os.makedirs(os.getenv("STEAM_COMPAT_DATA_PATH"), exist_ok=True)
     os.makedirs(WINEPREFIX, exist_ok=True)
 
-  # If wemod is not installed try to copy a working prefix to the currend one
+  # If wemod is not installed try to copy a working prefix to the current one
   log(f"Looking for init file '{INIT_FILE}' in '{WINEPREFIX}'")
   if not os.path.exists(INIT_FILE):
     # Grab active proton version
-    currend_proton_version = read_version(os.path.join(BASE_STEAM_COMPAT, "version"))
-    cut_proton_version = parse_version(currend_proton_version)
+    current_proton_version = read_version(os.path.join(BASE_STEAM_COMPAT, "version"))
+    cut_proton_version = parse_version(current_proton_version)
 
     log(f"Loking for compatible wine prefixes in '{STEAM_COMPAT_FOLDER}' with proton version '{cut_proton_version}'")
 
     # Get closest version that has wemod installed
-    closest_version, closest_prefix_folder = scanforversionfolder(cut_proton_version)
+    closest_version, closest_prefix_folder = scanfolderforversions(cut_proton_version)
     cut_version = parse_version(closest_version)
     log(f"Found was '{cut_version}' on '{closest_prefix_folder}'")
 
@@ -102,11 +104,13 @@ def init(proton: str) -> None:
       response = sg.popup_yes_no(f"This Proton version is not installed. Would you like to attempt to use the closest installed version ({closest_version_number}) which may result in some issues?")
       if response == "Yes":
         # Copy the closest version's prefix to the gameprefix
+        log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
         shutil.copytree(closest_prefix_folder, BASE_STEAM_COMPAT, dirs_exist_ok=True)
         log(f"Copied Proton version {closest_version_number} prefix to game prefix")
       else:
         log("User chose not to use an alternative Proton version.")
     elif closest_prefix_folder and cut_version and cut_version == cut_proton_version:
+      log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
       shutil.copytree(closest_prefix_folder, BASE_STEAM_COMPAT, dirs_exist_ok=True)
       log("Copied exact Proton version prefix to game prefix")
     else:
