@@ -41,15 +41,15 @@ def parse_version(version_str = None):
       return None
   return None
 
-# Scan the steam compat folder for wemod installed prefixes
-def scanforversionfolder(current_proton_version: str):
-  def read_version(version_file): # read file
+def read_version(version_file): # read file
     try:
       with open(version_file, 'r') as file:
         return file.read().strip()
     except FileNotFoundError:
         return None
 
+# Scan the steam compat folder for wemod installed prefixes
+def scanforversionfolder(current_proton_version: str):
   # At default we dont know of any available version
   closest_version_folder = None
   closest_version_number = None
@@ -88,9 +88,9 @@ def init(proton: str) -> None:
   log(f"Looking for init file '{INIT_FILE}' in '{WINEPREFIX}'")
   if not os.path.exists(INIT_FILE):
     # Grab active proton version
-    result = subprocess.run([proton, "--version"], capture_output=True, text=True)
-    current_proton_version = result.stdout.strip() if result.returncode == 0 else None
-    cut_proton_version = parse_version(current_proton_version)
+    currend_proton_version = read_version(os.path.join(BASE_STEAM_COMPAT, "version"))
+    cut_proton_version = parse_version(currend_proton_version)
+
     log(f"Loking for compatible wine prefixes in '{STEAM_COMPAT_FOLDER}' with proton version '{cut_proton_version}'")
 
     # Get closest version that has wemod installed
