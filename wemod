@@ -13,7 +13,7 @@ SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 WEMOD_BAT = "C:\\\\windows\\\\system32\\\\start.exe Z:" + "\\\\".join(SCRIPT_PATH.split("/")) + "\\\\wemod.bat"
 BASE_STEAM_COMPAT = os.getenv("STEAM_COMPAT_DATA_PATH")
 WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
-STEAM_COMPAT_FOLDER = os.path.dirname(WINEPREFIX)
+STEAM_COMPAT_FOLDER = os.path.abspath(os.path.join(WINEPREFIX, os.pardir))
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
 
