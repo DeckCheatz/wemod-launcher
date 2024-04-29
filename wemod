@@ -62,7 +62,7 @@ def scanforversionfolder(current_proton_version: str):
     folder_path = os.path.join(STEAM_COMPAT_FOLDER, folder)
     version_file = os.path.join(folder_path, "version")
     if os.path.isdir(folder_path) and os.path.exists(os.path.join(folder_path, "pfx", ".wemod_installer")):
-      folder_version = read_version(version_file)
+      folder_version = parse_version(read_version(version_file))
       if folder_version:
         # Compare version numbers
         try:
