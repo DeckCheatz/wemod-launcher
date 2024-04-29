@@ -17,8 +17,9 @@ STEAM_COMPAT_FOLDER = os.path.dirname(WINEPREFIX)
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
 
-def parse_version(version_str):
-    # Replace '-' with '.' and ',' with '.'
+def parse_version(version_str = None):
+  # Replace '-' with '.' and ',' with '.'
+  if version_str:
     dot_version = version_str.replace("-", ".").replace(",", ".")
 
     # Remove the Everything except for numbers and dots
@@ -38,6 +39,7 @@ def parse_version(version_str):
         return float(version_number)
     except ValueError:
         return None
+  return None
 
 # Scan the steam compat folder for wemod installed prefixes
 def scanforversionfolder(current_proton_version: str):
