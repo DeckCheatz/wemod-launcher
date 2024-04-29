@@ -31,14 +31,14 @@ def parse_version(version_str = None):
     # Split by '.' and limit to the first two components (major.minor)
     parts = clean_version.split('.')
     if len(parts) > 2:
-        parts = parts[:2]  # Keep only the first two parts
+      parts = parts[:2]  # Keep only the first two parts
 
     # Rejoin the parts and convert to a float
     version_number = '.'.join(parts)
     try:
-        return float(version_number)
+      return float(version_number)
     except ValueError:
-        return None
+      return None
   return None
 
 # Scan the steam compat folder for wemod installed prefixes
