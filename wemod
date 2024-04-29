@@ -91,7 +91,7 @@ def init(proton: str) -> None:
     result = subprocess.run([proton, "--version"], capture_output=True, text=True)
     current_proton_version = result.stdout.strip() if result.returncode == 0 else None
     cut_proton_version = parse_version(current_proton_version)
-    log(f"Loking for compatible wine prefixes in '{STEAM_COMPAT_FOLDER}' whit proton version '{cut_proton_version}'")
+    log(f"Loking for compatible wine prefixes in '{STEAM_COMPAT_FOLDER}' with proton version '{cut_proton_version}'")
 
     # Get closest version that has wemod installed
     closest_version, closest_prefix_folder = scanforversionfolder(cut_proton_version)
