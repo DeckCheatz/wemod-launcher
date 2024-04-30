@@ -107,7 +107,7 @@ def init(proton: str) -> None:
 
     if closest_prefix_folder and cut_version and cut_version != cut_proton_version:
       import PySimpleGUI as sg
-      response = sg.popup_yes_no(f"This Proton version is not installed. Would you like to attempt to use the closest installed version ({cut_version}) which may result in some issues?")
+      response = sg.popup_yes_no(f"The Proton version {cut_proton_version} is not installed. Would you like to attempt to use the closest installed version {cut_version} which may result in some issues?")
       if response == "Yes":
         # Copy the closest version's prefix to the gameprefix
         log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
