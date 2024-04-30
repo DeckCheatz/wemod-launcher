@@ -119,13 +119,13 @@ def init(proton: str) -> None:
       if response == "Yes":
         # Copy the closest version's prefix to the gameprefix
         log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
-        copy_folder_with_progress(src,dst,ignore,include_override)
+        copy_folder_with_progress(closest_prefix_folder,BASE_STEAM_COMPAT,ignore,include_override)
         log(f"Copied Proton version {closest_version_number} prefix to game prefix")
       else:
         log("User chose not to use an alternative Proton version.")
     elif closest_prefix_folder and cut_version and cut_version == cut_proton_version:
       log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
-      copy_folder_with_progress(src,dst,ignore,include_override)
+      copy_folder_with_progress(closest_prefix_folder,BASE_STEAM_COMPAT,ignore,include_override)
       log("Copied exact Proton version prefix to game prefix")
     else:
       log("No compatible Proton version found in the compatibility folder.")
