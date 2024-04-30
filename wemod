@@ -117,6 +117,7 @@ def init(proton: str) -> None:
         # Copy the closest version's prefix to the gameprefix
         log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
         window = sg.Window("Copying the prefix. Please be patient...", layout, keep_on_top=True, finalize=True)
+        window.refresh()
         copy_prefix_folder(closest_prefix_folder, BASE_STEAM_COMPAT)
         window.close()
         log(f"Copied Proton version {closest_version_number} prefix to game prefix")
@@ -125,6 +126,7 @@ def init(proton: str) -> None:
     elif closest_prefix_folder and cut_version and cut_version == cut_proton_version:
       log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
       window = sg.Window("Copying the prefix. Please be patient...", layout, keep_on_top=True, finalize=True)
+      window.refresh()
       copy_prefix_folder(closest_prefix_folder, BASE_STEAM_COMPAT)
       window.close()
       log("Copied exact Proton version prefix to game prefix")
