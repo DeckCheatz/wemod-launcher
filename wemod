@@ -76,15 +76,6 @@ def scanfolderforversions(current_proton_version: str):
           continue
   return closest_version_number, closest_version_folder
 
-
-def copy_prefix_folder(src, dst):
-  import distutils.dir_util
-  try:
-    distutils.dir_util.copy_tree(src, dst)
-    return True
-  except Exception as e:
-    return False
-
 # Initialize the environment
 def init(proton: str) -> None:
   # Create wineprefix directory if it doesn't exist
