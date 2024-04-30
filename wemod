@@ -108,7 +108,7 @@ def init(proton: str) -> None:
 
     from copier import copy_folder_with_progress
     ignore={'pfx/drive_c/users','pfx/dosdevices','pfx/drive_c/Program Files (x86)','pfx/drive_c/Program Files',
-            'pfx/drive_c/ProgramData','drive_c/openxr','pfx/drive_c/vrclient'}
+            'pfx/drive_c/ProgramData','drive_c/openxr','pfx/drive_c/vrclient','version','config_info'}
     include_override={'pfx/drive_c/users/steamuser/AppData/Roaming/WeMod','pfx/drive_c/ProgramData/Microsoft',
                       'pfx/drive_c/Program Files (x86)/Microsoft.NET','pfx/drive_c/Program Files (x86)/Windows NT',
                       'pfx/drive_c/Program Files (x86)/Common Files','pfx/drive_c/Program Files/Common Files',
