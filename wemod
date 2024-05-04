@@ -3,6 +3,7 @@
 import shutil
 import sys
 import os
+import re
 import subprocess
 from util import cache, exit_with_message, get_dotnet48, popup_download, wine, winetricks, log, popup_execute, pip, popup_options, deref
 from setup import main
@@ -10,21 +11,119 @@ from setup import main
 # Define paths and constants
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 WEMOD_BAT = "C:\\\\windows\\\\system32\\\\start.exe Z:" + "\\\\".join(SCRIPT_PATH.split("/")) + "\\\\wemod.bat"
-WINEPREFIX = os.path.join(os.getenv("STEAM_COMPAT_DATA_PATH"), "pfx")
+BASE_STEAM_COMPAT = os.getenv("STEAM_COMPAT_DATA_PATH")
+WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
+STEAM_COMPAT_FOLDER = os.path.abspath(os.path.join(os.path.abspath(os.path.join(WINEPREFIX, os.pardir)), os.pardir))
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
 
+def parse_version(version_str = None):
+  # Replace '-' with '.' and ',' with '.'
+  if version_str and isinstance(version_str, str):
+    dot_version = version_str.replace("-", ".").replace(",", ".")
+
+    # Remove the Everything except for numbers and dots
+    reduced_version = re.sub(r"[^\d.]", "", dot_version)
+
+    # Remove . from front and back
+    clean_version = reduced_version.strip(".")
+
+    # Split by '.' and limit to the first two components (major.minor)
+    parts = clean_version.split('.')
+    if len(parts) > 2:
+      parts = parts[:2]  # Keep only the first two parts
+
+    # Rejoin the parts and convert to a float
+    version_number = '.'.join(parts)
+    try:
+      return float(version_number)
+    except ValueError:
+      return None
+  elif isinstance(version_str, int) or isinstance(version_str, float):
+    return float(version_str)
+  return None
+
+def read_version(version_file): # read file
+    try:
+      with open(version_file, 'r') as file:
+        return file.read().strip()
+    except FileNotFoundError:
+        return None
+
+# Scan the steam compat folder for wemod installed prefixes
+def scanfolderforversions(current_proton_version: str):
+  # At default we dont know of any available version
+  closest_version_folder = None
+  closest_version_number = None
+  # And we have infinite div between them
+  version_diff = float('inf')
+
+  # For all folders in steam compat
+  for folder in os.listdir(STEAM_COMPAT_FOLDER):
+    # Get the version file, folder path and check if wemod is installed
+    folder_path = os.path.join(STEAM_COMPAT_FOLDER, folder)
+    version_file = os.path.join(folder_path, "version")
+    if os.path.isdir(folder_path) and os.path.exists(os.path.join(folder_path, "pfx", ".wemod_installer")):
+      folder_version = parse_version(read_version(version_file))
+      if folder_version:
+        # Compare version numbers
+        try:
+          if abs(float(folder_version) - float(current_proton_version)) < version_diff:
+            version_diff = abs(float(folder_version) - float(current_proton_version))
+            closest_version_folder = folder_path
+            closest_version_number = folder_version
+        except ValueError:
+          continue
+  return closest_version_number, closest_version_folder
+
 # Initialize the environment
 def init(proton: str) -> None:
-  import PySimpleGUI as sg
-
   # Create wineprefix directory if it doesn't exist
   if not os.path.isdir(WINEPREFIX):
     os.makedirs(os.getenv("STEAM_COMPAT_DATA_PATH"), exist_ok=True)
     os.makedirs(WINEPREFIX, exist_ok=True)
 
+  # If wemod is not installed try to copy a working prefix to the current one
+  log(f"Looking for init file '{INIT_FILE}' in '{WINEPREFIX}'")
+  if not os.path.exists(INIT_FILE):
+    # Grab active proton version
+    current_proton_version = read_version(os.path.join(BASE_STEAM_COMPAT, "version"))
+    cut_proton_version = parse_version(current_proton_version)
+
+    log(f"Loking for compatible wine prefixes in '{STEAM_COMPAT_FOLDER}' with proton version '{cut_proton_version}'")
+
+    # Get closest version that has wemod installed
+    closest_version, closest_prefix_folder = scanfolderforversions(cut_proton_version)
+    cut_version = parse_version(closest_version)
+    log(f"Found was '{cut_version}' on '{closest_prefix_folder}'")
+
+    from copier import copy_folder_with_progress
+    ignore={'pfx/drive_c/users','pfx/dosdevices','pfx/drive_c/Program Files (x86)','pfx/drive_c/Program Files',
+            'pfx/drive_c/ProgramData','drive_c/openxr','pfx/drive_c/vrclient','version','config_info'}
+    include_override={'pfx/drive_c/users/steamuser/AppData/Roaming/WeMod','pfx/drive_c/ProgramData/Microsoft',
+                      'pfx/drive_c/Program Files (x86)/Microsoft.NET','pfx/drive_c/Program Files (x86)/Windows NT',
+                      'pfx/drive_c/Program Files (x86)/Common Files','pfx/drive_c/Program Files/Common Files',
+                      'pfx/drive_c/Program Files/Common Files','pfx/drive_c/Program Files/Windows NT'}
+
+    if closest_prefix_folder and cut_version and cut_version != cut_proton_version:
+      import PySimpleGUI as sg
+      response = sg.popup_yes_no(f"The Proton version {cut_proton_version} is not installed. Would you like to attempt to use the closest installed version {cut_version} which may result in some issues?")
+      if response == "Yes":
+        # Copy the closest version's prefix to the gameprefix
+        log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
+        copy_folder_with_progress(closest_prefix_folder,BASE_STEAM_COMPAT,ignore,include_override)
+        log(f"Copied Proton version {cut_version} prefix to game prefix")
+      else:
+        log("User chose not to use an alternative Proton version.")
+    elif closest_prefix_folder and cut_version and cut_version == cut_proton_version:
+      log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
+      copy_folder_with_progress(closest_prefix_folder,BASE_STEAM_COMPAT,ignore,include_override)
+      log("Copied exact Proton version prefix to game prefix")
+    else:
+      log("No compatible Proton version found in the compatibility folder.")
+
   # Check for the initialization file in the wineprefix
-  log("Looking for init file '{}' in '{}'".format(INIT_FILE, WINEPREFIX))
+  log(f"Looking once more for the init file")
   if os.path.exists(INIT_FILE):
     log("Found init file. Continuing launch...")
     return
