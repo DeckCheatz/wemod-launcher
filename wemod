@@ -86,7 +86,7 @@ def SyncWeMod(folder=None):# Symlink wemod data to make all wemod prefixes use t
   log(f"Syncing wemod data from '{WeModExtenal}' to laucher dir '{WeModData}'")
   if not os.path.isdir(WeModData):
     os.makedirs(WeModData) # Make wemod data folder if missing
-  if not os.path.isdir(WeModExtenal)
+  if not os.path.isdir(WeModExtenal):
     os.makedirs(WeModExtenal)
   if os.path.isdir(WeModExtenal) and not os.path.islink(WeModExtenal): # If the extenal data exist
     if len(os.listdir(WeModData)) > 0 and len(os.listdir(WeModExtenal)) > 0: # If wemod folder and extenal folder are not empty
