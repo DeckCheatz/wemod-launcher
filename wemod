@@ -92,7 +92,7 @@ def SyncWeMod(folder=None):# Symlink wemod data to make all wemod prefixes use t
     if len(os.listdir(WeModData)) > 0 and len(os.listdir(WeModExtenal)) > 0: # If wemod folder and extenal folder are not empty
       import PySimpleGUI as sg # We ask what files to use
       response = sg.popup_yes_no(f"Warnig wemod might have been installed previously.\nUse wemod laucher dir account (Yes) or\nUse wemod prefix/game dir account (No)")
-    if response == "No" or len(os.listdir(WeModData)) == 0:
+    if (response == "No" or len(os.listdir(WeModData)) == 0) and len(os.listdir(WeModExtenal)) > 0:
       if response == None:
         log("Local wemod data was missing")
       else:
