@@ -139,7 +139,7 @@ def init(proton: str) -> None:
         log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
         SyncWeMod(closest_prefix_folder) # Sync wemod data in closest version
         copy_folder_with_progress(closest_prefix_folder,BASE_STEAM_COMPAT,ignore,include_override)
-        SyncWeMod(closest_prefix_folder) # Sync wemod data
+        SyncWeMod() # Sync wemod data
         log(f"Copied Proton version {cut_version} prefix to game prefix")
       else:
         log("User chose not to use an alternative Proton version.")
