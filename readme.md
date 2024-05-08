@@ -31,15 +31,8 @@ If you would like to support me and/or the project, you could:
 ## Changes
 - Prefix Windows directory dereferenced (fixes dotnet4.8 bug on Proton Version 8 and above) - thanks to reddit user /u/pickworthi for finding it out
 
-![:wemod:](https://cdn.discordapp.com/emojis/761419420211740672.webp?size=44&quality=lossless) **How to Install WeMod on a Steam Deck (Linux)** In this guide, we'll walk you through the process of installing WeMod on a Steam Deck running Linux. We'll cover all the steps required to set up the necessary components and configurations to seamlessly integrate WeMod with your games. ‎
-
-![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728375444258956/sl.png?width=550&height=17)
-
-![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728445338124338/123.jpg?width=550&height=309)
-
-![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728475117690960/sl.png?width=550&height=17)
-
-![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728565966311424/1.png?width=550&height=46)
+![:wemod:](https://cdn.discordapp.com/emojis/761419420211740672.webp?size=44&quality=lossless)  
+**How to Install WeMod on a Steam Deck (Linux)** In this guide, we'll walk you through the process of installing WeMod on a Steam Deck running Linux. We'll cover all the steps required to set up the necessary components and configurations to seamlessly integrate WeMod with your games. ‎
 
 ‎
 
@@ -48,11 +41,9 @@ If you would like to support me and/or the project, you could:
 *   WeMod Pro Subscription (Recommended for Steam Deck).
 *   Stable Internet Connection.
 
-‎ ![:1_:](https://cdn.discordapp.com/emojis/1113579886439833690.webp?size=44&quality=lossless) **NOTE:** If you have access to another PC and wish to control the Steam Deck remotely, consider using **AnyDesk** for an easier setup. ‎‎
+‎ ![:1_:](https://cdn.discordapp.com/emojis/1113579886439833690.webp?size=44&quality=lossless)  
+**NOTE:** If you have access to another PC and wish to control the Steam Deck remotely, consider using **AnyDesk** for an easier setup. ‎‎
 
-![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728689358557184/sl.png?width=550&height=17)
-
-![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728715765886976/3.png?width=550&height=46)
 
 ‎ **Step 1: Access Desktop Mode and Discovery Store**
 
@@ -61,7 +52,8 @@ If you would like to support me and/or the project, you could:
 3.  Search for and install **"ProtonUp-QT"** in the store.
 4.  Search for and install **“Protontricks”** in the store _(this is used to find the Game ID for your games - if you know how to find the Game ID without Protontricks you can skip this step)_.
 
-![:1_:](https://cdn.discordapp.com/emojis/1113579886439833690.webp?size=44&quality=lossless) **NOTE:** You can use any alternative approach to install **"ProtonUp-QT"** that is available in your distro.
+![:1_:](https://cdn.discordapp.com/emojis/1113579886439833690.webp?size=44&quality=lossless)  
+**NOTE:** You can use any alternative approach to install **"ProtonUp-QT"** that is available in your distro.
 
 **Step 2: Install Recommended Version of Proton**
 
@@ -74,13 +66,11 @@ If you would like to support me and/or the project, you could:
 1.  Open Konsole/Terminal and run: `git clone https://github.com/DaniAsh551/wemod-launcher.git`
 2.  In Dolphin/File Browser, navigate to home/deck to find the **wemod-launcher** folder and make sure it's there. ‎
 
-![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728815854563388/sl.png?width=550&height=17)
-
-![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728863829016666/2.png?width=550&height=46)
 
 ‎ **Meta Step:** Deleting Game Prefix _(If Needed)_
 
-![:alert:](https://cdn.discordapp.com/emojis/1049837871772729354.webp?size=44&quality=lossless) **IMPORTANT:** If you've played the game before with any other proton version or if you are unsure, follow these steps to delete its prefix:
+![:alert:](https://cdn.discordapp.com/emojis/1049837871772729354.webp?size=44&quality=lossless)  
+**IMPORTANT:** If you've played the game before with any other proton version or if you are unsure, follow these steps to delete its prefix:
 
 1.  Open Protontricks and note the "Game ID" next to the game.
 2.  Open Dolphin file manager and enable "Show Hidden Files".
@@ -121,22 +111,27 @@ NOTE: if the installer asks you whether you want to use wemod-launcher or winetr
 5.  Locate the game's executable file: Navigate to `/home/deck/`.
 6.  Type in the file name ".local" and pick an exe file.
 7.  It should take you to the ".local" folder and then go to `share/steam/steamapps/common/Game/Game.exe`.  
-    ![:alert:](https://cdn.discordapp.com/emojis/1049837871772729354.webp?size=44&quality=lossless) **IMPORTANT:** You might have a different installation location than the one provided in the guide, especially if your game is installed on your SD card. This location can vary from person to person. To locate it, you'll need to determine the drive where your SD card is located and then navigate to `/run/media/SDCardName/steamapps/common/Game/Game.exe`.
-8.  Restart Steam.
-9.  Launch the game from SteamOS or Desktop Mode. ‎
+    ![:alert:](https://cdn.discordapp.com/emojis/1049837871772729354.webp?size=44&quality=lossless)
+    **IMPORTANT:** You might have a different installation location than the one provided in the guide, especially if your game is installed on your SD card. This location can vary from person to person. To locate it, you'll need to determine the drive where your SD card is located and then navigate to `/run/media/SDCardName/steamapps/common/Game/Game.exe`.
+9.  Restart Steam.
+10.  Launch the game from SteamOS or Desktop Mode. ‎
 
-![Image](https://media.discordapp.net/attachments/1148707740953362583/1148728947538923580/sl.png?width=550&height=17)
+‎ ![:1_:](https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=44&quality=lossless)  
+**NOTE:** If you wish to enable or disable mods within SteamOS, a WeMod Pro subscription is required for controlling cheats using a mobile device. However, with the free version of WeMod, you can solely manage toggle settings within Desktop Mode. Consequently, you will need to initiate game launches from there. Also, It's important to be aware that certain games may require launching exclusively through WeMod in desktop mode to access its features.
 
-‎ ![:1_:](https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=44&quality=lossless) **NOTE:** If you wish to enable or disable mods within SteamOS, a WeMod Pro subscription is required for controlling cheats using a mobile device. However, with the free version of WeMod, you can solely manage toggle settings within Desktop Mode. Consequently, you will need to initiate game launches from there. Also, It's important to be aware that certain games may require launching exclusively through WeMod in desktop mode to access its features.
+![:alert:](https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=44&quality=lossless)  
+This guide is designed to remain adaptable and open to improvements in the future. We welcome any ideas, suggestions, or feedback you may have. Please feel free to share them in the ⁠guide-feedback channel, as we strive to ensure this guide continues to provide the best possible assistance to our users. Your input is valuable in making this guide a valuable resource.
 
-![:alert:](https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=44&quality=lossless) This guide is designed to remain adaptable and open to improvements in the future. We welcome any ideas, suggestions, or feedback you may have. Please feel free to share them in the ⁠guide-feedback channel, as we strive to ensure this guide continues to provide the best possible assistance to our users. Your input is valuable in making this guide a valuable resource.
+‎![:wemodapp:](https://cdn.discordapp.com/emojis/761419274945953842.webp?size=44&quality=lossless)  
+**Video Tutorial:** Soon!
 
-‎![:wemodapp:](https://cdn.discordapp.com/emojis/761419274945953842.webp?size=44&quality=lossless) **Video Tutorial:** Soon!
+‎ ![:2_:](https://cdn.discordapp.com/emojis/1113579884749529198.gif?size=44&quality=lossless)  
+**Guide is written by Trippin (Discord: Trippixn)**
 
-‎ ![:2_:](https://cdn.discordapp.com/emojis/1113579884749529198.gif?size=44&quality=lossless) **Guide is written by Trippin (Discord: Trippixn)**
+![:2_:](https://cdn.discordapp.com/emojis/1113579884749529198.gif?size=44&quality=lossless)  
+**WeMod Linux is developed by DaniAsh551**
 
-![:2_:](https://cdn.discordapp.com/emojis/1113579884749529198.gif?size=44&quality=lossless) **WeMod Linux is developed by DaniAsh551**
-
-‎![:birb:](https://cdn.discordapp.com/emojis/999743709677633536.gif?size=44&quality=lossless) If you find this guide helpful, we encourage you to star the project.
+‎![:birb:](https://cdn.discordapp.com/emojis/999743709677633536.gif?size=44&quality=lossless)  
+If you find this guide helpful, we encourage you to star the project.
 
 [![Star History Chart](https://api.star-history.com/svg?repos=DaniAsh551/wemod-launcher&type=Date)](https://star-history.com/#DaniAsh551/wemod-launcher&Date)
