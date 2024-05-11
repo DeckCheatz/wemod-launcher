@@ -23,7 +23,7 @@ This is a small tool made to launch the popular Game Trainer/Cheat tool WeMod al
 - Added a copyer that will copy working WeMod prefixes so you don't have to rebuild all the time.
 - Prefix Windows directory dereferenced (fixes dotnet4.8 bug on Proton Version 8 and above) - thanks to Reddit user /u/pickworthi for finding it out.
 
-## Quickstart Guide
+## Guide
 <table>
   <td>
     <img src="https://www.wemod.com/static/images/wemod-logo-40777eae11.webp" alt="WeMod logo "/> 
@@ -37,12 +37,13 @@ This is a small tool made to launch the popular Game Trainer/Cheat tool WeMod al
 ‎
 <h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.webp?size=20&quality=lossless" alt="Heart"/>&nbsp;You will need:</h3>
 
-*   Steam Deck running Linux (or any Linux-based x86\_64 system).
-*   External Mouse and Keyboard (Recommended for Steam Deck).
-*   WeMod Pro Subscription (Recommended for Steam Deck).  
+*   A Steam Deck running Linux (or any Linux-based x86\_64 system).
+*   A external Mouse and Keyboard (Recommended for Steam Deck).
+*   To Install TK through you package manager (If not on SteamOS) as posted in [Issue 29](https://github.com/DaniAsh551/wemod-launcher/issues/29)
+*   A WeMod Pro Subscription (Recommended for Steam Deck).  
     **OR** Use a Keyboard to send the key shortcuts to toggle cheats.  
     **OR** Use a Keyboard and Desktop mode to switch the game and WeMod with alt+tab.
-*   Stable Internet Connection.
+*   A stable Internet Connection.
 *   **Optional:** If you have access to another PC and wish to control the Steam Deck remotely,  
     consider using **[RustDesk (download the .flatpak file)](https://github.com/rustdesk/rustdesk/releases/latest)** for easier setup. ‎‎  
     **NOTE:** You can also use any alternative approach to install RustDesk for your distro.
