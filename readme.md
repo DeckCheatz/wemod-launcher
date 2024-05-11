@@ -2,13 +2,15 @@
 
 ## DISCLAIMER
 This project is *NOT* affiliated with, funded by, or paid by WeMod.  
-The work done here is purely from the contributors who donate their time and efforts. WeMod (the company) makes WeMod (the mod tool). We (`wemod-launcher`) enable you to run it on Linux (and by extension, the Steam Deck).
+The work done here is purely from the contributors who donate their time and efforts.  
+WeMod (the company) makes WeMod (the mod tool).  
+We (`wemod-launcher`) enable you to run it on Linux (and by extension, the Steam Deck).
 
 ## Support
 If this helps you, please star the project.
 If you would like to support me and/or the project, you could:
 <br/>
-<div align="center">
+<div align="left">
   <a href="https://www.buymeacoffee.com/TIjUvF1" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-violet.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;"></a>
   &nbsp;&nbsp;&nbsp;
   <a href="https://www.patreon.com/daniash551" target="_blank"><img src="https://c5.patreon.com/external/logo/become_a_patron_button.png" alt="Become a Patreon" style="height: 60px !important;width: 217px !important;"></a>
@@ -17,11 +19,15 @@ If you would like to support me and/or the project, you could:
 </div>
 
 ## Suggestions
-This is a small tool made to launch the popular Game Trainer/Cheat tool WeMod along with your game (made for the steam-runtime version in Linux). I have tested this only on a handful of games, and you are welcome to report your findings/suggestions.
+This is a small tool made to launch the popular Game Trainer/Cheat tool WeMod  
+along with your game (made for the steam-runtime version in Linux).  
+I have tested this only on a handful of games,  
+and you are welcome to report your findings/suggestions.
 
 ## Changes
-- Added a copyer that will copy working WeMod prefixes so you don't have to rebuild all the time.
-- Prefix Windows directory dereferenced (fixes dotnet4.8 bug on Proton Version 8 and above) - thanks to Reddit user /u/pickworthi for finding it out.
+- Added code that will copy working WeMod prefixes so you don't have to rebuild all the time.
+- Prefix Windows directory dereferenced (fixes dotnet4.8 bug on Proton Version 8 and above).  
+  Thanks to Reddit user /u/pickworthi for finding it out.
 
 ## Guide
 <table>
@@ -66,7 +72,7 @@ This is a small tool made to launch the popular Game Trainer/Cheat tool WeMod al
 
 1.  Open **"ProtonUp-QT"**
 2.  Click on "Add Version" under GE-Proton and select the newest version.  
-    **NOTE** At the time of writing this, any **"GE-Proton9"** version will work,  
+    **NOTE:** At the time of writing this, any **"GE-Proton9"** version will work,  
     but versions above 9 are untested, so maybe stick with any version 9
 4.  Restart the Steam Deck _(or Steam if you are not on Steam OS)_.
 
@@ -74,12 +80,14 @@ This is a small tool made to launch the popular Game Trainer/Cheat tool WeMod al
 <h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.webp?size=20&quality=lossless" alt="Heart"/>&nbsp;Step 3: Installing WeMod Launcher</h3>
 
 1.  Open Konsole/Terminal and run: `git clone https://github.com/DaniAsh551/wemod-launcher.git`
-2.  In Dolphin/File Browser, navigate to your home at /home/$USER to find the **wemod-launcher** folder and make sure it's there.  
-    **NOTE** $USER will need to be replaced with your username.  
-    On SteamOS, this will be /home/deck.
+2.  In Dolphin/File Browser, navigate to your home at `/home/$USER`  
+    to find the **wemod-launcher** folder and make sure it's there.  
+    **NOTE** `$USER` will need to be replaced with your username.  
+    On SteamOS, this will be `/home/deck`.
     <div><img src="https://cdn.discordapp.com/emojis/1049837871772729354.webp?size=20&quality=lossless" alt="Alert"/>&nbsp;<b>Meta Step:</b> Deleting Game Prefix (If Needed)</div> 
     
-      -  **IMPORTANT:** It may be needed to delete the old game prefix. If you run into problems, follow these steps:    
+      -  **IMPORTANT:** It may be needed to delete the old game prefix.  
+         If you run into problems, follow these steps:    
       1.  Open Protontricks and note the "Game ID" next to the game.
       2.  Open Dolphin file manager and enable "Show Hidden Files".
       3.   Navigate to the ".steam" directory (on the drive where you installed your game):  
@@ -97,9 +105,11 @@ This is a small tool made to launch the popular Game Trainer/Cheat tool WeMod al
 4.  Enable "Force the use of a specific Steam Play compatibility tool".
 5.  Choose "GE-Proton9" _(restart Steam if not listed)_.
     **NOTE:** GE-Proton9.x is also fine (x can be any number)
-7.  Under Launch Options, paste: `WEMOD_LOG=/home/$USER/wemod-launcher/wemod.log /home/$USER/wemod-launcher/wemod %command%`.  
+7.  Under Launch Options, paste:  
+    `WEMOD_LOG=/home/$USER/wemod-launcher/wemod.log /home/$USER/wemod-launcher/wemod %command%`.  
     **NOTE** $USER will need to be replaced with your username.
-    On SteamOS, this will be `WEMOD_LOG=/home/deck/wemod-launcher/wemod.log /home/deck/wemod-launcher/wemod %command%`
+    On SteamOS, this will be:  
+   `WEMOD_LOG=/home/deck/wemod-launcher/wemod.log /home/deck/wemod-launcher/wemod %command%`
 9.  Launch the game and exit after you reach the game's Main Menu.
 
 
@@ -120,22 +130,24 @@ This is a small tool made to launch the popular Game Trainer/Cheat tool WeMod al
 
 <h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.webp?size=20&quality=lossless" alt="Heart"/>&nbsp;Step 6: Configuring WeMod Account and Installing Game Mods</h3>
 
-1.  When you launch the game now, WeMod should Launch with it.
-2.  If not logged in, log in or create an account in WeMod _(One time only)_.
-3.  Search for the game you launched in WeMod. 
-    **IMPORTANT:** It may be needed to add your game in WeMod.
-    But if your game gets detected, you can skip the following steps.
+1.  When you launch the game now, WeMod should Launch with it.  
+2.  If not logged in, log in or create an account in WeMod _(One time only)_.  
+3.  Search for the game you launched in WeMod.  
+    **IMPORTANT:** It may be needed to add your game in WeMod.  
+    But if your game gets detected, you can skip the following steps.  
 4.  Click the arrow next to install.
-5.  Locate the game's executable file: Navigate to `/home/$USER/`.
-    **NOTE** $USER will need to be replaced with your username.
+5.  Locate the game's executable file: Navigate to `/home/$USER/`.  
+    **NOTE** $USER will need to be replaced with your username.  
     On SteamOS, this will be `/home/deck/`
-6.  Go to the ".steam" folder and then go to `/steam/steamapps/common/Game/Game.exe`.
-    <div><img src="https://cdn.discordapp.com/emojis/1049837871772729354.webp?size=20&quality=lossless" alt="Alert"/>&nbsp;<b>Game Locations may differ</b></div>   
-    <b>IMPORTANT:</b> You might have a different installation location than the one provided in the guide,  
-    especially if your game is installed on your SD card.  
-    This location can vary from person to person. To locate it,  
-    you'll need to determine the drive where your SD card is located and then navigate to   
-    `/run/media/SDCardName/steamapps/common/Game/Game.exe`.
+6.  Go to the `.steam` folder and then go to `/steam/steamapps/common/Game/Game.exe`.
+    <div><img src="https://cdn.discordapp.com/emojis/1049837871772729354.webp?size=20&quality=lossless" alt="Alert"/>&nbsp;<b>Game Locations may differ</b></div>    
+    <b>IMPORTANT:</b> You might have a different installation location than the one provided in the guide,<br>  
+    especially if your game is installed on your SD card.<br>  
+    This location can vary from person to person. To locate it,<br>  
+    <div>you'll need to determine the drive where your SD card is located and then navigate to<br>  
+      
+    `/run/media/SDCardName/steamapps/common/Game/Game.exe`. </div>
+    
 7.  It may be needed to Restart the Steam Deck _(or Steam if you are not on Steam OS)_.  
     If so relaunch the game after Restart 
 
@@ -157,9 +169,10 @@ you will have to click play, even if the game is running.
 You also want to set your cheats at this point  
 and after that, you can close the window  
 and still use the hotkeys to toggle them on the fly.  
+
 You may need to initiate game launches from WeMod.  
-Also, it's important to be aware that certain games may require launching exclusively  
-through WeMod in desktop mode to access its features.
+Also, it's important to be aware that certain games may require  
+launching exclusively through WeMod in desktop mode to access its features.
 
 ****
 
