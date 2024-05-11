@@ -8,6 +8,9 @@ echo Hello from WeMod Launcher
 echo WEMOD EXE: "%wemodpath%"
 echo PWD: "%cd%"
 echo command: %*
-choice /C Y /N /T 30 /D Y /M "Press Y to continue or wait 30 seconds: "
+
+echo Waiting for 5 seconds to continue
+@ping localhost -n 5 > NUL
+
 start "" %wemodpath%
 start "" %*
