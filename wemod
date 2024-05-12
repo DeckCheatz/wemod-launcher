@@ -133,18 +133,18 @@ def init(proton: str) -> None:
                       'pfx/drive_c/Program Files/Common Files','pfx/drive_c/Program Files/Common Files',
                       'pfx/drive_c/Program Files/Windows NT'}
 
-    if closest_prefix_folder and cut_version and cut_version != cut_proton_version:
+    if closest_prefix_folder and cut_version and cut_proton_version:
       import PySimpleGUI as sg
-      response = sg.popup_yes_no(f"The Proton version {cut_proton_version} is not installed. Would you like to attempt to use the closest installed version {cut_version} which may result in some issues?")
+      response = sg.popup_yes_no(f"The Proton version {cut_proton_version} dosn't have WeMod installed. Would you like to attempt to use the closest proton version {cut_version} that has WeMod installed, which may result in some issues?", title="Other WeMod version detected")
       if response == "Yes":
         # Copy the closest version's prefix to the gameprefix
         log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
         SyncWeMod(closest_prefix_folder) # Sync wemod data in closest version
         copy_folder_with_progress(closest_prefix_folder,BASE_STEAM_COMPAT,ignore,include_override)
         SyncWeMod() # Sync wemod data
-        log(f"Copied Proton version {cut_version} prefix to game prefix")
+        log(f"Copied Proton version {cut_version} prefix to game prefix that was on version {cut_proton_version}")
       else:
-        log("User chose not to use an alternative Proton version.")
+        log("User chose not to use an alternative Proton version, the active version was {cut_proton_version}.")
     elif closest_prefix_folder and cut_version and cut_version == cut_proton_version:
       log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
       SyncWeMod(closest_prefix_folder) # Sync wemod data in closest version
