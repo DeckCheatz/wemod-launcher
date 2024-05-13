@@ -1,6 +1,0 @@
-wemod_bin/
-.cache/
-winetricks
-__pycache__/
-wemod_prefix.tar.zst
-pip.pyz
