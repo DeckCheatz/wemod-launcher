@@ -81,6 +81,32 @@ def SyncWeMod(folder=None):# Symlink wemod data to make all wemod prefixes use t
   WeModData = os.path.join(SCRIPT_PATH, "wemod_data") # link source
   if folder == None:
     WeModExtenal = os.path.join(WINEPREFIX, "drive_c/users/steamuser/AppData/Roaming/WeMod") # link dest
+    
+    package_prefix = os.getenv('PACKAGEPREFIX') # use PACKAGEPREFIX=true in front of command to generate a ge-proton-prefix zip and exit
+    if package_prefix and package_prefix.lower() == "true":
+      from copier import copy_folder_with_progress
+      ignore={'pfx/drive_c/users','pfx/dosdevices','pfx/drive_c/Program Files (x86)','pfx/drive_c/Program Files',
+            'pfx/drive_c/ProgramData','drive_c/openxr','pfx/drive_c/vrclient','version','config_info'}
+      include_override={'pfx/drive_c/ProgramData/Microsoft','pfx/drive_c/Program Files (x86)/Microsoft.NET',
+                      'pfx/drive_c/Program Files (x86)/Windows NT','pfx/drive_c/Program Files (x86)/Common Files',
+                      'pfx/drive_c/Program Files/Common Files','pfx/drive_c/Program Files/Common Files',
+                      'pfx/drive_c/Program Files/Windows NT'}
+      #small_archive(BASE_STEAM_COMPAT, +".zip"), ignore, include_override)
+      current_proton_version = read_version(os.path.join(BASE_STEAM_COMPAT, "version"))
+      cut_proton_version = parse_version(current_proton_version)
+      destfile=os.path.join(STEAM_COMPAT_FOLDER,"prefixes","GE-Proton"+str(cut_proton_version))
+      os.makedirs(os.path.join(destfile,"temp"), exist_ok = True)
+      shutil.rmtree(destfile)
+      os.makedirs(destfile,exist_ok = True)
+      copy_folder_with_progress(BASE_STEAM_COMPAT, destfile, ignore, include_override)
+      if os.path.exists(destfile+".zip"):
+        os.remove(destfile+".zip")
+      shutil.make_archive(destfile, 'zip', destfile)
+      shutil.rmtree(destfile)
+      os.system('xdg-open "%s"' % os.path.join(STEAM_COMPAT_FOLDER,"prefixes"))
+      log("Done creating Prefix zip")
+      sys.exit(0)
+
   else:
     WeModExtenal = os.path.join(folder, "pfx/drive_c/users/steamuser/AppData/Roaming/WeMod") # link dest
   log(f"Syncing wemod data from '{WeModExtenal}' to laucher dir '{WeModData}'")
