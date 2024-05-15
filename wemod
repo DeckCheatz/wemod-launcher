@@ -39,7 +39,7 @@ def parse_version(version_str = None):
 
     # Rejoin the parts and convert to a float
     try:
-      return version_number = [int(parts[0]),int(parts[1])]
+      return [int(parts[0]),int(parts[1])]
     except ValueError:
       return None
   elif isinstance(version_str, list):
@@ -54,7 +54,7 @@ def read_version(version_file): # read file
         return None
 
 # Scan the steam compat folder for wemod installed prefixes
-def scanfolderforversions(current_version_parts: str):
+def scanfolderforversions(current_version_parts=[None,None]):
   # At default we dont know of any available version
   closest_version_folder = None
   closest_version_number = None
@@ -165,12 +165,14 @@ def init(proton: str) -> None:
     # Grab active proton version
     current_proton_version = read_version(os.path.join(BASE_STEAM_COMPAT, "version"))
     cut_proton_version = parse_version(current_proton_version)
+    current_version_parts = cut_proton_version
 
     log(f"Loking for compatible wine prefixes in '{STEAM_COMPAT_FOLDER}' with proton version '{cut_proton_version[0]}.{cut_proton_version[1]}'")
 
     # Get closest version that has wemod installed
     closest_version, closest_prefix_folder = scanfolderforversions(cut_proton_version)
     cut_version = parse_version(closest_version)
+
     log(f"Found was '{cut_version[0]}.{cut_version[1]}' on '{cut_proton_version[0]}.{cut_proton_version[1]}'")
 
     from copier import copy_folder_with_progress
@@ -181,9 +183,15 @@ def init(proton: str) -> None:
                       'pfx/drive_c/Program Files/Common Files','pfx/drive_c/Program Files/Common Files',
                       'pfx/drive_c/Program Files/Windows NT'}
 
-    if closest_prefix_folder and cut_version and cut_proton_version:
+    if closest_version and current_version_parts and closest_version == current_version_parts:
+      log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
+      SyncWeMod(closest_prefix_folder) # Sync wemod data in closest version
+      copy_folder_with_progress(closest_prefix_folder,BASE_STEAM_COMPAT,ignore,include_override)
+      SyncWeMod() # Sync wemod data
+      log("Copied exact Proton version prefix to game prefix")
+    elif closest_version and current_version_parts and closest_version[0] == current_version_parts[0]:
       import PySimpleGUI as sg
-      response = sg.popup_yes_no(f"The Proton version {cut_proton_version[0]}.{cut_proton_version[1]} dosn't have WeMod installed. Would you like to attempt to use the closest proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which may result in some issues?", title="Other WeMod version detected")
+      response = sg.popup_yes_no(f"The Proton version {cut_proton_version[0]}.{cut_proton_version[1]} dosn't have WeMod installed. Would you like to use the closest proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is probably going to work?", title="Likely compatible WeMod version detected")
       if response == "Yes":
         # Copy the closest version's prefix to the gameprefix
         log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
@@ -193,12 +201,18 @@ def init(proton: str) -> None:
         log(f"Copied Proton version {cut_version[0]}.{cut_version[1]} prefix to game prefix that was on version {cut_proton_version[0]}.{cut_proton_version[1]}")
       else:
         log(f"User chose not to use an alternative Proton version, the active version was {cut_proton_version[0]}.{cut_proton_version[1]}.")
-    elif closest_prefix_folder and cut_version and cut_version == cut_proton_version:
-      log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
-      SyncWeMod(closest_prefix_folder) # Sync wemod data in closest version
-      copy_folder_with_progress(closest_prefix_folder,BASE_STEAM_COMPAT,ignore,include_override)
-      SyncWeMod() # Sync wemod data
-      log("Copied exact Proton version prefix to game prefix")
+    elif closest_version and current_version_parts and closest_version[0] != current_version_parts[0]:
+      import PySimpleGUI as sg
+      response = sg.popup_yes_no(f"The Proton version {cut_proton_version[0]}.{cut_proton_version[1]} dosn't have WeMod installed. Would you like to attempt to use the closest proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which may result in some issues?", title="Mabye compatible WeMod version detected")
+      if response == "Yes":
+        # Copy the closest version's prefix to the gameprefix
+        log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
+        SyncWeMod(closest_prefix_folder) # Sync wemod data in closest version
+        copy_folder_with_progress(closest_prefix_folder,BASE_STEAM_COMPAT,ignore,include_override)
+        SyncWeMod() # Sync wemod data
+        log(f"Copied Proton version {cut_version[0]}.{cut_version[1]} prefix to game prefix that was on version {cut_proton_version[0]}.{cut_proton_version[1]}")
+      else:
+        log(f"User chose not to use an alternative Proton version, the active version was {cut_proton_version[0]}.{cut_proton_version[1]}.")
     else:
       log("No compatible Proton version found in the compatibility folder.")
 
@@ -210,7 +224,7 @@ def init(proton: str) -> None:
     return
 
   log("Init file not found! Attempting to prepare the WINEPREFIX")
-  
+
   # User choice for prefix setup
   prefix_op = popup_options("Prefix Setup", "Would you like to build/modify your prefix or download an already setup one?", [ "build", "download" ])
 
@@ -238,7 +252,7 @@ def get_github_releases(repo_name):
         print("Failed to fetch releases.")
         return []
 
-def find_closest_compatible_release(releases,current_version_parts):
+def find_closest_compatible_release(releases,current_version_parts=[None,None]):
   closest_release = None
   closest_version = None
   closest_release_url = None
@@ -248,7 +262,7 @@ def find_closest_compatible_release(releases,current_version_parts):
     tag_name = release.get("tag_name")
     if tag_name and tag_name.startswith("PfxVer"):
       release_version_parts = parse_version(tag_name)
-      if release_version_parts:
+      if release_version_parts and current_version_parts:
         if release_version_parts[0] == current_version_parts[0] and release_version_parts[1] == current_version_parts[1]:
           # Exact match
           closest_release = release
@@ -301,15 +315,18 @@ def download_prefix(proton_dir: str) -> None:
   current_version_parts = parse_version(current_proton_version)
 
   releases = get_github_releases(repo_name)
-  closest_version, url = find_closest_compatible_prefix(releases,current_version_parts)
+  closest_version, url = find_closest_compatible_release(releases,current_version_parts)
   file_name = f"wemod_prefix{current_version_parts[0]}.{current_version_parts[1]}.zip"
 
-  if closest_version[0] == current_version_parts and closest_version[1] == current_version_parts[1]:
+  if closest_version and current_version_parts and closest_version == current_version_parts:
     response = "Yes"
-  elif closest_version[0] == current_version_parts[0]:
-    response = sg.popup_yes_no(f"This is most likely going to work, the version {closest_version[0]}.{closest_version[1]} is probably compatible with version {current_version_parts[0]}.{current_version_parts[1]}, use it?", title="Likely Copatible Version Found")
+  elif closest_version and current_version_parts and closest_version[0] == current_version_parts[0]:
+    response = sg.popup_yes_no(f"This is most likely going to work, the version {closest_version[0]}.{closest_version[1]} is probably compatible with version {current_version_parts[0]}.{current_version_parts[1]}, download and use it?", title="Likely compatible version found")
+  elif closest_version and current_version_parts:
+    response = sg.popup_yes_no(f"The current version {closest_version[0]}.{closest_version[1]} might not be compatible with version {current_version_parts[0]}.{current_version_parts[1]}, download and use it?", title="Mabye copatible version found")
   else:
-    response = sg.popup_yes_no(f"The current version {closest_version[0]}.{closest_version[1]} might not be compatible with version {current_version_parts[0]}.{current_version_parts[1]}, use it?", title="Mabye Copatible Version Found")
+    log("there was no version to download error")
+    sys.exit(0)
   if response == "No":
     log(f"User was unhappy with the version download choice of {closest_version[0]}.{closest_version[1]} for {current_version_parts[0]}.{current_version_parts[1]}, exiting")
     sys.exit(0)
@@ -319,7 +336,7 @@ def download_prefix(proton_dir: str) -> None:
 
   # Unpack the downloaded prefix
   log("Unpacking prefix...")
-  command = f"unzip -o '{prefix_path}' -d '{WINEPREFIX}'"
+  command = f"unzip -o '{prefix_path}' -d '{BASE_STEAM_COMPAT}'"
   log(f"Using command for zip files: {command}")
 
   exit_code = popup_execute("Unpacking prefix...", command)
@@ -329,8 +346,12 @@ def download_prefix(proton_dir: str) -> None:
 
   # Delete cache file since the prefix copyer has been added there is no need to keep this file around
   fullfile = os.path.join(SCRIPT_PATH, ".cache", file_name)
-  if os.path.exist(fullfile):
+  if os.path.exists(fullfile):
     os.remove(fullfile)
+
+  SyncWeMod()
+  if not os.path.exists(os.path.join(SCRIPT_PATH,"wemod_bin","WeMod.exe")):
+    main()
 
   log("Finished prefix copy")
 
@@ -357,10 +378,10 @@ def build_prefix(proton_dir: str) -> None:
 
   # Add dependencies to the list
   deps.append("-q sdl cjkfonts vkd3d dxvk2030")
-  
+
   if dotnet48_method == "winetricks":
     deps.append("-q dotnet48")
-  
+
   # Install dependencies
   log("Running dependencies installation. This could take a while...")
   main()
