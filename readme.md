@@ -14,6 +14,5 @@ None of the prefixes are uploaded to the repo directly,
 but are added to the releases instead.
 
 ## Automated Downloads
-Soon, the prefix downloads will be added to the WeMod script,  
-to automatically download the prefixes from the releases tab.  
-A json file containing the release options may be added to this branch too.
+The prefix downloads are added to the WeMod script at this point,  
+the code automatically downloads the prefixes from the releases tab.  
