@@ -8,16 +8,20 @@ We (`wemod-launcher`) enable you to run it on Linux (and by extension, the Steam
 
 ## Support
 If this helps you, please star the project.
-If you would like to support me and/or the project, you could:
-<br/>
-<div align="left">
-  <a href="https://www.buymeacoffee.com/TIjUvF1" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-violet.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;"></a>
-  &nbsp;&nbsp;&nbsp;
-  <a href="https://www.patreon.com/daniash551" target="_blank"><img src="https://c5.patreon.com/external/logo/become_a_patron_button.png" alt="Become a Patreon" style="height: 60px !important;width: 217px !important;"></a>
-  &nbsp;&nbsp;&nbsp;
-  <a href="https://www.paypal.com/donate/?hosted_button_id=D7Y43PT9HUEUY" target="_blank"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" alt="Donate via PayPal" style="height: 60px !important;width: 217px !important;"></a>
-</div>
-
+If you would like to support the project, manly we need some more developers.
+  <br>You can also support the original developer DaniAsh551:
+    <a href="https://www.buymeacoffee.com/TIjUvF1" target="_blank">On Buymeacoffee,</a>
+    &nbsp;
+    <a href="https://www.patreon.com/daniash551" target="_blank">On Patreon,</a>
+    &nbsp;
+    <a href="https://www.paypal.com/donate/?hosted_button_id=D7Y43PT9HUEUY" target="_blank">On PayPal</a>
+  <br>You can support the current developer Marvin1099: 
+    <a href="https://www.patreon.com/marvin1099" target="_blank">On Patreon</a>
+    &nbsp;
+    <a href="https://www.tipeeestream.com/marvin1099/tip" target="_blank">On Tipeeestream</a>
+  <br>You can also suport the developer JohnHamwi:
+    <a href="https://github.com/JohnHamwi" target="_blank">On Github</a>
+<br>But realy if you can help with some code that would be geat.
 ## Suggestions
 This is a small tool made to launch the popular Game Trainer/Cheat tool WeMod  
 along with your game (made for the steam-runtime version in Linux).  
@@ -25,6 +29,8 @@ I have tested this only on a handful of games,
 and you are welcome to report your findings/suggestions.
 
 ## Changes
+- Added code to add back in prefix downloading.
+- Added code to sync the wemod folder so you dont have to login all the time.
 - Added code that will copy working WeMod prefixes so you don't have to rebuild all the time.
 - Prefix Windows directory dereferenced (fixes dotnet4.8 bug on Proton Version 8 and above).  
   Thanks to Reddit user /u/pickworthi for finding it out.
