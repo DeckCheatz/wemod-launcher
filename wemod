@@ -107,13 +107,7 @@ def SyncWeMod(folder=None):# Symlink wemod data to make all wemod prefixes use t
     WeModExtenal = os.path.join(WINEPREFIX, "drive_c/users/steamuser/AppData/Roaming/WeMod") # link dest
     package_prefix = os.getenv('PACKAGEPREFIX') # use PACKAGEPREFIX=true in front of command to generate a ge-proton-prefix zip and exit
     if package_prefix and package_prefix.lower() == "true":
-      from copier import copy_folder_with_progress
-      ignore={'pfx/drive_c/users','pfx/dosdevices','pfx/drive_c/Program Files (x86)','pfx/drive_c/Program Files',
-            'pfx/drive_c/ProgramData','drive_c/openxr','pfx/drive_c/vrclient','version','config_info'}
-      include_override={'pfx/drive_c/ProgramData/Microsoft','pfx/drive_c/Program Files (x86)/Microsoft.NET',
-                      'pfx/drive_c/Program Files (x86)/Windows NT','pfx/drive_c/Program Files (x86)/Common Files',
-                      'pfx/drive_c/Program Files/Common Files','pfx/drive_c/Program Files/Common Files',
-                      'pfx/drive_c/Program Files/Windows NT'}
+      from util import copy_folder_with_progress
       #small_archive(BASE_STEAM_COMPAT, +".zip"), ignore, include_override)
       current_proton_version = read_version(os.path.join(BASE_STEAM_COMPAT, "version"))
       cut_proton_version = parse_version(current_proton_version)
@@ -121,11 +115,16 @@ def SyncWeMod(folder=None):# Symlink wemod data to make all wemod prefixes use t
       os.makedirs(os.path.join(destfile,"temp"), exist_ok = True)
       shutil.rmtree(destfile)
       os.makedirs(destfile,exist_ok = True)
-      copy_folder_with_progress(BASE_STEAM_COMPAT, destfile, ignore, include_override)
+      copy_folder_with_progress(BASE_STEAM_COMPAT, destfile, {None}, {None})
       if os.path.exists(destfile+".zip"):
         os.remove(destfile+".zip")
-      shutil.make_archive(destfile, 'zip', destfile)
+      archive_command = f"zip -r '{destfile}.zip' '{destfile}'"
+      log(archive_command)
+      exit_code = popup_execute("Creating archive...", archive_command)
       shutil.rmtree(destfile)
+      if exit_code != 0:
+        exit_message = f"Archive creation failed with code '{exit_code}'"
+        exit_with_message("ERROR", exit_message, exit_code)
       os.system('xdg-open "%s"' % os.path.join(STEAM_COMPAT_FOLDER,"prefixes"))
       log("Done creating Prefix zip")
       sys.exit(0)
@@ -160,61 +159,42 @@ def init(proton: str) -> None:
     os.makedirs(WINEPREFIX, exist_ok=True)
 
   # If wemod is not installed try to copy a working prefix to the current one
-  log(f"Looking for init file '{INIT_FILE}' in '{WINEPREFIX}'")
+  log(f"Looking for init file '{INIT_FILE}'")
   if not os.path.exists(INIT_FILE):
     # Grab active proton version
     current_proton_version = read_version(os.path.join(BASE_STEAM_COMPAT, "version"))
-    cut_proton_version = parse_version(current_proton_version)
-    current_version_parts = cut_proton_version
+    current_version_parts = parse_version(current_proton_version)
 
-    log(f"Loking for compatible wine prefixes in '{STEAM_COMPAT_FOLDER}' with proton version '{cut_proton_version[0]}.{cut_proton_version[1]}'")
+    log(f"Loking for compatible wine prefixes in '{STEAM_COMPAT_FOLDER}' with proton version '{current_version_parts[0]}.{current_version_parts[1]}'")
 
     # Get closest version that has wemod installed
-    closest_version, closest_prefix_folder = scanfolderforversions(cut_proton_version)
+    closest_version, closest_prefix_folder = scanfolderforversions(current_version_parts)
     cut_version = parse_version(closest_version)
 
-    log(f"Found was '{cut_version[0]}.{cut_version[1]}' on '{cut_proton_version[0]}.{cut_proton_version[1]}'")
+    log(f"Found was '{cut_version[0]}.{cut_version[1]}' on '{current_version_parts[0]}.{current_version_parts[1]}'")
 
-    from copier import copy_folder_with_progress
-    ignore={'pfx/drive_c/users','pfx/dosdevices','pfx/drive_c/Program Files (x86)','pfx/drive_c/Program Files',
-            'pfx/drive_c/ProgramData','drive_c/openxr','pfx/drive_c/vrclient','version','config_info'}
-    include_override={'pfx/drive_c/ProgramData/Microsoft','pfx/drive_c/Program Files (x86)/Microsoft.NET',
-                      'pfx/drive_c/Program Files (x86)/Windows NT','pfx/drive_c/Program Files (x86)/Common Files',
-                      'pfx/drive_c/Program Files/Common Files','pfx/drive_c/Program Files/Common Files',
-                      'pfx/drive_c/Program Files/Windows NT'}
+    from util import copy_folder_with_progress
 
+    response = "No"
     if closest_version and current_version_parts and closest_version == current_version_parts:
-      log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
-      SyncWeMod(closest_prefix_folder) # Sync wemod data in closest version
-      copy_folder_with_progress(closest_prefix_folder,BASE_STEAM_COMPAT,ignore,include_override)
-      SyncWeMod() # Sync wemod data
-      log("Copied exact Proton version prefix to game prefix")
+      response = "Yes"
     elif closest_version and current_version_parts and closest_version[0] == current_version_parts[0]:
       import PySimpleGUI as sg
-      response = sg.popup_yes_no(f"The Proton version {cut_proton_version[0]}.{cut_proton_version[1]} dosn't have WeMod installed. Would you like to use the closest proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is probably going to work?", title="Likely compatible WeMod version detected")
-      if response == "Yes":
-        # Copy the closest version's prefix to the gameprefix
-        log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
-        SyncWeMod(closest_prefix_folder) # Sync wemod data in closest version
-        copy_folder_with_progress(closest_prefix_folder,BASE_STEAM_COMPAT,ignore,include_override)
-        SyncWeMod() # Sync wemod data
-        log(f"Copied Proton version {cut_version[0]}.{cut_version[1]} prefix to game prefix that was on version {cut_proton_version[0]}.{cut_proton_version[1]}")
-      else:
-        log(f"User chose not to use an alternative Proton version, the active version was {cut_proton_version[0]}.{cut_proton_version[1]}.")
+      response = sg.popup_yes_no(f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} dosn't have WeMod installed. Would you like to use the closest proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is probably going to work?", title="Likely compatible WeMod version detected")
     elif closest_version and current_version_parts and closest_version[0] != current_version_parts[0]:
       import PySimpleGUI as sg
-      response = sg.popup_yes_no(f"The Proton version {cut_proton_version[0]}.{cut_proton_version[1]} dosn't have WeMod installed. Would you like to attempt to use the closest proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which may result in some issues?", title="Mabye compatible WeMod version detected")
-      if response == "Yes":
-        # Copy the closest version's prefix to the gameprefix
-        log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
-        SyncWeMod(closest_prefix_folder) # Sync wemod data in closest version
-        copy_folder_with_progress(closest_prefix_folder,BASE_STEAM_COMPAT,ignore,include_override)
-        SyncWeMod() # Sync wemod data
-        log(f"Copied Proton version {cut_version[0]}.{cut_version[1]} prefix to game prefix that was on version {cut_proton_version[0]}.{cut_proton_version[1]}")
-      else:
-        log(f"User chose not to use an alternative Proton version, the active version was {cut_proton_version[0]}.{cut_proton_version[1]}.")
+      response = sg.popup_yes_no(f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} dosn't have WeMod installed. Would you like to attempt to use the closest proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which may result in some issues?", title="Mabye compatible WeMod version detected")
     else:
       log("No compatible Proton version found in the compatibility folder.")
+    if response == "Yes":
+      # Copy the closest version's prefix to the gameprefix
+      log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
+      SyncWeMod(closest_prefix_folder) # Sync wemod data in closest version
+      copy_folder_with_progress(closest_prefix_folder, BASE_STEAM_COMPAT, {None}, {None})
+      SyncWeMod() # Sync wemod data
+      log(f"Copied Proton version {cut_version[0]}.{cut_version[1]} prefix to game prefix that was on version {current_version_parts[0]}.{current_version_parts[1]}")
+    else:
+      log(f"User chose not to use an alternative Proton version, the active version was {current_version_parts[0]}.{current_version_parts[1]}.")
 
   # Check for the initialization file in the wineprefix
   log(f"Looking once more for the init file")
