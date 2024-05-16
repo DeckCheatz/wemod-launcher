@@ -14,7 +14,7 @@ SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 WEMOD_BAT = "C:\\\\windows\\\\system32\\\\start.exe Z:" + "\\\\".join(SCRIPT_PATH.split("/")) + "\\\\wemod.bat"
 BASE_STEAM_COMPAT = os.getenv("STEAM_COMPAT_DATA_PATH")
 WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
-STEAM_COMPAT_FOLDER = os.path.abspath(os.path.join(os.path.abspath(os.path.join(WINEPREFIX, os.pardir)), os.pardir))
+STEAM_COMPAT_FOLDER = os.path.abspath(os.path.dirname(BASE_STEAM_COMPAT))
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
 
@@ -126,10 +126,10 @@ def syncwemod(folder=None):# Symlink wemod data to make all wemod prefixes use t
     os.system('xdg-open "%s"' % os.path.join(STEAM_COMPAT_FOLDER,"prefixes"))
     log("Done creating Prefix zip")
     sys.exit(0)
-    
+
   if folder == None:
     folder = BASE_STEAM_COMPAT
-    
+
   WeModData = os.path.join(SCRIPT_PATH, "wemod_data") # link source
   WeModExtenal = os.path.join(folder, "pfx/drive_c/users/steamuser/AppData/Roaming/WeMod") # link dest
 
