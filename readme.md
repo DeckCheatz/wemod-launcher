@@ -16,7 +16,7 @@ If you would like to support the project, manly we need some more developers.
     &nbsp;
     <a href="https://www.paypal.com/donate/?hosted_button_id=D7Y43PT9HUEUY" target="_blank">On PayPal</a>
   <br>You can support the current developer Marvin1099: 
-    <a href="https://www.patreon.com/marvin1099" target="_blank">On Patreon</a>
+    <a href="https://www.patreon.com/marvin1099" target="_blank">On Patreon,</a>
     &nbsp;
     <a href="https://www.tipeeestream.com/marvin1099/tip" target="_blank">On Tipeeestream</a>
   <br>You can also suport the developer JohnHamwi:
