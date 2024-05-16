@@ -100,36 +100,38 @@ def scanfolderforversions(current_version_parts=[None,None]):
             closest_version_number = folder_version_parts
   return closest_version_number, closest_version_folder
 
-def SyncWeMod(folder=None):# Symlink wemod data to make all wemod prefixes use the same wemod data
+def syncwemod(folder=None):# Symlink wemod data to make all wemod prefixes use the same wemod data
   response = None
-  WeModData = os.path.join(SCRIPT_PATH, "wemod_data") # link source
+  package_prefix = os.getenv('PACKAGEPREFIX') # use PACKAGEPREFIX=true in front of the command to generate a ge-proton-prefix zip and exit
+  if package_prefix and folder == None and package_prefix.lower() == "true":
+    from util import copy_folder_with_progress
+    log("Prefix packaging was requested with PACKAGEPREFIX=true in front of the command")
+    current_proton_version = read_version(os.path.join(BASE_STEAM_COMPAT, "version"))
+    cut_proton_version = parse_version(current_proton_version)
+    destfile=os.path.join(STEAM_COMPAT_FOLDER,"prefixes","GE-Proton"+str(cut_proton_version[0])+"."+str(cut_proton_version[1]))
+    os.makedirs(os.path.join(destfile,"temp"), exist_ok = True)
+    shutil.rmtree(destfile)
+    os.makedirs(destfile,exist_ok = True)
+    copy_folder_with_progress(BASE_STEAM_COMPAT, destfile, {None}, {None})
+    if os.path.exists(destfile+".zip"):
+      os.remove(destfile+".zip")
+    archive_command = f"zip -r '{destfile}.zip' '{destfile}'"
+    log(archive_command)
+    exit_code = popup_execute("Creating archive...", archive_command)
+    shutil.rmtree(destfile)
+    if exit_code != 0:
+      exit_message = f"Archive creation failed with code '{exit_code}'"
+      exit_with_message("ERROR", exit_message, exit_code)
+    os.system('xdg-open "%s"' % os.path.join(STEAM_COMPAT_FOLDER,"prefixes"))
+    log("Done creating Prefix zip")
+    sys.exit(0)
+    
   if folder == None:
-    WeModExtenal = os.path.join(WINEPREFIX, "drive_c/users/steamuser/AppData/Roaming/WeMod") # link dest
-    package_prefix = os.getenv('PACKAGEPREFIX') # use PACKAGEPREFIX=true in front of command to generate a ge-proton-prefix zip and exit
-    if package_prefix and package_prefix.lower() == "true":
-      from util import copy_folder_with_progress
-      #small_archive(BASE_STEAM_COMPAT, +".zip"), ignore, include_override)
-      current_proton_version = read_version(os.path.join(BASE_STEAM_COMPAT, "version"))
-      cut_proton_version = parse_version(current_proton_version)
-      destfile=os.path.join(STEAM_COMPAT_FOLDER,"prefixes","GE-Proton"+str(cut_proton_version[0])+"."+str(cut_proton_version[1]))
-      os.makedirs(os.path.join(destfile,"temp"), exist_ok = True)
-      shutil.rmtree(destfile)
-      os.makedirs(destfile,exist_ok = True)
-      copy_folder_with_progress(BASE_STEAM_COMPAT, destfile, {None}, {None})
-      if os.path.exists(destfile+".zip"):
-        os.remove(destfile+".zip")
-      archive_command = f"zip -r '{destfile}.zip' '{destfile}'"
-      log(archive_command)
-      exit_code = popup_execute("Creating archive...", archive_command)
-      shutil.rmtree(destfile)
-      if exit_code != 0:
-        exit_message = f"Archive creation failed with code '{exit_code}'"
-        exit_with_message("ERROR", exit_message, exit_code)
-      os.system('xdg-open "%s"' % os.path.join(STEAM_COMPAT_FOLDER,"prefixes"))
-      log("Done creating Prefix zip")
-      sys.exit(0)
-  else:
-    WeModExtenal = os.path.join(folder, "pfx/drive_c/users/steamuser/AppData/Roaming/WeMod") # link dest
+    folder = BASE_STEAM_COMPAT
+    
+  WeModData = os.path.join(SCRIPT_PATH, "wemod_data") # link source
+  WeModExtenal = os.path.join(folder, "pfx/drive_c/users/steamuser/AppData/Roaming/WeMod") # link dest
+
   log(f"Syncing wemod data from '{WeModExtenal}' to laucher dir '{WeModData}'")
   if not os.path.isdir(WeModData):
     os.makedirs(WeModData) # Make wemod data folder if missing
@@ -189,9 +191,9 @@ def init(proton: str) -> None:
     if response == "Yes":
       # Copy the closest version's prefix to the gameprefix
       log(f'Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}')
-      SyncWeMod(closest_prefix_folder) # Sync wemod data in closest version
+      syncwemod(closest_prefix_folder) # Sync wemod data in closest version
       copy_folder_with_progress(closest_prefix_folder, BASE_STEAM_COMPAT, {None}, {None})
-      SyncWeMod() # Sync wemod data
+      syncwemod() # Sync wemod data
       log(f"Copied Proton version {cut_version[0]}.{cut_version[1]} prefix to game prefix that was on version {current_version_parts[0]}.{current_version_parts[1]}")
     else:
       log(f"User chose not to use an alternative Proton version, the active version was {current_version_parts[0]}.{current_version_parts[1]}.")
@@ -199,7 +201,7 @@ def init(proton: str) -> None:
   # Check for the initialization file in the wineprefix
   log(f"Looking once more for the init file")
   if os.path.exists(INIT_FILE):
-    SyncWeMod() # Sync wemod data and prefix packaging
+    syncwemod() # Sync wemod data and prefix packaging
     log("Found init file. Continuing launch...")
     return
 
@@ -220,7 +222,7 @@ def init(proton: str) -> None:
     build_prefix(proton_dir)
   else:
     download_prefix(proton_dir)
-  SyncWeMod() # Sync wemod data
+  syncwemod() # Sync wemod data
 
 def get_github_releases(repo_name):
     url = f"https://api.github.com/repos/{repo_name}/releases"
@@ -329,7 +331,7 @@ def download_prefix(proton_dir: str) -> None:
   if os.path.exists(fullfile):
     os.remove(fullfile)
 
-  SyncWeMod()
+  syncwemod()
   if not os.path.exists(os.path.join(SCRIPT_PATH,"wemod_bin","WeMod.exe")):
     main()
 
