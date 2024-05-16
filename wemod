@@ -115,9 +115,10 @@ def syncwemod(folder=None):# Symlink wemod data to make all wemod prefixes use t
     copy_folder_with_progress(BASE_STEAM_COMPAT, destfile, {None}, {None})
     if os.path.exists(destfile+".zip"):
       os.remove(destfile+".zip")
-    archive_command = f"zip -r '{destfile}.zip' '{destfile}'"
+    archive_command = f"cd '{destfile}' && zip -r '{os.path.basename(destfile)}.zip' *"
     log(archive_command)
     exit_code = popup_execute("Creating archive...", archive_command)
+    os.rename(os.path.join(destfile,os.path.basename(destfile)) + ".zip",destfile + ".zip")
     shutil.rmtree(destfile)
     if exit_code != 0:
       exit_message = f"Archive creation failed with code '{exit_code}'"
