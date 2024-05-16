@@ -54,6 +54,7 @@ and you are welcome to report your findings/suggestions.
 
 *   A Steam Deck running Linux (or any Linux-based x86\_64 system).
 *   A external Mouse and Keyboard (Recommended for Steam Deck).
+*   To Install the zip and unzip utility (Installed on SteamOS and most distros)
 *   To Install TK through you package manager (If not on SteamOS) as posted in [Issue 29](https://github.com/DaniAsh551/wemod-launcher/issues/29)
 *   A WeMod Pro Subscription (Recommended for Steam Deck).  
     **OR** Use a Keyboard to send the key shortcuts to toggle cheats.  
