@@ -130,8 +130,9 @@ and you are welcome to report your findings/suggestions.
 2.  If you have built the launcher in the past, you can try the option of copying the prefix.  
     The launcher will ask you if it can be done and do it for you.  
     **IMPORTANT:** If WeMod fails to start, go to the Meta Step of Step 3 and delete the prefix.  
-    In that case, if the launcher asks you if you want to copy, select no.
-3.  Select "Build" and then "Winetricks" _(this process takes around 10 minutes on a Steam Deck)_.  
+    In that case, if the launcher asks you if you want to copy, select no.  
+    - **NEW**: Use download instead of build, to speed up the prosess, by not building and go to Step 6.  
+4.  Select "Build" and then "Winetricks" _(this process takes around 10 minutes on a Steam Deck)_.  
     **IMPORTANT:** if you are using Proton version 7 or earlier, select wemod-launcher instead of winetricks.
 5.  Once the build is complete, launch the game _(in Desktop mode again, if you are on a Steam Deck)_.
 
