@@ -36,7 +36,7 @@ and you are welcome to report your findings/suggestions.
   Thanks to Reddit user /u/pickworthi for finding it out.
 
 ## Guide
-<div><img src="https://cdn.discordapp.com/emojis/761419274945953842.webp?size=20&quality=lossless" alt="WeModApp"/>&nbsp;<b>If you prefer a video tutorial, one is now available:</b> <a href="https://youtu.be/Gmj1ObIsrHc"> WeMod-launcher Setup Tutorial by Marvin1099</a></div>
+<div><img src="https://cdn.discordapp.com/emojis/761419274945953842.webp?size=20&quality=lossless" alt="WeModApp"/>&nbsp;<b>If you prefer a video tutorial, one is now available:</b> <a href="https://youtu.be/5UlVCZvIl1E"> WeMod-launcher Setup Tutorial by Marvin1099</a></div>
 <div><img src="https://cdn.discordapp.com/emojis/761419274945953842.webp?size=20&quality=lossless" alt="WeModApp"/>&nbsp;<b>Just below this line, you will find a written guide</b></div><br> 
 
 <table>
@@ -197,7 +197,7 @@ Your input is valuable in making this guide a valuable resource.</div>
 ****
 <h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=20&quality=lossless" alt="Heart"/>&nbsp;Additional</h3>
 
-<div><img src="https://cdn.discordapp.com/emojis/761419274945953842.webp?size=20&quality=lossless" alt="WeModApp"/>&nbsp;<b>Video Tutorial:</b> <a href="https://youtu.be/Gmj1ObIsrHc"> WeMod-launcher Setup Tutorial by Marvin1099</a></div> 
+<div><img src="https://cdn.discordapp.com/emojis/761419274945953842.webp?size=20&quality=lossless" alt="WeModApp"/>&nbsp;<b>Video Tutorial:</b> <a href="https://youtu.be/5UlVCZvIl1E"> WeMod-launcher Setup Tutorial by Marvin1099</a></div> 
 
 <div><img src="https://cdn.discordapp.com/emojis/1113579884749529198.gif?size=20&quality=lossless" alt="WeModApp"/>&nbsp;<b>Guide was written by Trippin and updated by Marvin1099.</b></div>  
 
