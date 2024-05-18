@@ -10,10 +10,72 @@ from urllib import request
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 WINEPREFIX = os.path.join(os.getenv("STEAM_COMPAT_DATA_PATH"), "pfx")
 
+# Function to check if dependencies are installed
+def check_dependencies(requirements_file):
+
+    ret = True
+    # Check if dependencies have been installed
+    with open(requirements_file) as f:
+        for line in f:
+            package = line.strip().split('==')[0]
+            try:
+                __import__(package)
+            except ImportError:
+                log(f"{package} is missing")
+                ret = False
+    return ret
+
 # Function to install or execute pip commands
-def pip(command: str) -> int:
-    # Define the path for pip.pyz
-    pip_pyz = os.path.join(SCRIPT_PATH, "pip.pyz")
+def pip(command: str,venv_path=None) -> int:
+    pos_pip = None
+    if venv_path:
+        python_executable = os.path.join(venv_path,os.path.basename(sys.executable))
+        pos_pip = os.path.join(venv_path,"bin","pip")
+        if not os.path.isfile(pos_pip):
+            pos_pip = None
+    else:
+        python_executable = sys.executable
+
+
+    # Try to use pip directly if possible
+    if pos_pip:
+        process = subprocess.Popen(f"'{pos_pip}' {command}", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+        #for line in stdout.splitlines():
+        #    if line:
+        #        log(line.decode("utf8"))
+        #for line in stderr.splitlines():
+        #    if line:
+        #        log(line.decode("utf8"))
+
+        process.wait()
+        # Check if pip command was successful
+        if process.returncode == 0:
+            log("pip finished")
+            return process.returncode
+
+
+    # Try to use the built-in pip
+    process = subprocess.Popen(f"'{python_executable}' -m pip {command}", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+    #for line in stdout.splitlines():
+    #    if line:
+    #        log(line.decode("utf8"))
+    #for line in stderr.splitlines():
+    #    if line:
+    #        log(line.decode("utf8"))
+
+    # Check if -m pip command was successful
+    if process.wait() == 0:
+        log("pip finished")
+        return process.returncode
+
+
+    # If -m pip failed, fallback to using pip.pyz
+    if venv_path:
+        pip_pyz = os.path.join(venv_path, "bin", "pip.pyz")
+    else:
+        pip_pyz = os.path.join(SCRIPT_PATH, "pip.pyz")
 
     # Check and download pip.pyz if not present
     if not os.path.isfile(pip_pyz):
@@ -24,14 +86,20 @@ def pip(command: str) -> int:
         if not os.path.isfile(pip_pyz):
             log("CRITICAL: Failed to download pip. Exiting!")
             sys.exit(1)
+    else:
+        log("pip not installed. Using local pip.pyz")
 
-    # Execute the pip command and log the output
-    process = subprocess.Popen("python3 {} {}".format(pip_pyz, command), shell=True, stdout=subprocess.PIPE)
-    for line in iter(process.stdout.readline, ''):
-        if line is None or line == b'':
-            break
-        log(line.decode("utf8"))
+    # Execute the pip command using pip.pyz
+    process = subprocess.Popen(f"{python_executable} {pip_pyz} {command}", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+    #for line in stdout.splitlines():
+    #    if line:
+    #        log(line.decode("utf8"))
+    #for line in stderr.splitlines():
+    #    if line:
+    #        log(line.decode("utf8"))
 
+    log("pip finished")
     # Return the exit code of the process
     return process.wait()
 
@@ -39,13 +107,14 @@ def pip(command: str) -> int:
 def log(message: str):
     if "WEMOD_LOG" in os.environ:
         message = str(message)
-        message = message if list(message)[-1] == "\n" else message + "\n"
+        if message and message[-1] != "\n":
+            message += "\n"
         with open(os.getenv("WEMOD_LOG"), "a") as f:
             f.write(message)
 
-# Function to display a popup with options using PySimpleGUI
+# Function to display a popup with options using FreeSimpleGUI
 def popup_options(title: str, message: str, options: list[str]) -> str:
-    import PySimpleGUI as sg
+    import FreeSimpleGUI as sg
     layout = [
         [sg.Text(message, auto_size_text=True)],
         [list(map(lambda option: sg.Button(option), options))]
@@ -62,7 +131,7 @@ def popup_options(title: str, message: str, options: list[str]) -> str:
 
 # Function to execute a command and display output in a popup
 def popup_execute(title: str, command: str, onwrite: Callable[[str], None] = None) -> int:
-    import PySimpleGUI as sg
+    import FreeSimpleGUI as sg
     import subprocess as sp
 
     sg.theme("systemdefault")
@@ -103,7 +172,7 @@ def popup_execute(title: str, command: str, onwrite: Callable[[str], None] = Non
 
 # Function to download a file with progress display
 def popup_download(title: str, link: str, file_name: str):
-    import PySimpleGUI as sg
+    import FreeSimpleGUI as sg
     sg.theme("systemdefault")
 
     status = [0, 0]
@@ -198,7 +267,7 @@ def wine(command: str, proton_bin: str) -> int:
 
 # Function to display a message and exit
 def exit_with_message(title: str, exit_message: str, exit_code: int = 1) -> None:
-    import PySimpleGUI as sg
+    import FreeSimpleGUI as sg
     sg.theme("systemdefault")
 
     log(exit_message)
@@ -225,7 +294,7 @@ def cache(file_path: str, default: Callable[[str], None]) -> str:
 # Function to get or download .NET Framework 4.8
 def get_dotnet48() -> str:
     # Newer if you like to test: "https://download.visualstudio.microsoft.com/download/pr/2d6bb6b2-226a-4baa-bdec-798822606ff1/8494001c276a4b96804cde7829c04d7f/ndp48-x86-x64-allos-enu.exe"
-    LINK = "https://download.visualstudio.microsoft.com/download/pr/7afca223-55d2-470a-8edc-6a1739ae3252/abd170b4b0ec15ad0222a809b761a036/ndp48-x86-x64-allos-enu. 
+    LINK = "https://download.visualstudio.microsoft.com/download/pr/7afca223-55d2-470a-8edc-6a1739ae3252/abd170b4b0ec15ad0222a809b761a036/ndp48-x86-x64-allos-enu."
     cache_func = lambda FILE: popup_download("Downloading dotnet48", LINK, FILE)
 
     dotnet48 = cache("ndp48-x86-x64-allos-enu.exe", cache_func)
@@ -274,7 +343,7 @@ def deref(path):
 def copy_folder_with_progress(source: str, dest: str, ignore=None, include_override=None) -> None:
     import shutil
     import pathlib
-    import PySimpleGUI as sg
+    import FreeSimpleGUI as sg
 
     if ignore == {None}:
         ignore={'pfx/drive_c/users','pfx/dosdevices','pfx/drive_c/Program Files (x86)','pfx/drive_c/Program Files',
@@ -292,7 +361,7 @@ def copy_folder_with_progress(source: str, dest: str, ignore=None, include_overr
     if include_override is None:
         include_override = set()
 
-    log(f"i: {ignore}\n\no: {include_override}")
+    log(f"ignoring: {ignore}\nincluding anyway: {include_override}")
 
     def traverse_folders(path):
         allf = []

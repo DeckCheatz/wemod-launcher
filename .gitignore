@@ -1,6 +1,8 @@
-wemod_bin/
 .cache/
-winetricks
+wemod_bin/
+wemod_data/
+wemod_venv/
 __pycache__/
-wemod_prefix.tar.zst
+wemod.log
+winetricks
 pip.pyz

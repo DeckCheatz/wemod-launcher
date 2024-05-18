@@ -2,11 +2,12 @@
 
 import requests
 import shutil
+import venv
 import sys
 import os
 import re
 import subprocess
-from util import cache, exit_with_message, get_dotnet48, popup_download, wine, winetricks, log, popup_execute, pip, popup_options, deref
+from util import cache, exit_with_message, get_dotnet48, popup_download, wine, winetricks, log, popup_execute, check_dependencies, pip, popup_options, deref
 from setup import main
 
 # Define paths and constants
@@ -140,7 +141,7 @@ def syncwemod(folder=None):# Symlink wemod data to make all wemod prefixes use t
     os.makedirs(WeModExtenal)
   if os.path.isdir(WeModExtenal) and not os.path.islink(WeModExtenal): # If the extenal data exist
     if len(os.listdir(WeModData)) > 0 and len(os.listdir(WeModExtenal)) > 0: # If wemod folder and extenal folder are not empty
-      import PySimpleGUI as sg # We ask what files to use
+      import FreeSimpleGUI as sg # We ask what files to use
       response = sg.popup_yes_no(f"Warnig wemod might have been installed previously.\nUse wemod laucher dir account (Yes) or\nUse wemod prefix/game dir account (No)")
     if (response == "No" or len(os.listdir(WeModData)) == 0) and len(os.listdir(WeModExtenal)) > 0:
       if response == None:
@@ -153,6 +154,9 @@ def syncwemod(folder=None):# Symlink wemod data to make all wemod prefixes use t
   if not os.path.isdir(WeModExtenal) and not os.path.islink(WeModExtenal):
     os.symlink(WeModData, WeModExtenal) # And symlink the data from the wemod laucher
     log("Linked wemod data to gameprefix")
+
+  if not os.path.exists(os.path.join(SCRIPT_PATH,"wemod_bin","WeMod.exe")):
+      main()
 
 # Initialize the environment
 def init(proton: str) -> None:
@@ -182,10 +186,10 @@ def init(proton: str) -> None:
     if closest_version and current_version_parts and closest_version == current_version_parts:
       response = "Yes"
     elif closest_version and current_version_parts and closest_version[0] == current_version_parts[0]:
-      import PySimpleGUI as sg
+      import FreeSimpleGUI as sg
       response = sg.popup_yes_no(f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} dosn't have WeMod installed. Would you like to use the closest proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is probably going to work?", title="Likely compatible WeMod version detected")
     elif closest_version and current_version_parts and closest_version[0] != current_version_parts[0]:
-      import PySimpleGUI as sg
+      import FreeSimpleGUI as sg
       response = sg.popup_yes_no(f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} dosn't have WeMod installed. Would you like to attempt to use the closest proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which may result in some issues?", title="Mabye compatible WeMod version detected")
     else:
       log("No compatible Proton version found in the compatibility folder.")
@@ -285,7 +289,7 @@ def find_closest_compatible_release(releases,current_version_parts=[None,None]):
 # Function to download and unpack a pre-configured wineprefix
 def download_prefix(proton_dir: str) -> None:
   from shutil import which
-  import PySimpleGUI as sg
+  import FreeSimpleGUI as sg
 
   # Check and prepare for first launch
   if not os.path.exists(WINEPREFIX + "/drive_c"):
@@ -341,7 +345,7 @@ def download_prefix(proton_dir: str) -> None:
 
 # Function to build a new wineprefix
 def build_prefix(proton_dir: str) -> None:
-  import PySimpleGUI as sg
+  import FreeSimpleGUI as sg
 
   # Set environment path
   path = os.path.join(SCRIPT_PATH, "bin") + ":" + proton_dir + ":" + os.getenv("PATH")
@@ -443,15 +447,54 @@ def run(skip_init=False):
   return "EXIT"
 
 # Log Python version and ensure dependencies
-log(sys.version)
-log("Ensuring Dependencies...")
 requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
-return_code = pip("install --break-system-packages -r {}".format(requirements_txt))
+if check_dependencies(requirements_txt):
+  log("All dependencies are already installed.")
+else:
+  log("Dependencies missing, creating virtual environment...")
 
-# Handle dependency installation errors
-if return_code != 0:
-  log("Failed to install dependencies. pip Exited with code '{}'".format(return_code))
-  exit(return_code)
+  # Create a virtual environment using venv
+  venv_path = os.path.join(SCRIPT_PATH, "wemod_venv")
+  try:
+    subprocess.run([sys.executable, '-m', 'venv', venv_path], check=True)
+    log("Virtual environment created successfully.")
+  except subprocess.CalledProcessError:
+    log("Failed to create virtual environment, trying to force install venv")
+    return_code = pip("install --break-system-packages venv")
+    if return_code != 0:
+      log("CRITICAL: The python package 'venv' is not installed and could not be downloaded")
+      sys.exit(1)
+    else:
+      try:
+        subprocess.run([sys.executable, '-m', 'venv', venv_path], check=True)
+        log("Virtual environment created successfully.")
+      except subprocess.CalledProcessError:
+        log("Backup failed to create virtual environment, exiting")
+        sys.exit(1)
+
+  # Determine the path to the Python executable within the virtual environment
+  venv_python = os.path.join(venv_path, 'bin', 'python')
+
+  # Build the command to re-run the script within the virtual environment
+  script_file = os.path.abspath(__file__)  # Assuming the current script is being run
+  command = [venv_python, script_file] + sys.argv[1:]  # Pass command line arguments
+
+  # Try to install the dependencies
+  pip_install = f"install -r '{requirements_txt}'"
+  return_code = pip(pip_install)
+  if return_code != 0:
+    return_code = pip(pip_install,venv_path)
+    if return_code != 0:
+      log("CRITICAL: Dependencies can't be installed")
+      sys.exit(1)
+
+    log("Re-running script within virtual environment")
+    # Execute the script within the virtual environment
+    process = subprocess.run(command, capture_output=True, text=True)
+    log(process.stdout)
+    log(process.stderr)
+    sys.exit(process.returncode)
+
 
 # Main execution block
 RESP = ""

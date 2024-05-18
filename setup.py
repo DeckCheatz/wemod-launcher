@@ -9,7 +9,7 @@ from util import download_progress, pip, log
 SCRIPT_PATH=os.path.dirname(os.path.realpath(__file__))
 
 def welcome() -> bool:
-  import PySimpleGUI as sg
+  import FreeSimpleGUI as sg
   import requests
 
   wemod_logo = requests.get("https://www.wemod.com/static/images/device-icons/favicon-192-ce0bc030f3.png", stream=False)
@@ -20,7 +20,7 @@ def welcome() -> bool:
   return ret == "OK"
 
 def download_wemod(temp_dir:str) -> str:
-  import PySimpleGUI as sg
+  import FreeSimpleGUI as sg
   sg.theme("systemdefault")
 
   status = [0,0]
@@ -95,7 +95,7 @@ def unpack_wemod(setup_file:str, temp_dir:str, install_location:str) -> bool:
 
 
 def main():
-  import PySimpleGUI as sg
+  import FreeSimpleGUI as sg
   import shutil
 
   if not welcome():
@@ -111,7 +111,7 @@ def main():
     log("Winetricks not found...")
     log("Downloading latest winetricks...")
 
-    sg.popup("Winetricks", "Fetching latest winetricks...", any_key_closes=True, auto_close_duration=10)
+    sg.popup("Winetricks", "Fetching latest winetricks...", any_key_closes=True, auto_close_duration=1)
     download_progress(
       "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks",
       winetricks,
