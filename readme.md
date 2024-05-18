@@ -54,8 +54,6 @@ and you are welcome to report your findings/suggestions.
 
 *   A Steam Deck running Linux (or any Linux-based x86\_64 system).
 *   A external Mouse and Keyboard (Recommended for Steam Deck).
-*   To Install the zip and unzip utility (Installed on SteamOS and most distros)
-*   To Install TK through you package manager (If not on SteamOS) as posted in [Issue 29](https://github.com/DaniAsh551/wemod-launcher/issues/29)
 *   A WeMod Pro Subscription (Recommended for Steam Deck).  
     **OR** Use a Keyboard to send the key shortcuts to toggle cheats.  
     **OR** Use a Keyboard and Desktop mode to switch the game and WeMod with alt+tab.
@@ -63,6 +61,7 @@ and you are welcome to report your findings/suggestions.
 *   **Optional:** If you have access to another PC and wish to control the Steam Deck remotely,  
     consider using **[RustDesk (download the .flatpak file)](https://github.com/rustdesk/rustdesk/releases/latest)** for easier setup. ‎‎  
     **NOTE:** You can also use any alternative approach to install RustDesk for your distro.
+*   To Install some software, see just below this line.
 
 
 ****
@@ -77,6 +76,8 @@ and you are welcome to report your findings/suggestions.
     **NOTE:** You can use any alternative approach to install **"ProtonUp-QT"** that is available in your distro.
 5.  Search for and install **zip** and **unzip** in the store (preinstalled on SteamOS).
 6.  Search for and install **TK** in the store (preinstalled on SteamOS).
+7.  Search for and install **python** in the store (preinstalled on SteamOS).
+8.  Search for and install **python-venv** or whatever is is named on your distro, from the store (preinstalled on SteamOS).
 
 
 ****
