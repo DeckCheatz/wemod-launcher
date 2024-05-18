@@ -75,6 +75,8 @@ and you are welcome to report your findings/suggestions.
     **NOTE:** This is used to find the Game ID for your games,  
     if you know how to find the Game ID without Protontricks you can skip this step.  
     **NOTE:** You can use any alternative approach to install **"ProtonUp-QT"** that is available in your distro.
+5.  Search for and install **zip** and **unzip** in the store (preinstalled on SteamOS).
+6.  Search for and install **TK** in the store (preinstalled on SteamOS).
 
 
 ****
