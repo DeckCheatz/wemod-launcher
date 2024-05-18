@@ -225,7 +225,7 @@ def cache(file_path: str, default: Callable[[str], None]) -> str:
 # Function to get or download .NET Framework 4.8
 def get_dotnet48() -> str:
     # Newer if you like to test: "https://download.visualstudio.microsoft.com/download/pr/2d6bb6b2-226a-4baa-bdec-798822606ff1/8494001c276a4b96804cde7829c04d7f/ndp48-x86-x64-allos-enu.exe"
-    LINK = "https://download.visualstudio.microsoft.com/download/pr/7afca223-55d2-470a-8edc-6a1739ae3252/abd170b4b0ec15ad0222a809b761a036/ndp48-x86-x64-allos-enu. 
+    LINK = "https://download.visualstudio.microsoft.com/download/pr/7afca223-55d2-470a-8edc-6a1739ae3252/abd170b4b0ec15ad0222a809b761a036/ndp48-x86-x64-allos-enu."
     cache_func = lambda FILE: popup_download("Downloading dotnet48", LINK, FILE)
 
     dotnet48 = cache("ndp48-x86-x64-allos-enu.exe", cache_func)
