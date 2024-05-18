@@ -29,6 +29,8 @@ I have tested this only on a handful of games,
 and you are welcome to report your findings/suggestions.
 
 ## Changes
+- Replaced PySimpleGUI with FreeSimpleGUI so a lisence is no longer needed.
+- Changed pip to use a venv so it can no longer break system packages.
 - Added code to make prefix downloading work once more.
 - Added code to sync the wemod folder so you dont have to login all the time.
 - Added code that will copy working WeMod prefixes so you don't have to rebuild all the time.
