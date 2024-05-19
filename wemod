@@ -203,7 +203,7 @@ def init(proton: str) -> None:
     elif closest_version and current_version_parts:
       log(f"User chose not to use an alternative Proton version, the active version was {current_version_parts[0]}.{current_version_parts[1]}.")
     else:
-      log(f"No versions to download available")
+      log(f"No versions to copy available")
         
 
   # Check for the initialization file in the wineprefix
