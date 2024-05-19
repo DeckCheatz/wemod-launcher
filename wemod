@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import requests
 import shutil
 import venv
 import sys
@@ -230,6 +229,11 @@ def init(proton: str) -> None:
   syncwemod() # Sync wemod data
 
 def get_github_releases(repo_name):
+    try:
+      import requests
+    except:
+       print("Failed to fetch releases.")
+       return []
     url = f"https://api.github.com/repos/{repo_name}/releases"
     response = requests.get(url)
     if response.status_code == 200:
