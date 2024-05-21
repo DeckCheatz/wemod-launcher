@@ -15,10 +15,6 @@ echo "%cd%"
 echo.
 echo command:
 echo %*
-echo.
-
-echo Waiting for 5 seconds to continue.
-@ping localhost -n 5 > NUL
 
 echo.
 echo.
