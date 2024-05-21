@@ -65,7 +65,6 @@ for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "PID eq %com
 if not errorlevel 0 (
     goto loop
 )
-@ping localhost -n 1 > NUL
 if not defined runningPID (
     for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "PID eq %commandPID%" /NH') do set runningPID=%%b
     if not errorlevel 0 (
@@ -74,6 +73,7 @@ if not defined runningPID (
 )
 
 if defined runningPID (
+    @ping localhost -n 1 > NUL
     if %counter% LSS 50 (
         set /A counter=%counter%+1
     )
