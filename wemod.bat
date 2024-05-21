@@ -29,10 +29,14 @@ start "" %wemodpath%
 
 :wemod
 set wemodPID=
-for /F "TOKENS=1,2,*" %%a in ('tasklist /FI "IMAGENAME eq %wemodname%"') do set wemodPID=%%b
+for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%"') do set wemodPID=%%b
 if not errorlevel 0 (
     goto wemod
 )
+if not defined wemodPID (
+    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%"') do set wemodPID=%%b
+)
+
 
 REM Start the custom command and get its PID
 echo Running game %1.
@@ -48,15 +52,24 @@ REM Couter to check if the game was detected correctly
 set /A counter=0
 
 :game
-for /F "TOKENS=1,2,*" %%a in ('tasklist /FI "IMAGENAME eq %~n1%~x1" /NH') do set commandPID=%%b
+for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "IMAGENAME eq %~n1%~x1" /NH') do set commandPID=%%b
 if not errorlevel 0 (
     goto game
 )
+if not defined commandPID (
+    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "IMAGENAME eq %~n1%~x1" /NH') do set commandPID=%%b
+)
 :loop
 set runningPID=
-for /F "TOKENS=1,2,*" %%a in ('tasklist /FI "PID eq %commandPID%" /NH') do set runningPID=%%b
+for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "PID eq %commandPID%" /NH') do set runningPID=%%b
 if not errorlevel 0 (
     goto loop
+)
+if not defined runningPID (
+    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "PID eq %commandPID%" /NH') do set runningPID=%%b
+    if not errorlevel 0 (
+        goto loop
+    )
 )
 
 if defined runningPID (
@@ -73,14 +86,13 @@ if defined wemodPID (
         echo.
         echo Game was probably not detected correctly, press a key to exit WeMod
         pause
+        echo.
     )
-    taskkill /PID %wemodPID% /F
-    if not errorlevel 0 (
-        taskkill /PID %wemodPID% /F
-    )
+    C:/windows/system32/taskkill.exe /PID %wemodPID% /F
+    C:/windows/system32/taskkill.exe /PID %wemodPID% /F
 )
 echo.
-echo Killed %wemodPID%
+echo Killed %wemodname% over pid %wemodPID%
 echo.
 echo Done, closing in 5 seconds
 @ping localhost -n 5 > NUL

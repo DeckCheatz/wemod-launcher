@@ -105,12 +105,22 @@ def pip(command: str,venv_path=None) -> int:
 
 # Function for logging messages
 def log(message: str):
-    if "WEMOD_LOG" in os.environ:
-        message = str(message)
-        if message and message[-1] != "\n":
-            message += "\n"
-        with open(os.getenv("WEMOD_LOG"), "a") as f:
-            f.write(message)
+    wemodlog = os.getenv('WEMOD_LOG')
+    if wemodlog != "":
+        try:
+            wemodlog = os.path.realpath(wemodlog)
+            os.makedirs(os.path.dirname(wemodlog), exist_ok = True)
+        except:
+            wemodlog = os.path.realpath(os.path.join(SCRIPT_PATH,"wemod.log"))
+            os.environ['WEMOD_LOG'] = wemodlog
+            log(f"WEMOD_LOG path was not given or invalid using path '{wemodlog}'\nIf you don't want to generate a logfile use WEMOD_LOG=''")
+            log(message)
+        else:
+            message = str(message)
+            if message and message[-1] != "\n":
+                message += "\n"
+            with open(wemodlog, "a") as f:
+                f.write(message)
 
 # Function to display a popup with options using FreeSimpleGUI
 def popup_options(title: str, message: str, options: list[str]) -> str:
