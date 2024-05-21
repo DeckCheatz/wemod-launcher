@@ -33,6 +33,10 @@ for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %w
 if not errorlevel 0 (
     goto wemod
 )
+if not defined wemodPID (
+    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%"') do set wemodPID=%%b
+)
+
 
 REM Start the custom command and get its PID
 echo Running game %1.
@@ -52,15 +56,24 @@ for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "IMAGENAME e
 if not errorlevel 0 (
     goto game
 )
+if not defined commandPID (
+    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "IMAGENAME eq %~n1%~x1" /NH') do set commandPID=%%b
+)
 :loop
 set runningPID=
 for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "PID eq %commandPID%" /NH') do set runningPID=%%b
 if not errorlevel 0 (
     goto loop
 )
+@ping localhost -n 1 > NUL
+if not defined runningPID (
+    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "PID eq %commandPID%" /NH') do set runningPID=%%b
+    if not errorlevel 0 (
+        goto loop
+    )
+)
 
 if defined runningPID (
-    @ping localhost -n 1 > NUL
     if %counter% LSS 50 (
         set /A counter=%counter%+1
     )
@@ -76,9 +89,7 @@ if defined wemodPID (
         echo.
     )
     C:/windows/system32/taskkill.exe /PID %wemodPID% /F
-    if not errorlevel 0 (
-        C:/windows/system32/taskkill.exe /PID %wemodPID% /F
-    )
+    C:/windows/system32/taskkill.exe /PID %wemodPID% /F
 )
 echo.
 echo Killed %wemodname% over pid %wemodPID%
