@@ -67,6 +67,12 @@ if not defined runningPID (
         goto loop
     )
 )
+if not defined runningPID (
+    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "PID eq %commandPID%" /NH 2>NUL') do set runningPID=%%b
+    if not errorlevel 0 (
+        goto loop
+    )
+)
 
 if defined runningPID (
     @ping localhost -n 1 > NUL 2>&1
