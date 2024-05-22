@@ -136,8 +136,7 @@ def main():
         log("Failed to unpack WeMod.")
         sg.popup("Failed to unpack WeMod.", "Failed to unpack WeMod.")
         sys.exit(1)
-
-
+        
 
 def init():
   print("Ensuring Dependencies...")
