@@ -29,6 +29,10 @@ I have tested this only on a handful of games,
 and you are welcome to report your findings/suggestions.
 
 ## Changes
+The most recent changes are at the top, check the [changelog](changelog.md) for more info.
+- Added simple config file for repo user, repo name, venv path, log path,  
+  a overwrite for the steam compat path, script name and script version.
+- Added code to the bat file so that wemod gets killed when the game closes.
 - Replaced PySimpleGUI with FreeSimpleGUI so a lisence is no longer needed.
 - Changed pip to use a venv so it can no longer break system packages.
 - Added code to make prefix downloading work once more.
@@ -38,7 +42,7 @@ and you are welcome to report your findings/suggestions.
   Thanks to Reddit user /u/pickworthi for finding it out.
 
 ## Guide
-<div><img src="https://cdn.discordapp.com/emojis/761419274945953842.webp?size=20&quality=lossless" alt="WeModApp"/>&nbsp;<b>If you prefer a video tutorial, one is now available:</b> <a href="https://youtu.be/5UlVCZvIl1E"> WeMod-launcher Setup Tutorial by Marvin1099</a></div>
+<div><img src="https://cdn.discordapp.com/emojis/761419274945953842.webp?size=20&quality=lossless" alt="WeModApp"/>&nbsp;<b>If you prefer a video tutorial, one is now available:</b><br><a href="https://youtu.be/5UlVCZvIl1E"> WeMod-launcher Setup Tutorial by Marvin1099</a></div>
 <div><img src="https://cdn.discordapp.com/emojis/761419274945953842.webp?size=20&quality=lossless" alt="WeModApp"/>&nbsp;<b>Just below this line, you will find a written guide</b></div><br> 
 
 <table>
@@ -191,6 +195,23 @@ Also, it's important to be aware that certain games may require
 launching exclusively through WeMod in desktop mode to access its features.
 
 ****
+<h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=20&quality=lossless" alt="Heart"/>&nbsp;The Config File</h3>
+
+The script uses a config file in wich you can set some settings (this is optional):  
+In the file `wemod.conf` you can add the following under "[Settings]"
+- Use SteamCompatDataPath=$SPATH to override you steam compat folder
+- Use VirtualEnvironment=$VPATH to set a custom path for the venv eg. wemod_venv
+- Use RepoUser=$GITHUB_USERNAME to set the github user,  
+  to get prefix downloads from eg. DaniAsh551
+- Use RepoName=$NAME_OF_REPO to set the github repo,  
+  to get prefix downloads from eg. wemod-launcher
+- WeModLog=$LOG_PATH to set the wemod log file path eg. wemod.log
+
+Keep in mind if you use this you don't want to use the environment variable equivalent
+eg. WEMOD_LOG=$LOG_PATH in front of the steam command,
+SteamCompatDataPath is exluded from this, sice it has to be set manually.
+****
+
 
 <h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=20&quality=lossless" alt="Heart"/>&nbsp;Guide Info</h3>
 <div><img src="https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=20&quality=lossless" alt="Alert"/>&nbsp;<b>This guide is designed to remain adaptable and open to improvements in the future.</b><br>

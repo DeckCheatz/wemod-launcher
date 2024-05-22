@@ -3,6 +3,7 @@ wemod_bin/
 wemod_data/
 wemod_venv/
 __pycache__/
+wemod.conf
 wemod.log
 winetricks
 pip.pyz

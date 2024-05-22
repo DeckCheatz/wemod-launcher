@@ -6,13 +6,24 @@ import sys
 import os
 import re
 import subprocess
-from util import cache, exit_with_message, get_dotnet48, popup_download, wine, winetricks, log, popup_execute, check_dependencies, pip, popup_options, deref
+from util import cache, exit_with_message, get_dotnet48, popup_download, wine, winetricks, log, popup_execute
+from util import check_dependencies, pip, popup_options, deref, load_conf_setting, save_conf_setting
 from setup import main
 
 # Define paths and constants
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 WEMOD_BAT = "C:\\\\windows\\\\system32\\\\start.exe Z:" + "\\\\".join(SCRIPT_PATH.split("/")) + "\\\\wemod.bat"
-BASE_STEAM_COMPAT = os.getenv("STEAM_COMPAT_DATA_PATH")
+loacom = load_conf_setting("SteamCompatDataPath")
+if not loacom:
+  BASE_STEAM_COMPAT = os.getenv("STEAM_COMPAT_DATA_PATH")
+elif loacom:
+  if os.path.isabs(loacom):
+    BASE_STEAM_COMPAT = str(loacom)
+  else:
+    BASE_STEAM_COMPAT = os.path.abspath(os.path.join(SCRIPT_PATH, loacom))
+
+del loacom
+
 WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
 STEAM_COMPAT_FOLDER = os.path.abspath(os.path.dirname(BASE_STEAM_COMPAT))
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
@@ -302,14 +313,31 @@ def download_prefix(proton_dir: str) -> None:
   # Check and prepare for first launch
   if not os.path.exists(WINEPREFIX + "/drive_c"):
     log(WINEPREFIX)
-    exit_with_message("First Launch","First Launch Detected: Please run the game once without wemod first.")
+    exit_with_message("First Launch","First Launch Detected: Please run the game once without wemod first. Error.")
 
-  repo_name = "DaniAsh551/wemod-launcher"
+
+  repo_user = load_conf_setting("RepoUser")
+  repo_name = load_conf_setting("RepoName")
+  if not repo_name:
+    repo_name = "DaniAsh551"
+    save_conf_setting("RepoUser",repo_name)
+  if not repo_user:
+    repo_user = "wemod-launcher"
+    save_conf_setting("RepoName",repo_user)
+
+  repo_parts = os.getenv(REPO_STRING).split("/",2)
+  if repo_parts[0] and repo_parts[0] != "":
+    repo_user = repo_parts[0]
+  if repo_parts[1] and repo_parts[1] != "":
+    repo_name = repo_parts[1]
+
+  repo_concat = repo_user + "/" + repo_name
+
 
   current_proton_version = read_version(os.path.join(BASE_STEAM_COMPAT, "version"))
   current_version_parts = parse_version(current_proton_version)
 
-  releases = get_github_releases(repo_name)
+  releases = get_github_releases(repo_concat)
   closest_version, url = find_closest_compatible_release(releases,current_version_parts)
   file_name = f"wemod_prefix{current_version_parts[0]}.{current_version_parts[1]}.zip"
 
@@ -320,8 +348,8 @@ def download_prefix(proton_dir: str) -> None:
   elif closest_version and current_version_parts:
     response = sg.popup_yes_no(f"The current version {closest_version[0]}.{closest_version[1]} might not be compatible with version {current_version_parts[0]}.{current_version_parts[1]}, download and use it?", title="Mabye copatible version found")
   else:
-    log("there was no version to download error")
-    sys.exit(0)
+    log(f"There was no version to download on repo '{repo_concat}', Error...")
+    exit_with_message("No downloads available",f"Nothing to download on repo '{repo_concat}'. Error.")
   if response == "No":
     log(f"User was unhappy with the version download choice of {closest_version[0]}.{closest_version[1]} for {current_version_parts[0]}.{current_version_parts[1]}, exiting")
     sys.exit(0)
@@ -367,7 +395,9 @@ def build_prefix(proton_dir: str) -> None:
 
   # Choose method to install dotnet48
   dotnet48_method = popup_options("dotnet48",
-    "Would you like to install dotnet48 with winetricks (default) or with wemod-launcher?",
+    """Would you like to install dotnet48 with winetricks (default) or with wemod-launcher?
+winetricks is for GE-Proton 8 or above and wemod-launcher is for GE-Proton 7
+be warned that GE-Proton 7 (the wemod-launcher opion) isn't working well, you can try using it anyway""",
     [ "winetricks", "wemod-launcher" ]
   )
 
@@ -456,51 +486,76 @@ def run(skip_init=False):
 
 # Log Python version and ensure dependencies
 requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
+
+save_conf_setting("ScriptName","wemod-laucher")
+save_conf_setting("Version","1.001")
+
 if check_dependencies(requirements_txt):
   log("All dependencies are already installed.")
 else:
-  log("Dependencies missing, creating virtual environment...")
+  log("Dependencies missing")
 
-  # Create a virtual environment using venv
-  venv_path = os.path.join(SCRIPT_PATH, "wemod_venv")
-  try:
-    subprocess.run([sys.executable, '-m', 'venv', venv_path], check=True)
-    log("Virtual environment created successfully.")
-  except subprocess.CalledProcessError:
-    log("Failed to create virtual environment, trying to force install venv")
-    return_code = pip("install --break-system-packages venv")
-    if return_code != 0:
-      log("CRITICAL: The python package 'venv' is not installed and could not be downloaded")
-      sys.exit(1)
-    else:
-      try:
-        subprocess.run([sys.executable, '-m', 'venv', venv_path], check=True)
-        log("Virtual environment created successfully.")
-      except subprocess.CalledProcessError:
-        log("Backup failed to create virtual environment, exiting")
-        sys.exit(1)
+  log("Trying to install Dependencies...")
 
-  # Determine the path to the Python executable within the virtual environment
-  venv_python = os.path.join(venv_path, 'bin', 'python')
-
-  # Build the command to re-run the script within the virtual environment
-  script_file = os.path.abspath(__file__)  # Assuming the current script is being run
-  command = [venv_python, script_file] + sys.argv[1:]  # Pass command line arguments
-
+  venv_path = load_conf_setting("VirtualEnvironment")
   # Try to install the dependencies
   pip_install = f"install -r '{requirements_txt}'"
-  return_code = pip(pip_install)
+  if not venv_path:
+    return_code = pip(pip_install)
+  else:
+    return_code = 98
   if return_code != 0:
+    if return_code != 98:
+      log("Creating virtual environment...")
+    else:
+      log("Ensuring virtual environment...")
+    # Create a virtual environment using venv
+    if not venv_path:
+      venv_path = "wemod_venv"
+    try:
+      if os.path.isabs(venv_path):
+        subprocess.run([sys.executable, '-m', 'venv', venv_path], check=True)
+      else:
+        subprocess.run([sys.executable, '-m', 'venv', os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))], check=True)
+      log("Virtual environment created successfully.")
+    except subprocess.CalledProcessError:
+      log("Failed to create virtual environment, trying to force install venv")
+      return_code = pip("install --break-system-packages venv")
+      if return_code != 0:
+        log("CRITICAL: The python package 'venv' is not installed and could not be downloaded")
+        exit_with_message("Missing python-venv","The python package 'venv' is not installed and could not be downloaded. Error.")
+      else:
+        try:
+          if os.path.isabs(venv_path):
+            subprocess.run([sys.executable, '-m', 'venv', venv_path], check=True)
+          else:
+            subprocess.run([sys.executable, '-m', 'venv', os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))], check=True)
+          log("Virtual environment created successfully.")
+        except subprocess.CalledProcessError:
+          log("CRITICAL: Backup failed to create virtual environment, exiting")
+          exit_with_message("Error on package venv","Failed to create virtual environment. Error.")
+
+    save_conf_setting("VirtualEnvironment",venv_path)
+    if venv_path and not os.path.isabs(venv_path):
+        venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))
+
+    # Determine the path to the Python executable within the virtual environment
+    venv_python = os.path.join(venv_path, 'bin', 'python')
+
+    # Build the command to re-run the script within the virtual environment
+    script_file = os.path.abspath(__file__)  # Assuming the current script is being run
+    command = [venv_python, script_file] + sys.argv[1:]  # Pass command line arguments
+
     return_code = pip(pip_install,venv_path)
     if return_code != 0:
       log("CRITICAL: Dependencies can't be installed")
-      sys.exit(1)
+      exit_with_message("Dependencies install error","Failed to install dependencies. Error.")
 
     log("Re-running script within virtual environment")
     # Execute the script within the virtual environment
     process = subprocess.run(command, capture_output=True, text=True)
-    log(process.stdout)
-    log(process.stderr)
+    print(str(process.stdout))
+    print(str(process.stderr))
     sys.exit(process.returncode)
 
 

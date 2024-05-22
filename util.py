@@ -3,16 +3,45 @@ import subprocess
 import os
 import sys
 import tempfile
+import configparser
 from typing import Callable
 from urllib import request
 
 # Set the script path and define the Wine prefix for Windows compatibility
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 WINEPREFIX = os.path.join(os.getenv("STEAM_COMPAT_DATA_PATH"), "pfx")
+# Set config location, and start config paser
+CONFIG_PATH = os.path.join(SCRIPT_PATH, 'wemod.conf')
+DEF_SECTION = "Settings"
+CONFIG = configparser.ConfigParser()
+CONFIG.optionxform = str
+if os.path.exists(CONFIG_PATH):
+    CONFIG.read(CONFIG_PATH)
+
+def load_conf_setting(setting, section=DEF_SECTION): # Read a setting of the configfile
+    if section in CONFIG and setting in CONFIG[section]:
+        return CONFIG[section][setting]
+    return None
+
+def save_conf_setting(setting, value=None, section=DEF_SECTION): # Save a value onto a setting of the configfile
+    if not isinstance(section, str):
+        log("Error adding the given section it wasn't a string")
+        return
+    if section not in CONFIG:
+        CONFIG[section] = {}
+    if value == None:
+        if setting in CONFIG[section]:
+            del CONFIG[section][setting]
+    elif isinstance(value, str):
+        CONFIG[section][setting] = value
+    else:
+        log("Error saving given value it wasn't a sting")
+        return
+    with open(CONFIG_PATH, 'w') as configfile:
+        CONFIG.write(configfile)
 
 # Function to check if dependencies are installed
 def check_dependencies(requirements_file):
-
     ret = True
     # Check if dependencies have been installed
     with open(requirements_file) as f:
@@ -27,6 +56,8 @@ def check_dependencies(requirements_file):
 
 # Function to install or execute pip commands
 def pip(command: str,venv_path=None) -> int:
+    if venv_path and not os.path.isabs(venv_path):
+        venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))
     pos_pip = None
     if venv_path:
         python_executable = os.path.join(venv_path,os.path.basename(sys.executable))
@@ -41,35 +72,25 @@ def pip(command: str,venv_path=None) -> int:
     if pos_pip:
         process = subprocess.Popen(f"'{pos_pip}' {command}", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
-        #for line in stdout.splitlines():
-        #    if line:
-        #        log(line.decode("utf8"))
-        #for line in stderr.splitlines():
-        #    if line:
-        #        log(line.decode("utf8"))
-
         process.wait()
         # Check if pip command was successful
         if process.returncode == 0:
             log("pip finished")
             return process.returncode
-
+        elif b"externally-managed-environment" in stderr:
+            log("ERROR: Externally managed environment detected.")
+            return 99
 
     # Try to use the built-in pip
     process = subprocess.Popen(f"'{python_executable}' -m pip {command}", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
-    #for line in stdout.splitlines():
-    #    if line:
-    #        log(line.decode("utf8"))
-    #for line in stderr.splitlines():
-    #    if line:
-    #        log(line.decode("utf8"))
-
     # Check if -m pip command was successful
     if process.wait() == 0:
         log("pip finished")
         return process.returncode
-
+    elif b"externally-managed-environment" in stderr:
+        log("ERROR: Externally managed environment detected.")
+        return 99
 
     # If -m pip failed, fallback to using pip.pyz
     if venv_path:
@@ -92,33 +113,37 @@ def pip(command: str,venv_path=None) -> int:
     # Execute the pip command using pip.pyz
     process = subprocess.Popen(f"{python_executable} {pip_pyz} {command}", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
-    #for line in stdout.splitlines():
-    #    if line:
-    #        log(line.decode("utf8"))
-    #for line in stderr.splitlines():
-    #    if line:
-    #        log(line.decode("utf8"))
-
-    log("pip finished")
+    if process.wait() == 0:
+        log("pip finished")
+    elif b"externally-managed-environment" in stderr:
+        log("ERROR: Externally managed environment detected.")
+        return 99
     # Return the exit code of the process
-    return process.wait()
+    return process.returncode
 
 # Function for logging messages
 def log(message: str):
-    wemodlog = os.getenv('WEMOD_LOG')
+    oswemodlog = os.getenv('WEMOD_LOG')
+    wemodlog = str(oswemodlog)
+    cowemodlog = load_conf_setting("WeModLog")
+    if not wemodlog:
+        wemodlog = str(cowemodlog)
     if wemodlog != "":
         try:
-            wemodlog = os.path.realpath(wemodlog)
             os.makedirs(os.path.dirname(wemodlog), exist_ok = True)
         except:
-            wemodlog = os.path.realpath(os.path.join(SCRIPT_PATH,"wemod.log"))
-            os.environ['WEMOD_LOG'] = wemodlog
-            log(f"WEMOD_LOG path was not given or invalid using path '{wemodlog}'\nIf you don't want to generate a logfile use WEMOD_LOG=''")
+            wemodlog = "wemod.log"
+            if oswemodlog and oswemodlog != wemodlog: # Only save if not environment var
+                save_conf_setting("WeModLog",wemodlog)
+
+            log(f"WeModLog path was not given or invalid using path '{wemodlog}'\nIf you don't want to generate a logfile use WEMOD_LOG='' or set the config to WeModLog=''")
             log(message)
         else:
             message = str(message)
             if message and message[-1] != "\n":
                 message += "\n"
+            if not os.path.isabs(wemodlog):
+                wemodlog = os.path.abspath(os.path.join(SCRIPT_PATH, wemodlog))
             with open(wemodlog, "a") as f:
                 f.write(message)
 
@@ -438,7 +463,6 @@ def copy_folder_with_progress(source: str, dest: str, ignore=None, include_overr
 
 
     window.close()
-
 
 
 # Main execution block, example of using popup_execute
