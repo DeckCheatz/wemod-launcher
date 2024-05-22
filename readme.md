@@ -208,8 +208,8 @@ In the file `wemod.conf` you can add the following under "[Settings]"
 - WeModLog=$LOG_PATH to set the wemod log file path eg. wemod.log
 
 Keep in mind if you use this you don't want to use the environment variable equivalent
-eg. WEMOD_LOG=$LOG_PATH in front of the steam command,
-SteamCompatDataPath is exluded from this, sice it has to be set manually.
+eg. WEMOD_LOG=$LOG_PATH in front of the steam command,  
+SteamCompatDataPath is exluded from this, since it has to be set manually.
 ****
 
 
