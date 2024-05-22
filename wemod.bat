@@ -57,18 +57,18 @@ if not defined commandPID (
 )
 :loop
 set runningPID=
-for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "PID eq %commandPID%" /NH 2>NUL') do set runningPID=%%b
+for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "PID eq %commandPID%" /NH') do set runningPID=%%b
 if not errorlevel 0 (
     goto loop
 )
 if not defined runningPID (
-    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "PID eq %commandPID%" /NH 2>NUL') do set runningPID=%%b
+    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "PID eq %commandPID%" /NH') do set runningPID=%%b
     if not errorlevel 0 (
         goto loop
     )
 )
 if not defined runningPID (
-    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "PID eq %commandPID%" /NH 2>NUL') do set runningPID=%%b
+    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "PID eq %commandPID%" /NH') do set runningPID=%%b
     if not errorlevel 0 (
         goto loop
     )
