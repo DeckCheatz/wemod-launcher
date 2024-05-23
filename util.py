@@ -124,28 +124,31 @@ def pip(command: str,venv_path=None) -> int:
 # Function for logging messages
 def log(message: str):
     oswemodlog = os.getenv('WEMOD_LOG')
-    wemodlog = str(oswemodlog)
+    wemodlog = oswemodlog
     cowemodlog = load_conf_setting("WeModLog")
     if not wemodlog:
-        wemodlog = str(cowemodlog)
+        wemodlog = cowemodlog
     if wemodlog != "":
         try:
-            os.makedirs(os.path.dirname(wemodlog), exist_ok = True)
+            if not wemodlog:
+                wemodlog.replace("","")
+            elif os.path.isabs(wemodlog):
+                os.makedirs(os.path.dirname(wemodlog), exist_ok = True)
+            else:
+                os.makedirs(os.path.dirname(os.path.abspath(os.path.join(SCRIPT_PATH, wemodlog))), exist_ok = True)
         except:
             wemodlog = "wemod.log"
-            if oswemodlog and oswemodlog != wemodlog: # Only save if not environment var
+            if not oswemodlog: # Only save if not a environment var
                 save_conf_setting("WeModLog",wemodlog)
 
-            log(f"WeModLog path was not given or invalid using path '{wemodlog}'\nIf you don't want to generate a logfile use WEMOD_LOG='' or set the config to WeModLog=''")
-            log(message)
-        else:
-            message = str(message)
-            if message and message[-1] != "\n":
-                message += "\n"
-            if not os.path.isabs(wemodlog):
-                wemodlog = os.path.abspath(os.path.join(SCRIPT_PATH, wemodlog))
-            with open(wemodlog, "a") as f:
-                f.write(message)
+            message = f"WeModLog path was not given or invalid using path '{wemodlog}'\nIf you don't want to generate a logfile use WEMOD_LOG='' or set the config to WeModLog=''\n{message}"
+        message = str(message)
+        if message and message[-1] != "\n":
+            message += "\n"
+        if not os.path.isabs(wemodlog):
+            wemodlog = os.path.abspath(os.path.join(SCRIPT_PATH, wemodlog))
+        with open(wemodlog, "a") as f:
+            f.write(message)
 
 # Function to display a popup with options using FreeSimpleGUI
 def popup_options(title: str, message: str, options: list[str]) -> str:
