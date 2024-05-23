@@ -114,6 +114,19 @@ def scanfolderforversions(current_version_parts=[None,None]):
 def syncwemod(folder=None):# Symlink wemod data to make all wemod prefixes use the same wemod data
   response = None
   package_prefix = os.getenv('PACKAGEPREFIX') # use PACKAGEPREFIX=true in front of the command to generate a ge-proton-prefix zip and exit
+  if not package_prefix:
+    package_prefix = load_conf_setting("PackagePrefix")
+    if package_prefix:
+      try:
+        package_prefix=int(package_prefix)
+      except:
+        package_prefix=0
+      if package_prefix>0:
+        package_prefix-=1
+        save_conf_setting("PackagePrefix",package_prefix)
+        package_prefix="true"
+      elif package_prefix=-1:
+        package_prefix="true"
   if package_prefix and folder == None and package_prefix.lower() == "true":
     from util import copy_folder_with_progress
     log("Prefix packaging was requested with PACKAGEPREFIX=true in front of the command")
