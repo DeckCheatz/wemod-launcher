@@ -7,218 +7,51 @@ WeMod (the company) makes WeMod (the mod tool).
 We (`wemod-launcher`) enable you to run it on Linux (and by extension, the Steam Deck).
 
 ## Support
-If this helps you, please star the project.
+If this helps you, please star the project.  
 If you would like to support the project, manly we need some more developers.
   <br>You can also support the original developer DaniAsh551:
+    &nbsp;
     <a href="https://www.buymeacoffee.com/TIjUvF1" target="_blank">On Buymeacoffee,</a>
-    &nbsp;
     <a href="https://www.patreon.com/daniash551" target="_blank">On Patreon,</a>
-    &nbsp;
     <a href="https://www.paypal.com/donate/?hosted_button_id=D7Y43PT9HUEUY" target="_blank">On PayPal</a>
   <br>You can support the current developer Marvin1099: 
-    <a href="https://www.patreon.com/marvin1099" target="_blank">On Patreon,</a>
     &nbsp;
+    <a href="https://www.patreon.com/marvin1099" target="_blank">On Patreon,</a>
     <a href="https://www.tipeeestream.com/marvin1099/tip" target="_blank">On Tipeeestream</a>
   <br>You can also suport the developer JohnHamwi:
+    &nbsp;
     <a href="https://github.com/JohnHamwi" target="_blank">On Github</a>
+<br>
 <br>But realy if you can help with some code that would be geat.
-## Suggestions
-This is a small tool made to launch the popular Game Trainer/Cheat tool WeMod  
-along with your game (made for the steam-runtime version in Linux).  
-I have tested this only on a handful of games,  
-and you are welcome to report your findings/suggestions.
+<br>You are also welcome to report your findings/suggestions.
+<br>For more infos on sugesstions check out the <a href="wiki/Suggestions">wiki Suggestion info</a>
 
-## Changes
-The most recent changes are at the top, check the [changelog](changelog.md) for more info.
-- Added simple config file for repo user, repo name, venv path, log path,  
-  a overwrite for the steam compat path, script name and script version.
-- Added code to the bat file so that wemod gets killed when the game closes.
-- Replaced PySimpleGUI with FreeSimpleGUI so a lisence is no longer needed.
-- Changed pip to use a venv so it can no longer break system packages.
-- Added code to make prefix downloading work once more.
-- Added code to sync the wemod folder so you dont have to login all the time.
-- Added code that will copy working WeMod prefixes so you don't have to rebuild all the time.
-- Prefix Windows directory dereferenced (fixes dotnet4.8 bug on Proton Version 8 and above).  
-  Thanks to Reddit user /u/pickworthi for finding it out.
+Check the [Changelog](changelog.md) or the [Wiki features section](wiki/Features) for changes.
 
-## Guide
-<div><img src="https://cdn.discordapp.com/emojis/761419274945953842.webp?size=20&quality=lossless" alt="WeModApp"/>&nbsp;<b>If you prefer a video tutorial, one is now available:</b><br><a href="https://youtu.be/5UlVCZvIl1E"> WeMod-launcher Setup Tutorial by Marvin1099</a></div>
-<div><img src="https://cdn.discordapp.com/emojis/761419274945953842.webp?size=20&quality=lossless" alt="WeModApp"/>&nbsp;<b>Just below this line, you will find a written guide</b></div><br> 
+## Quick Guide
+<div><img src="https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=20&quality=lossless" alt="Alert"/>&nbsp;<b> This guide only includes the most relevant info and might not be enough to run WeMod,</b>
+<div> &nbsp; &nbsp; &nbsp; &nbsp; if so check out the <a href="wiki/Full-Guide">Full Guide</a> <b>OR</b> the <a href="https://youtu.be/5UlVCZvIl1E">video tutorial by Marvin1099</a>
+  
+1. First `Python venv` and `TK` need to be installed.
+2. Also Search for and install `ProtonUp-QT` in the store.
+3. Download the latest `GE-Proton` in `ProtonUp-QT`
+4. Restart Steam/SteamOS
+5. Run `git clone https://github.com/DaniAsh551/wemod-launcher.git` in the Konsole/Terminal
+5. In the WeMod chosen game, open the steam game settings  
+   and in the `Compatibility` tab change the proton version to the downloaded one.
+6. Also add the command `/home/$USER/wemod-launcher/wemod %command%`,  
+   in the steam game settings under `Launch Options`
+7. Start the game
+8. Select no to copy prefix if asked (If it says it `might work`)  
+   If it says it `likely works` go to 10.
+9. Select download
+10. Select Yes/Ok until no more windows appear
+11. WeMod will start with the game
+12. Login and click play in WeMod for chosen game   
+13. Set Mods and Switch to game
+</div>
 
-<table>
-  <td>
-    <img src="https://www.wemod.com/static/images/wemod-logo-40777eae11.webp" alt="WeMod logo "/> 
-  </td>
-  <td>
-    <b>How to Install WeMod on a Steam Deck (Linux)</b><br> 
-    In this guide, we'll walk you through the process of installing WeMod on a Steam Deck running Linux.<br>  
-    We'll cover all the steps required to set up the necessary components and configurations to seamlessly integrate WeMod with your games.<br> 
-</td>
-</table>
-‎
-<h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.webp?size=20&quality=lossless" alt="Heart"/>&nbsp;You will need:</h3>
-
-*   A Steam Deck running Linux (or any Linux-based x86\_64 system).
-*   A external Mouse and Keyboard (Recommended for Steam Deck).
-*   A WeMod Pro Subscription (Recommended for Steam Deck).  
-    **OR** Use a Keyboard to send the key shortcuts to toggle cheats.  
-    **OR** Use a Keyboard and Desktop mode to switch the game and WeMod with alt+tab.
-*   A stable Internet Connection.
-*   **Optional:** If you have access to another PC and wish to control the Steam Deck remotely,  
-    consider using **[RustDesk (download the .flatpak file)](https://github.com/rustdesk/rustdesk/releases/latest)** for easier setup. ‎‎  
-    **NOTE:** You can also use any alternative approach to install RustDesk for your distro.
-*   To Install some software, see just below this line.
-
-
-****
-<h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.webp?size=20&quality=lossless" alt="Heart"/>&nbsp;Step 1: Access Desktop Mode and Discovery Store</h3>
-
-1.  Go to the Desktop Mode on your Steam Deck _(Skip if you are not using a Steam Deck)_.
-2.  Open the Discovery Store _(or any other Flatpak-compatible store on your OS)_.
-3.  Search for and install **"ProtonUp-QT"** in the store.
-4.  Search for and install **“Protontricks”** in the store.  
-    **NOTE:** This is used to find the Game ID for your games,  
-    if you know how to find the Game ID without Protontricks you can skip this step.  
-    **NOTE:** You can use any alternative approach to install **"ProtonUp-QT"** that is available in your distro.
-5.  Search for and install **zip** and **unzip** in the store (preinstalled on SteamOS).
-6.  Search for and install **TK** in the store (preinstalled on SteamOS).
-7.  Search for and install **python** in the store (preinstalled on SteamOS).
-8.  Search for and install **python-venv** or whatever is is named on your distro, from the store (preinstalled on SteamOS).
-
-
-****
-<h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.webp?size=20&quality=lossless" alt="Heart"/>&nbsp;Step 2: Install Recommended Version of Proton</h3>
-
-1.  Open **"ProtonUp-QT"**
-2.  Click on "Add Version" under GE-Proton and select the newest version.  
-    **NOTE:** At the time of writing this, any **"GE-Proton9"** version will work,  
-    but versions above 9 are untested, so maybe stick with any version 9
-4.  Restart the Steam Deck _(or Steam if you are not on Steam OS)_.
-
-****
-<h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.webp?size=20&quality=lossless" alt="Heart"/>&nbsp;Step 3: Installing WeMod Launcher</h3>
-
-1.  Open Konsole/Terminal and run: `git clone https://github.com/DaniAsh551/wemod-launcher.git`
-2.  In Dolphin/File Browser, navigate to your home at `/home/$USER`  
-    to find the **wemod-launcher** folder and make sure it's there.  
-    **NOTE** `$USER` will need to be replaced with your username.  
-    On SteamOS, this will be `/home/deck`.
-    <div><img src="https://cdn.discordapp.com/emojis/1049837871772729354.webp?size=20&quality=lossless" alt="Alert"/>&nbsp;<b>Meta Step:</b> Deleting Game Prefix (If Needed)</div> 
-    
-      -  **IMPORTANT:** It may be needed to delete the old game prefix.  
-         If you run into problems, follow these steps:    
-      1.  Open Protontricks and note the "Game ID" next to the game.
-      2.  Open Dolphin file manager and enable "Show Hidden Files".
-      3.   Navigate to the ".steam" directory (on the drive where you installed your game):  
-          `‘home/$USER/.steam/steam/steamapps/compatdata/GameID’`  
-          **NOTE** $USER will need to be replaced with your username.  
-          On SteamOS, this will be `‘home/deck/.steam/steam/steamapps/compatdata/GameID’`  
-      5.  Delete the folder with the corresponding Game ID.
-
-****
-<h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.webp?size=20&quality=lossless" alt="Heart"/>&nbsp;Step 4: Configure Steam Play Compatibility and Launch Options</h3>
-
-1.  Click the game you want to use WeMod with from Steam.
-2.  Click on the gear icon and select "Properties".
-3.  Go to the Compatibility tab.
-4.  Enable "Force the use of a specific Steam Play compatibility tool".
-5.  Choose "GE-Proton9" _(restart Steam if not listed)_.
-    **NOTE:** GE-Proton9.x is also fine (x can be any number)
-7.  Under Launch Options, paste:  
-    `WEMOD_LOG=/home/$USER/wemod-launcher/wemod.log /home/$USER/wemod-launcher/wemod %command%`.  
-    **NOTE** $USER will need to be replaced with your username.
-    On SteamOS, this will be:  
-   `WEMOD_LOG=/home/deck/wemod-launcher/wemod.log /home/deck/wemod-launcher/wemod %command%`
-9.  Launch the game and exit after you reach the game's Main Menu.
-
-
-****
-<h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.webp?size=20&quality=lossless" alt="Heart"/>&nbsp;Step 5: Install WeMod for Your Game</h3>
-
-1.  Launch the game.
-2.  If you have built the launcher in the past, you can try the option of copying the prefix.  
-    The launcher will ask you if it can be done and do it for you.  
-    **IMPORTANT:** If WeMod fails to start, go to the Meta Step of Step 3 and delete the prefix.  
-    In that case, if the launcher asks you if you want to copy, select no.  
-    - **NEW**: Use download instead of build, to speed up the prosess, by not building and go to Step 6.  
-4.  Select "Build" and then "Winetricks" _(this process takes around 10 minutes on a Steam Deck)_.  
-    **IMPORTANT:** if you are using Proton version 7 or earlier, select wemod-launcher instead of winetricks.
-5.  Once the build is complete, launch the game _(in Desktop mode again, if you are on a Steam Deck)_.
-
-
-****
-
-<h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.webp?size=20&quality=lossless" alt="Heart"/>&nbsp;Step 6: Configuring WeMod Account and Installing Game Mods</h3>
-
-1.  When you launch the game now, WeMod should Launch with it.  
-2.  If not logged in, log in or create an account in WeMod _(One time only)_.  
-3.  Search for the game you launched in WeMod.  
-    **IMPORTANT:** It may be needed to add your game in WeMod.  
-    But if your game gets detected, you can skip the following steps.  
-4.  Click the arrow next to install.
-5.  Locate the game's executable file: Navigate to `/home/$USER/`.  
-    **NOTE** $USER will need to be replaced with your username.  
-    On SteamOS, this will be `/home/deck/`
-6.  Go to the `.steam` folder and then go to `/steam/steamapps/common/Game/Game.exe`.
-    <div><img src="https://cdn.discordapp.com/emojis/1049837871772729354.webp?size=20&quality=lossless" alt="Alert"/>&nbsp;<b>Game Locations may differ</b></div>    
-    <b>IMPORTANT:</b> You might have a different installation location than the one provided in the guide,<br>  
-    especially if your game is installed on your SD card.<br>  
-    This location can vary from person to person. To locate it,<br>  
-    <div>you'll need to determine the drive where your SD card is located and then navigate to<br>  
-      
-    `/run/media/SDCardName/steamapps/common/Game/Game.exe`. </div>
-    
-7.  It may be needed to Restart the Steam Deck _(or Steam if you are not on Steam OS)_.  
-    If so relaunch the game after Restart 
-
-****
-<h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=20&quality=lossless" alt="Heart"/>&nbsp;Final Step: Enabling Mods</h3>
-‎
-
-**NOTE:** If you wish to enable or disable mods within SteamOS you will need:
- - A WeMod Pro subscription is required for controlling cheats using a mobile device
- - **OR** you can do it by sending over the keystrokes to toggle mods with a Keyboard.  
-Nevertheless, with the free version of WeMod, you can solely manage toggle settings at game start.  
-- If this doesn't work you will have to start the game in desktop mode,  
-  so you can use alt+tab to switch between open windows.  
-- Then just set the cheats you use and start the game in Desktop mode.  
-<div><img src="https://cdn.discordapp.com/emojis/1049837871772729354.webp?size=20&quality=lossless" alt="Alert"/>&nbsp;<b>If you find games where WeMod doesn't go on top at game start on SteamOS, please report it.</b></div>     
-
-If WeMod goes on top as expected,  
-you will have to click play, even if the game is running.  
-You also want to set your cheats at this point  
-and after that, you can close the window  
-and still use the hotkeys to toggle them on the fly.  
-
-You may need to initiate game launches from WeMod.  
-Also, it's important to be aware that certain games may require  
-launching exclusively through WeMod in desktop mode to access its features.
-
-****
-<h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=20&quality=lossless" alt="Heart"/>&nbsp;The Config File</h3>
-
-The script uses a config file in wich you can set some settings (this is optional):  
-In the file `wemod.conf` you can add the following under "[Settings]"
-- Use SteamCompatDataPath=$SPATH to override you steam compat folder
-- Use VirtualEnvironment=$VPATH to set a custom path for the venv eg. wemod_venv
-- Use RepoUser=$GITHUB_USERNAME to set the github user,  
-  to get prefix downloads from eg. DaniAsh551
-- Use RepoName=$NAME_OF_REPO to set the github repo,  
-  to get prefix downloads from eg. wemod-launcher
-- WeModLog=$LOG_PATH to set the wemod log file path eg. wemod.log
-
-Keep in mind if you use this you don't want to use the environment variable equivalent
-eg. WEMOD_LOG=$LOG_PATH in front of the steam command,  
-SteamCompatDataPath is exluded from this, since it has to be set manually.
-****
-
-
-<h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=20&quality=lossless" alt="Heart"/>&nbsp;Guide Info</h3>
-<div><img src="https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=20&quality=lossless" alt="Alert"/>&nbsp;<b>This guide is designed to remain adaptable and open to improvements in the future.</b><br>
-We welcome any ideas, suggestions, or feedback you may have.<br>
-Please feel free to share them on GitHub,<br>
-as we strive to ensure this guide continues to provide the best possible assistance to our users.<br>
-Your input is valuable in making this guide a valuable resource.</div>      
+**Optionaly** check out how to edit the new [Config File](wiki/Config-Update)
 
 ****
 <h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=20&quality=lossless" alt="Heart"/>&nbsp;Additional</h3>
