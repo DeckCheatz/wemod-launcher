@@ -96,5 +96,5 @@ if defined wemodPID (
 echo.
 echo Killed %wemodname% over pid %wemodPID%
 echo.
-echo Done, closing in 5 seconds
-@ping localhost -n 5 > NUL 2>&1
+echo Done, closing in 1 second
+@ping localhost -n 1 > NUL 2>&1
