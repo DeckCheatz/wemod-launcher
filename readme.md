@@ -37,21 +37,21 @@ Check the [Changelog](changelog.md) or the [Wiki features section](../../wiki/Fe
 3. Download the latest `GE-Proton` in `ProtonUp-QT`
 4. Restart Steam/SteamOS
 5. Run `git clone https://github.com/DaniAsh551/wemod-launcher.git` in the Konsole/Terminal
-5. In the WeMod chosen game, open the steam game settings  
+6. In the WeMod chosen game, open the steam game settings  
    and in the `Compatibility` tab change the proton version to the downloaded one.
-6. Also add the command `/home/$USER/wemod-launcher/wemod %command%`,  
+7. Also add the command `/home/$USER/wemod-launcher/wemod %command%`,  
    in the steam game settings under `Launch Options`
-7. Start the game
-8. Select no to copy prefix if asked (If it says it `might work`)  
+8. Start the game
+9. Select no to copy prefix if asked (If it says it `might work`)  
    If it says it `likely works` go to 10.
-9. Select download
-10. Select Yes/Ok until no more windows appear
-11. WeMod will start with the game
-12. Login and click play in WeMod for chosen game   
-13. Set Mods and Switch to game
+10. Select download
+11. Select Yes/Ok until no more windows appear
+12. WeMod will start with the game
+13. Login and click play in WeMod for chosen game   
+14. Set Mods and Switch to game
 </div>
 
-**Optionaly** check out how to edit the new [Config File](../../wiki/Config-Update)
+**Optionally** check out how to edit the new [Config File](../../wiki/Config-Update)
 
 ****
 <h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=20&quality=lossless" alt="Heart"/>&nbsp;Additional</h3>
