@@ -131,7 +131,7 @@ def log(message: str):
     if wemodlog != "":
         try:
             if not wemodlog:
-                wemodlog.replace("","")
+                raise Exception("wemodlog unset")
             elif os.path.isabs(wemodlog):
                 os.makedirs(os.path.dirname(wemodlog), exist_ok = True)
             else:

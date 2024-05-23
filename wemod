@@ -117,16 +117,16 @@ def syncwemod(folder=None):# Symlink wemod data to make all wemod prefixes use t
   if not package_prefix:
     package_prefix = load_conf_setting("PackagePrefix")
     if package_prefix:
-      try:
-        package_prefix=int(package_prefix)
-      except:
-        package_prefix=0
-      if package_prefix>0:
-        package_prefix-=1
-        save_conf_setting("PackagePrefix",package_prefix)
-        package_prefix="true"
-      elif package_prefix==-1:
-        package_prefix="true"
+      if package_prefix.lower() != "true":
+        try:
+          package_prefix=int(package_prefix)
+        except:
+          package_prefix="false"
+        else:
+          if package_prefix>0:
+            package_prefix-=1
+            save_conf_setting("PackagePrefix",package_prefix)
+            package_prefix="true"
   if package_prefix and folder == None and package_prefix.lower() == "true":
     from util import copy_folder_with_progress
     log("Prefix packaging was requested with PACKAGEPREFIX=true in front of the command")
@@ -500,8 +500,11 @@ def run(skip_init=False):
 # Log Python version and ensure dependencies
 requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
 
-save_conf_setting("ScriptName","wemod-laucher")
-save_conf_setting("Version","1.001")
+script_name = "wemod-laucher"
+save_conf_setting("ScriptName",script_name)
+script_version = "1.001"
+save_conf_setting("Version",script_version)
+log(f"The script {script_name} is running on version {script_version}")
 
 if check_dependencies(requirements_txt):
   log("All dependencies are already installed.")
