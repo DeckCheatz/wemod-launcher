@@ -24,13 +24,13 @@ If you would like to support the project, manly we need some more developers.
 <br>
 <br>But realy if you can help with some code that would be geat.
 <br>You are also welcome to report your findings/suggestions.
-<br>For more infos on sugesstions check out the <a href="wiki/Suggestions">wiki Suggestion info</a>
+<br>For more infos on sugesstions check out the <a href="../../wiki/Suggestions">wiki Suggestion info</a>
 
-Check the [Changelog](changelog.md) or the [Wiki features section](wiki/Features) for changes.
+Check the [Changelog](changelog.md) or the [Wiki features section](../../wiki/Features) for changes.
 
 ## Quick Guide
 <div><img src="https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=20&quality=lossless" alt="Alert"/>&nbsp;<b> This guide only includes the most relevant info and might not be enough to run WeMod,</b>
-<div> &nbsp; &nbsp; &nbsp; &nbsp; if so check out the <a href="wiki/Full-Guide">Full Guide</a> <b>OR</b> the <a href="https://youtu.be/5UlVCZvIl1E">video tutorial by Marvin1099</a>
+<div> &nbsp; &nbsp; &nbsp; &nbsp; if so check out the <a href="../../wiki/Full-Guide">Full Guide</a> <b>OR</b> the <a href="https://youtu.be/5UlVCZvIl1E">video tutorial by Marvin1099</a>
   
 1. First `Python venv` and `TK` need to be installed.
 2. Also Search for and install `ProtonUp-QT` in the store.
@@ -51,7 +51,7 @@ Check the [Changelog](changelog.md) or the [Wiki features section](wiki/Features
 13. Set Mods and Switch to game
 </div>
 
-**Optionaly** check out how to edit the new [Config File](wiki/Config-Update)
+**Optionaly** check out how to edit the new [Config File](../../wiki/Config-Update)
 
 ****
 <h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=20&quality=lossless" alt="Heart"/>&nbsp;Additional</h3>
