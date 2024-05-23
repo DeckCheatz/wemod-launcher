@@ -138,7 +138,7 @@ def log(message: str):
                 os.makedirs(os.path.dirname(os.path.abspath(os.path.join(SCRIPT_PATH, wemodlog))), exist_ok = True)
         except:
             wemodlog = "wemod.log"
-            if not cowemodlog or not oswemodlog: # Only save if empty or not a environment var
+            if not oswemodlog: # Only save if not a environment var
                 save_conf_setting("WeModLog",wemodlog)
 
             message = f"WeModLog path was not given or invalid using path '{wemodlog}'\nIf you don't want to generate a logfile use WEMOD_LOG='' or set the config to WeModLog=''\n{message}"
