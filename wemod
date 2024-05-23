@@ -125,7 +125,7 @@ def syncwemod(folder=None):# Symlink wemod data to make all wemod prefixes use t
         package_prefix-=1
         save_conf_setting("PackagePrefix",package_prefix)
         package_prefix="true"
-      elif package_prefix=-1:
+      elif package_prefix==-1:
         package_prefix="true"
   if package_prefix and folder == None and package_prefix.lower() == "true":
     from util import copy_folder_with_progress
