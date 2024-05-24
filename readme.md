@@ -42,8 +42,8 @@ Check the [Changelog](changelog.md) or the [Wiki features section](../../wiki/Fe
 7. Also add the command `/home/$USER/wemod-launcher/wemod %command%`,  
    in the steam game settings under `Launch Options`
 8. Start the game
-9. Select no to copy prefix if asked (If it says it `might work`)  
-   If it says it `likely works` go to 10.
+9. Select no to the copy prefix question if it says it `might work`  
+   If it says it `likely works` go to 11.
 10. Select download
 11. Select Yes/Ok until no more windows appear
 12. WeMod will start with the game
