@@ -35,8 +35,17 @@ if not defined wemodPID (
 
 
 REM Start the custom command and get its PID
-echo Running game %1.
-start "" %*
+set "gamePath=%~1"
+:args
+shift
+if "%~1"=="" goto endargs
+set "args=%args% %~1"
+goto args
+
+:endargs
+
+echo Running game "%gamePath%" with args: %args%
+start "" "%gamePath%" %args%
 
 echo.
 echo Running loop to check for the game.
