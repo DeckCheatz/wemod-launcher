@@ -340,7 +340,7 @@ def download_prefix(proton_dir: str) -> None:
 
   repo_parts = os.getenv("REPO_STRING")
   if repo_parts:
-    repo_parts = repo_parts.split("/",2)
+    repo_parts = repo_parts.split("/",1)
     if repo_parts[0] and repo_parts[0] != "":
       repo_user = repo_parts[0]
     if repo_parts[1] and repo_parts[1] != "":
