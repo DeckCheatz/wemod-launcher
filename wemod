@@ -525,7 +525,7 @@ def run(skip_init=False):
     LAUNCH_OPTIONS = ""
 
   # Construct the final command
-  FINAL = f'\'{"' '".join(REAPER_CMD)}\' -- \'{PROTON}\' waitforexitandrun {WEMOD_BAT} \'{WIN_CMD}\'{LAUNCH_OPTIONS}'
+  FINAL = '\'' + "' '".join(REAPER_CMD) + f"' -- '{PROTON}' waitforexitandrun {WEMOD_BAT} '{WIN_CMD}'{LAUNCH_OPTIONS}"
 
   # Log the final command
   log(f"Executing:\n\t{FINAL}\n")
