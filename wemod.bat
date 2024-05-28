@@ -33,19 +33,10 @@ if not defined wemodPID (
     for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%" 2>NUL') do set wemodPID=%%b
 )
 
-
 REM Start the custom command and get its PID
-set "gamePath=%~1"
-:args
-shift
-if "%~1"=="" goto endargs
-set "args=%args% %~1"
-goto args
 
-:endargs
-
-echo Running game "%gamePath%" with args: %args%
-start "" "%gamePath%" %args%
+echo Running game "%~1" with args: %args%
+start "" %*
 
 echo.
 echo Running loop to check for the game.
