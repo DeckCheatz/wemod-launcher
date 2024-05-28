@@ -11,7 +11,7 @@ from setup import main
 
 # Define paths and constants
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
-WEMOD_BAT = f"start 'Z:{"\\\\".join(SCRIPT_PATH.split(os.sep)+["wemod.bat"])}'"
+WEMOD_BAT = f"start 'Z:{ '\\\\'.join(SCRIPT_PATH.split(os.sep) + ["wemod.bat"]) }'"
 loacom = load_conf_setting("SteamCompatDataPath")
 if not loacom:
   BASE_STEAM_COMPAT = os.getenv("STEAM_COMPAT_DATA_PATH")
@@ -546,7 +546,7 @@ requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
 
 script_name = "wemod-laucher"
 save_conf_setting("ScriptName",script_name)
-script_version = "1.004"
+script_version = "1.005"
 save_conf_setting("Version",script_version)
 log(f"The script {script_name} is running on version {script_version}")
 
