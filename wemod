@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
-import shutil
-import venv
-import sys
 import os
+import sys
+import shutil
 import subprocess
-from util import cache, exit_with_message, get_dotnet48, popup_download, wine, winetricks, log, popup_execute
-from util import check_dependencies, pip, popup_options, deref, load_conf_setting, save_conf_setting
 from setup import main
+from typing import Optional, List, Union, Dict ,Any
+from util import check_dependencies, pip, popup_options, deref, load_conf_setting, save_conf_setting
+from util import cache, exit_with_message, get_dotnet48, popup_download, wine, winetricks, log, popup_execute
+
 
 # Define paths and constants
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -29,7 +30,7 @@ STEAM_COMPAT_FOLDER = os.path.abspath(os.path.dirname(BASE_STEAM_COMPAT))
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
 
-def parse_version(version_str = None):
+def parse_version(version_str: Optional(str) = None) -> Optional[List[int]]:
   if version_str and isinstance(version_str, str):
     # Replace '-' with '.' and ',' with '.'
     dot_version = version_str.replace("-", ".").replace(",", ".")
@@ -63,15 +64,15 @@ def parse_version(version_str = None):
     return version_str
   return None
 
-def read_version(version_file): # read file
-    try:
-      with open(version_file, 'r') as file:
-        return file.read().strip()
-    except FileNotFoundError:
-        return None
+def read_version(version_file: str) -> Optional(str): # read file
+  try:
+    with open(version_file, 'r') as file:
+      return file.read().strip()
+  except FileNotFoundError:
+    return None
 
 # Scan the steam compat folder for wemod installed prefixes
-def scanfolderforversions(current_version_parts=[None,None]):
+def scanfolderforversions(current_version_parts: List[Union[int, None]] = [None, None]) -> List[Union[int, None]]:
   # At default we dont know of any available version
   closest_version_folder = None
   closest_version_number = None
@@ -86,7 +87,7 @@ def scanfolderforversions(current_version_parts=[None,None]):
     if os.path.isdir(folder_path) and os.path.exists(os.path.join(folder_path, "pfx", ".wemod_installer")):
       folder_version_parts = parse_version(read_version(version_file))
 
-      if folder_version_parts:
+      if folder_version_parts and isinstance(folder_version_parts, list) and folder_version_parts[0] and folder_version_parts[1]:
         if folder_version_parts[0] == current_version_parts[0] and folder_version_parts[1] == current_version_parts[1]:
           # Same major and minor version
           closest_version_folder = folder_path
@@ -117,7 +118,7 @@ def scanfolderforversions(current_version_parts=[None,None]):
             closest_version_number = folder_version_parts
   return closest_version_number, closest_version_folder
 
-def syncwemod(folder=None):# Symlink wemod data to make all wemod prefixes use the same wemod data
+def syncwemod(folder: Optional[str] = None) -> None:# Symlink wemod data to make all wemod prefixes use the same wemod data
   response = None
   package_prefix = os.getenv('PACKAGEPREFIX') # use PACKAGEPREFIX=true in front of the command to generate a ge-proton-prefix zip and exit
   if not package_prefix:
@@ -262,7 +263,7 @@ def init(proton: str) -> None:
     download_prefix(proton_dir)
   syncwemod() # Sync wemod data
 
-def get_github_releases(repo_name):
+def get_github_releases(repo_name: str) -> List[Any]:
     try:
       import requests
     except:
@@ -277,7 +278,7 @@ def get_github_releases(repo_name):
         print("Failed to fetch releases.")
         return []
 
-def find_closest_compatible_release(releases,current_version_parts=[None,None]):
+def find_closest_compatible_release(releases,current_version_parts: List[Union[int, None]] = [None,None]) -> List[Optional(List[int]), Optional(str)]:
   closest_release = None
   closest_version = None
   closest_release_url = None
@@ -458,7 +459,7 @@ be warned that GE-Proton 7 (the wemod-launcher opion) isn't working well, you ca
   else:
     exit_with_message("ERROR", "Failed dependencies installation with code '{}'. Aborting...".format(resp), resp)
 
-def split_list_by_delimiter(input_list, delimiter):
+def split_list_by_delimiter(input_list: List[str], delimiter: str) -> List[List[str]]:
     result = []
     current_sublist = []
     for item in input_list:
@@ -472,7 +473,7 @@ def split_list_by_delimiter(input_list, delimiter):
         result.append(current_sublist)
     return result
 
-def join_lists_with_delimiter(sublists, delimiter=None):
+def join_lists_with_delimiter(sublists: List[List[str]], delimiter: Optional(str)=None) -> List(str):
     result = []
     for sublist in sublists:
         result.extend(sublist)
@@ -483,7 +484,7 @@ def join_lists_with_delimiter(sublists, delimiter=None):
     return result
 
 # Main run function
-def run(skip_init=False):
+def run(skip_init: bool = False) -> str:
   # Get passed args
   ARGS= sys.argv[1:]
 
@@ -524,8 +525,11 @@ def run(skip_init=False):
   else:
     LAUNCH_OPTIONS = ""
 
+  # Create the reaper string
+  REAPER_STR = "' '".join(REAPER_CMD)
+
   # Construct the final command
-  FINAL = '\'' + "' '".join(REAPER_CMD) + f"' -- '{PROTON}' waitforexitandrun {WEMOD_BAT} '{WIN_CMD}'{LAUNCH_OPTIONS}"
+  FINAL = f"'{REAPER_STR}' -- '{PROTON}' waitforexitandrun {WEMOD_BAT} '{WIN_CMD}'{LAUNCH_OPTIONS}"
 
   # Log the final command
   log(f"Executing:\n\t{FINAL}\n")
@@ -547,7 +551,7 @@ requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
 
 script_name = "wemod-laucher"
 save_conf_setting("ScriptName",script_name)
-script_version = "1.006"
+script_version = "1.008"
 save_conf_setting("Version",script_version)
 log(f"The script {script_name} is running on version {script_version}")
 
