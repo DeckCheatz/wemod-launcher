@@ -758,7 +758,7 @@ requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
 
 script_name = "wemod-laucher"
 save_conf_setting("ScriptName", script_name)
-script_version = "1.011"
+script_version = "1.012"
 save_conf_setting("Version", script_version)
 log(f"The script {script_name} is running on version {script_version}")
 
