@@ -6,147 +6,186 @@ import os
 import tempfile
 from util import download_progress, pip, log
 
-SCRIPT_PATH=os.path.dirname(os.path.realpath(__file__))
+SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
+
 
 def welcome() -> bool:
-  import FreeSimpleGUI as sg
-  import requests
+    import FreeSimpleGUI as sg
+    import requests
 
-  wemod_logo = requests.get("https://www.wemod.com/static/images/device-icons/favicon-192-ce0bc030f3.png", stream=False)
-  
-  sg.theme("systemdefault")
+    wemod_logo = requests.get(
+        "https://www.wemod.com/static/images/device-icons/favicon-192-ce0bc030f3.png",
+        stream=False,
+    )
 
-  ret = sg.popup_ok_cancel("Welcome to WeMod Installer!\nPress ok to start the setup.", title="WeMod Launcher Setup", image=wemod_logo.content, icon=wemod_logo.content)
-  return ret == "OK"
+    sg.theme("systemdefault")
 
-def download_wemod(temp_dir:str) -> str:
-  import FreeSimpleGUI as sg
-  sg.theme("systemdefault")
-
-  status = [0,0]
-
-  progress = sg.ProgressBar(100, orientation="h", s=(50,10))
-  text = sg.Text("0%")
-  # text = sg.Multiline(str.join("", log), key="-LOG-", autoscroll=True, size=(50,50), disabled=True)
-  layout = [  [progress], [text] ]
-  window = sg.Window('Downloading WeMod', layout, finalize=True)
-
-  def update_log(status:list[int], dl:int, total:int) -> None:
-    status.clear()
-    status.append(dl)
-    status.append(total)
-    
-  setup_file = os.path.join(temp_dir, "wemod_setup.exe")
-  download_func = lambda: download_progress("https://api.wemod.com/client/download", setup_file, lambda dl,total: update_log(status, dl, total))
-  # download_func = lambda: download_progress("http://localhost:8000/WeMod-8.3.15.exe", setup_file, lambda dl,total: update_log(status, dl, total))
-
-  window.perform_long_operation(download_func,"-DL COMPLETE-")
-
-  while True:             # Event Loop
-    event, values = window.read(timeout=1000)
-    if event == "-DL COMPLETE-":
-      break
-    elif event == None:
-      sys.exit(0)
-    else:
-      if(len(status) < 2):
-        continue
-      [dl,total] = status
-      perc = int(100 * (dl / total)) if total > 0 else 0
-      text.update("{}% ({}/{})".format(perc, dl, total))
-      progress.update(perc)
-
-  window.close()
-  return setup_file
+    ret = sg.popup_ok_cancel(
+        "Welcome to WeMod Installer!\nPress ok to start the setup.",
+        title="WeMod Launcher Setup",
+        image=wemod_logo.content,
+        icon=wemod_logo.content,
+    )
+    return ret == "OK"
 
 
-def unpack_wemod(setup_file:str, temp_dir:str, install_location:str) -> bool:
-  try:
-    import zipfile
-    import tempfile
-    import shutil
+def download_wemod(temp_dir: str) -> str:
+    import FreeSimpleGUI as sg
 
-    archive = zipfile.ZipFile(setup_file, mode="r")
-    names = archive.filelist
+    sg.theme("systemdefault")
 
-    nupkg = list(filter(lambda name: str(name.filename).endswith(".nupkg"), names))[0]
-    tmp_nupkgd = tempfile.mktemp(prefix="wemod-nupkg-")
-    archive.extract(nupkg, tmp_nupkgd)
-    tmp_nupkg = os.path.join(tmp_nupkgd, nupkg.filename)
-    archive.close()
+    status = [0, 0]
 
-    archive = zipfile.ZipFile(tmp_nupkg, mode="r")
-    
-    net = list(filter(lambda name: name.filename.startswith("lib/net"), archive.filelist))
+    progress = sg.ProgressBar(100, orientation="h", s=(50, 10))
+    text = sg.Text("0%")
+    # text = sg.Multiline(str.join("", log), key="-LOG-", autoscroll=True, size=(50,50), disabled=True)
+    layout = [[progress], [text]]
+    window = sg.Window("Downloading WeMod", layout, finalize=True)
 
-    tmp_net = tempfile.mkdtemp(prefix="wemod-net")
-    archive.extractall(tmp_net, net)
-    
-    shutil.move(os.path.join(tmp_net, net[0].filename), install_location)
+    def update_log(status: list[int], dl: int, total: int) -> None:
+        status.clear()
+        status.append(dl)
+        status.append(total)
 
-    shutil.rmtree(tmp_net, ignore_errors=True)
-    shutil.rmtree(tmp_nupkgd, ignore_errors=True)
-    shutil.rmtree(tmp_nupkg, ignore_errors=True)
-    shutil.rmtree(temp_dir, ignore_errors=True)
+    setup_file = os.path.join(temp_dir, "wemod_setup.exe")
+    download_func = lambda: download_progress(
+        "https://api.wemod.com/client/download",
+        setup_file,
+        lambda dl, total: update_log(status, dl, total),
+    )
+    # download_func = lambda: download_progress("http://localhost:8000/WeMod-8.3.15.exe", setup_file, lambda dl,total: update_log(status, dl, total))
 
-    return True
-  except:
-    return False
+    window.perform_long_operation(download_func, "-DL COMPLETE-")
+
+    while True:  # Event Loop
+        event, values = window.read(timeout=1000)
+        if event == "-DL COMPLETE-":
+            break
+        elif event == None:
+            sys.exit(0)
+        else:
+            if len(status) < 2:
+                continue
+            [dl, total] = status
+            perc = int(100 * (dl / total)) if total > 0 else 0
+            text.update("{}% ({}/{})".format(perc, dl, total))
+            progress.update(perc)
+
+    window.close()
+    return setup_file
+
+
+def unpack_wemod(setup_file: str, temp_dir: str, install_location: str) -> bool:
+    try:
+        import zipfile
+        import tempfile
+        import shutil
+
+        archive = zipfile.ZipFile(setup_file, mode="r")
+        names = archive.filelist
+
+        nupkg = list(filter(lambda name: str(name.filename).endswith(".nupkg"), names))[
+            0
+        ]
+        tmp_nupkgd = tempfile.mktemp(prefix="wemod-nupkg-")
+        archive.extract(nupkg, tmp_nupkgd)
+        tmp_nupkg = os.path.join(tmp_nupkgd, nupkg.filename)
+        archive.close()
+
+        archive = zipfile.ZipFile(tmp_nupkg, mode="r")
+
+        net = list(
+            filter(lambda name: name.filename.startswith("lib/net"), archive.filelist)
+        )
+
+        tmp_net = tempfile.mkdtemp(prefix="wemod-net")
+        archive.extractall(tmp_net, net)
+
+        shutil.move(os.path.join(tmp_net, net[0].filename), install_location)
+        shutil.rmtree(tmp_net, ignore_errors=True)
+        shutil.rmtree(tmp_nupkgd, ignore_errors=True)
+        shutil.rmtree(tmp_nupkg, ignore_errors=True)
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+        return True
+    except:
+        return False
 
 
 def main() -> None:
-  import FreeSimpleGUI as sg
-  import shutil
+    import FreeSimpleGUI as sg
+    import shutil
 
-  if not welcome():
-    print("Installation cancelled by user")
-    return
-  
-  install_location = os.path.join(SCRIPT_PATH, "wemod_bin")
-  winetricks = os.path.join(SCRIPT_PATH, "winetricks")
+    if not welcome():
+        print("Installation cancelled by user")
+        return
 
-  if os.getenv("FORCE_UPDATE_WEMOD", "0") == "1" or not os.path.isfile(winetricks):
-    if os.path.isfile(winetricks):
-      shutil.rmtree(winetricks)
-    log("Winetricks not found...")
-    log("Downloading latest winetricks...")
+    install_location = os.path.join(SCRIPT_PATH, "wemod_bin")
+    winetricks = os.path.join(SCRIPT_PATH, "winetricks")
 
-    sg.popup("Winetricks", "Fetching latest winetricks...", any_key_closes=True, auto_close_duration=1)
-    download_progress(
-      "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks",
-      winetricks,
-      None
-      )
-    os.chmod(winetricks, stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+    if os.getenv("FORCE_UPDATE_WEMOD", "0") == "1" or not os.path.isfile(winetricks):
+        if os.path.isfile(winetricks):
+            shutil.rmtree(winetricks)
+        log("Winetricks not found...")
+        log("Downloading latest winetricks...")
 
+        sg.popup(
+            "Winetricks",
+            "Fetching latest winetricks...",
+            any_key_closes=True,
+            auto_close_duration=1,
+        )
+        download_progress(
+            "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks",
+            winetricks,
+            None,
+        )
+        os.chmod(
+            winetricks,
+            stat.S_IXUSR
+            | stat.S_IXGRP
+            | stat.S_IXOTH
+            | stat.S_IRUSR
+            | stat.S_IRGRP
+            | stat.S_IROTH,
+        )
 
-  if not os.path.isdir(install_location) or not os.path.exists(os.path.join(install_location,"WeMod.exe")) or os.getenv("FORCE_UPDATE_WEMOD", "0") == "1":
-    if os.path.isdir(install_location):
-      shutil.rmtree(install_location, ignore_errors=True)
-    else:
-      temp_dir = tempfile.mkdtemp(prefix="wemod-launcher-")
-      setup_file = download_wemod(temp_dir)
-      unpacked = unpack_wemod(setup_file, temp_dir, install_location)
+    if (
+        not os.path.isdir(install_location)
+        or not os.path.exists(os.path.join(install_location, "WeMod.exe"))
+        or os.getenv("FORCE_UPDATE_WEMOD", "0") == "1"
+    ):
+        if os.path.isdir(install_location):
+            shutil.rmtree(install_location, ignore_errors=True)
+        else:
+            temp_dir = tempfile.mkdtemp(prefix="wemod-launcher-")
+            setup_file = download_wemod(temp_dir)
+            unpacked = unpack_wemod(setup_file, temp_dir, install_location)
 
-      sg.popup("Completed", "Setup completed successfully. Now just simply add: \"" +
-        os.path.join(SCRIPT_PATH, "wemod") +
-        "\" before \"%command%\" in your game \"LAUNCH OPTIONS\".")
-      
-      if not unpacked:
-        log("Failed to unpack WeMod.")
-        sg.popup("Failed to unpack WeMod.", "Failed to unpack WeMod.")
-        sys.exit(1)
-        
+            sg.popup(
+                "Completed",
+                'Setup completed successfully. Now just simply add: "'
+                + os.path.join(SCRIPT_PATH, "wemod")
+                + '" before "%command%" in your game "LAUNCH OPTIONS".',
+                auto_close_duration=5,
+            )
+
+            if not unpacked:
+                log("Failed to unpack WeMod.")
+                sg.popup("Failed to unpack WeMod.", "Failed to unpack WeMod.")
+                sys.exit(1)
+
 
 def init() -> None:
-  print("Ensuring Dependencies...")
-  requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
-  return_code = pip("install -r " + requirements_txt, shell=True)
-  if return_code != 0:
-    print("Failed to install dependencies. Exiting...")
-    exit(return_code)
-  else:
-    main()
+    print("Ensuring Dependencies...")
+    requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
+    return_code = pip("install -r " + requirements_txt, shell=True)
+    if return_code != 0:
+        print("Failed to install dependencies. Exiting...")
+        exit(return_code)
+    else:
+        main()
+
 
 if __name__ == "__main__":
-  init()
+    init()
