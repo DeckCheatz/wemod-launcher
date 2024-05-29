@@ -30,11 +30,11 @@ STEAM_COMPAT_FOLDER = os.path.abspath(os.path.dirname(BASE_STEAM_COMPAT))
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
 
-def parse_version(version_str: Optional(str) = None) -> Optional[List[int]]:
+def parse_version(version_str: Optional[str] = None) -> Optional[List[int]]:
   if version_str and isinstance(version_str, str):
     # Replace '-' with '.' and ',' with '.'
     dot_version = version_str.replace("-", ".").replace(",", ".")
-    
+
     # Clean up number
     numbers = str(dot_version+".0")
     majornumber = None
@@ -54,17 +54,17 @@ def parse_version(version_str: Optional(str) = None) -> Optional[List[int]]:
         currentnumber=""
       if addat > 1:
         break
-    
+
     if majornumber and minornumber: # Return numbers if set
       return [int(majornumber), int(minornumber)]
     else:
       return None
-    
+
   elif isinstance(version_str, list):
     return version_str
   return None
 
-def read_version(version_file: str) -> Optional(str): # read file
+def read_version(version_file: str) -> Optional[str]: # read file
   try:
     with open(version_file, 'r') as file:
       return file.read().strip()
@@ -235,7 +235,7 @@ def init(proton: str) -> None:
       log(f"User chose not to use an alternative Proton version, the active version was {current_version_parts[0]}.{current_version_parts[1]}.")
     else:
       log(f"No versions to copy available")
-        
+
 
   # Check for the initialization file in the wineprefix
   log(f"Looking once more for the init file")
@@ -278,7 +278,7 @@ def get_github_releases(repo_name: str) -> List[Any]:
         print("Failed to fetch releases.")
         return []
 
-def find_closest_compatible_release(releases,current_version_parts: List[Union[int, None]] = [None,None]) -> List[Optional(List[int]), Optional(str)]:
+def find_closest_compatible_release(releases,current_version_parts: List[Union[int, None]] = [None,None]) -> List[Union[Optional[List[int]], Optional[str]]]:
   closest_release = None
   closest_version = None
   closest_release_url = None
@@ -473,7 +473,7 @@ def split_list_by_delimiter(input_list: List[str], delimiter: str) -> List[List[
         result.append(current_sublist)
     return result
 
-def join_lists_with_delimiter(sublists: List[List[str]], delimiter: Optional(str)=None) -> List(str):
+def join_lists_with_delimiter(sublists: List[List[str]], delimiter: Optional[str]=None) -> List[str]:
     result = []
     for sublist in sublists:
         result.extend(sublist)
@@ -551,7 +551,7 @@ requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
 
 script_name = "wemod-laucher"
 save_conf_setting("ScriptName",script_name)
-script_version = "1.008"
+script_version = "1.011"
 save_conf_setting("Version",script_version)
 log(f"The script {script_name} is running on version {script_version}")
 
