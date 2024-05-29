@@ -56,7 +56,7 @@ def download_wemod(temp_dir:str) -> str:
       text.update("{}% ({}/{})".format(perc, dl, total))
       progress.update(perc)
 
-  # window.close()
+  window.close()
   return setup_file
 
 
@@ -120,7 +120,7 @@ def main() -> None:
     os.chmod(winetricks, stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
 
 
-  if not os.path.isdir(install_location) or os.getenv("FORCE_UPDATE_WEMOD", "0") == "1":
+  if not os.path.isdir(install_location) or not os.path.exists(os.path.join(install_location,"WeMod.exe")) or os.getenv("FORCE_UPDATE_WEMOD", "0") == "1":
     if os.path.isdir(install_location):
       shutil.rmtree(install_location, ignore_errors=True)
     else:
