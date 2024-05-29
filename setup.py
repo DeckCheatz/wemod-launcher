@@ -94,7 +94,7 @@ def unpack_wemod(setup_file:str, temp_dir:str, install_location:str) -> bool:
     return False
 
 
-def main():
+def main() -> None:
   import FreeSimpleGUI as sg
   import shutil
 
@@ -138,7 +138,7 @@ def main():
         sys.exit(1)
         
 
-def init():
+def init() -> None:
   print("Ensuring Dependencies...")
   requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
   return_code = pip("install -r " + requirements_txt, shell=True)
