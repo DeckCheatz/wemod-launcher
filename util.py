@@ -4,7 +4,7 @@ import os
 import sys
 import tempfile
 import configparser
-from typing import Callable
+from typing import Callable, Optional, List, Union
 from urllib import request
 
 # Set the script path and define the Wine prefix for Windows compatibility
@@ -18,12 +18,14 @@ CONFIG.optionxform = str
 if os.path.exists(CONFIG_PATH):
     CONFIG.read(CONFIG_PATH)
 
-def load_conf_setting(setting, section=DEF_SECTION): # Read a setting of the configfile
+# Read a setting of the configfile
+def load_conf_setting(setting: str, section: str = DEF_SECTION) -> Optional[str]:
     if section in CONFIG and setting in CONFIG[section]:
         return CONFIG[section][setting]
     return None
 
-def save_conf_setting(setting, value=None, section=DEF_SECTION): # Save a value onto a setting of the configfile
+# Save a value onto a setting of the configfile
+def save_conf_setting(setting: str, value: Optional[str] = None, section: str = DEF_SECTION) -> None:
     if not isinstance(section, str):
         log("Error adding the given section it wasn't a string")
         return
@@ -41,7 +43,7 @@ def save_conf_setting(setting, value=None, section=DEF_SECTION): # Save a value 
         CONFIG.write(configfile)
 
 # Function to check if dependencies are installed
-def check_dependencies(requirements_file):
+def check_dependencies(requirements_file: str) -> bool:
     ret = True
     # Check if dependencies have been installed
     with open(requirements_file) as f:
@@ -55,7 +57,7 @@ def check_dependencies(requirements_file):
     return ret
 
 # Function to install or execute pip commands
-def pip(command: str,venv_path=None) -> int:
+def pip(command: str,venv_path: Optional[str] = None) -> int:
     if venv_path and not os.path.isabs(venv_path):
         venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))
     pos_pip = None
@@ -122,7 +124,7 @@ def pip(command: str,venv_path=None) -> int:
     return process.returncode
 
 # Function for logging messages
-def log(message: str):
+def log(message: str) -> None:
     oswemodlog = os.getenv('WEMOD_LOG')
     wemodlog = oswemodlog
     cowemodlog = load_conf_setting("WeModLog")
@@ -168,7 +170,7 @@ def popup_options(title: str, message: str, options: list[str]) -> str:
     return selected
 
 # Function to execute a command and display output in a popup
-def popup_execute(title: str, command: str, onwrite: Callable[[str], None] = None) -> int:
+def popup_execute(title: str, command: str, onwrite: Optional[Callable[[str], None]] = None) -> int:
     import FreeSimpleGUI as sg
     import subprocess as sp
 
@@ -180,7 +182,7 @@ def popup_execute(title: str, command: str, onwrite: Callable[[str], None] = Non
     window = sg.Window(title, layout, finalize=True)
     exitcode = [-1]
 
-    def process_func():
+    def process_func() -> None:
         process = sp.Popen(command, stdout=subprocess.PIPE, shell=True)
         for line in iter(process.stdout.readline, ''):
             if line is None or line == b'':
@@ -209,7 +211,7 @@ def popup_execute(title: str, command: str, onwrite: Callable[[str], None] = Non
     return exitcode[0]
 
 # Function to download a file with progress display
-def popup_download(title: str, link: str, file_name: str):
+def popup_download(title: str, link: str, file_name: str) -> None:
     import FreeSimpleGUI as sg
     sg.theme("systemdefault")
 
@@ -252,7 +254,7 @@ def popup_download(title: str, link: str, file_name: str):
     return file_path
 
 # Function to handle download progress
-def download_progress(link: str, file_name: str, set_progress):
+def download_progress(link: str, file_name: str, set_progress: Callable[[int, int], None]) -> None:
     import requests
 
     with open(file_name, "wb") as f:
@@ -338,27 +340,7 @@ def get_dotnet48() -> str:
     dotnet48 = cache("ndp48-x86-x64-allos-enu.exe", cache_func)
     return dotnet48
 
-def deref(path):
-    """
-    Dereferences symbolic links in the specified directory and its subdirectories.
-
-    Args:
-        path (str): The root directory to search for symbolic links.
-
-    Returns:
-        None
-
-    Steps:
-        1. Finds symbolic links using the `find` command.
-        2. Generates a shell script to replace links with their targets.
-        3. Creates a temporary file and writes the script to it.
-        4. Executes the temporary shell script to perform dereferencing.
-        5. Displays progress as the script executes.
-
-    Notes:
-        - Uses a temporary file to avoid potential issues with complex shell commands.
-        - Displays progress using echo statements within the script.
-    """
+def deref(path: str) -> None:
     links = []
 
     command = f"find {path} -type l -ls"
@@ -378,30 +360,30 @@ def deref(path):
         tmp.write(script.encode())
         popup_execute("Dereference", f"sh {tmp.name}")
 
-def copy_folder_with_progress(source: str, dest: str, ignore=None, include_override=None) -> None:
+def copy_folder_with_progress(source: str, dest: str, ignore: Optional[List[Union[None,str]]] = None, include_override: Optional[List[Union[None,str]]] = None) -> None:
     import shutil
     import pathlib
     import FreeSimpleGUI as sg
 
-    if ignore == {None}:
-        ignore={'pfx/drive_c/users','pfx/dosdevices','pfx/drive_c/Program Files (x86)','pfx/drive_c/Program Files',
-            'pfx/drive_c/ProgramData','drive_c/openxr','pfx/drive_c/vrclient','version','config_info'}
+    if ignore == [None]:
+        ignore=['pfx/drive_c/users','pfx/dosdevices','pfx/drive_c/Program Files (x86)','pfx/drive_c/Program Files',
+            'pfx/drive_c/ProgramData','drive_c/openxr','pfx/drive_c/vrclient','version','config_info']
 
-    if include_override == {None}:
-        include_override={'pfx/drive_c/ProgramData/Microsoft','pfx/drive_c/Program Files (x86)/Microsoft.NET',
+    if include_override == [None]:
+        include_override=['pfx/drive_c/ProgramData/Microsoft','pfx/drive_c/Program Files (x86)/Microsoft.NET',
                       'pfx/drive_c/Program Files (x86)/Windows NT','pfx/drive_c/Program Files (x86)/Common Files',
                       'pfx/drive_c/Program Files/Common Files','pfx/drive_c/Program Files/Common Files',
-                      'pfx/drive_c/Program Files/Windows NT'}
+                      'pfx/drive_c/Program Files/Windows NT']
 
     if ignore is None:
-        ignore = set()
+        ignore = []
 
     if include_override is None:
-        include_override = set()
+        include_override = []
 
     log(f"ignoring: {ignore}\nincluding anyway: {include_override}")
 
-    def traverse_folders(path):
+    def traverse_folders(path: str) -> List[str]:
         allf = []
         directory = pathlib.Path(path)
         for item in directory.rglob('*'): #sorted(, key=lambda x: str(x).count('/')):
@@ -409,7 +391,7 @@ def copy_folder_with_progress(source: str, dest: str, ignore=None, include_overr
                 allf.append(item)
         return allf
 
-    def update_progress(copied, total):
+    def update_progress(copied: int, total: int) -> None:
         """ Update the GUI with the current progress. """
         percentage = int(100 * (copied / total)) if total > 0 else 0
         text.update(f"{percentage}% ({copied}/{total})")
@@ -463,7 +445,6 @@ def copy_folder_with_progress(source: str, dest: str, ignore=None, include_overr
             pass
         copied_files += 1
         update_progress(copied_files, total_files)
-
 
     window.close()
 
