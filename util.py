@@ -357,15 +357,29 @@ def wine(command: str, proton_bin: str) -> int:
 
 # Function to display a message and exit
 def exit_with_message(
-    title: str, exit_message: str, exit_code: int = 1
+    title: str,
+    exit_message: str,
+    exit_code: int = 1,
+    timeout: Optional[int] = 10,
 ) -> None:
+    show_message(exit_message, title, timeout)
+    sys.exit(exit_code)
+
+
+# Function to display a message
+def show_message(
+    message: str, title: str, timeout: Optional[int] = 5, yesno: bool = False
+) -> Optional[str]:
     import FreeSimpleGUI as sg
 
     sg.theme("systemdefault")
 
-    log(exit_message)
-    sg.popup_ok(exit_message)
-    sys.exit(exit_code)
+    log(message)
+    if yesno:
+        response = sg.popup_yes_no(message, auto_close_duration=timeout)
+    else:
+        response = sg.popup_ok(message, auto_close_duration=timeout)
+    return response
 
 
 # Function to handle caching of files
@@ -399,32 +413,61 @@ def get_dotnet48() -> str:
 
 
 def deref(path: str) -> None:
-    links = []
+    import FreeSimpleGUI as sg
 
-    command = f"find {path} -type l -ls"
-    popup_execute(
-        "Dereference: Discovering",
-        command,
-        lambda x: links.append([f"{x.split()[10]}", f"{x.split()[12]}"]),
-    )
+    def dereference_links() -> None:
+        links = find_symlinks(path)
+        total_links = len(links)
+        extra.update("Dereferencing links, please be patient...")
+        for i, link in enumerate(links):
+            target, src = link
+            try:
+                if os.path.exists(src):
+                    with open(src, "rb") as src_file:
+                        data = src_file.read()
+                    os.remove(target)
+                    with open(target, "wb") as target_file:
+                        target_file.write(data)
+                else:
+                    os.remove(target)  # Remove the broken link
+            except Exception as e:
+                log(f"Failed to dereference {target}: {e}")
+            update_progress(int((i + 1) / total_links * 100))
 
-    script = ""
+    def find_symlinks(path: str) -> List[List[str]]:
+        links = []
+        directory = pathlib.Path(path)
+        for item in directory.rglob("*"):
+            if item.is_symlink():
+                target = str(item)
+                src = os.readlink(target)
+                links.append([target, src])
+        return links
 
-    for i in range(len(links)):
-        link = links[i]
-        target = link[0]
-        src = link[1]
-        perc = round(((i + 1) / len(links)) * 100, 2)
+    def update_progress(percentage: int) -> None:
+        progress.update(percentage)
+        text.update(f"{percentage}%")
+        window.refresh()
 
-        script += (
-            "rm '{}' && cat '{}' > '{}' && echo 'Progress: {}%';".format(
-                target, src, target, perc
-            )
-        )
+    sg.theme("systemdefault")
 
-    with tempfile.NamedTemporaryFile() as tmp:
-        tmp.write(script.encode())
-        popup_execute("Dereference", f"sh {tmp.name}")
+    progress = sg.ProgressBar(100, orientation="h", size=(50, 10))
+    text = sg.Text("0%")
+    extra = sg.Text("Reading directory, please wait...")
+    layout = [[extra], [progress], [text]]
+    window = sg.Window("Dereferencing Links", layout, finalize=True)
+    window.refresh()
+
+    window.perform_long_operation(dereference_links, "-DEREF DONE-")
+
+    while True:
+        event, values = window.read(timeout=1000)
+        if event == "-DEREF DONE-":
+            break
+        elif event is None:
+            sys.exit(0)
+
+    window.close()
 
 
 def copy_folder_with_progress(
@@ -433,8 +476,6 @@ def copy_folder_with_progress(
     ignore: Optional[List[Union[None, str]]] = None,
     include_override: Optional[List[Union[None, str]]] = None,
 ) -> None:
-    import shutil
-    import pathlib
     import FreeSimpleGUI as sg
 
     if ignore == [None]:
@@ -472,9 +513,7 @@ def copy_folder_with_progress(
     def traverse_folders(path: str) -> List[str]:
         allf = []
         directory = pathlib.Path(path)
-        for item in directory.rglob(
-            "*"
-        ):  # sorted(, key=lambda x: str(x).count('/')):
+        for item in directory.rglob("*"):
             if item.is_file():
                 allf.append(item)
         return allf
@@ -486,55 +525,66 @@ def copy_folder_with_progress(
         progress.update(percentage)
         window.refresh()
 
+    def copy_files() -> None:
+        files = traverse_folders(source)
+
+        for f in files:
+            rfile = os.path.relpath(
+                f, source
+            )  # get file path relative to source
+            use = True  # by default, use the file
+
+            # Check if the file is in one of the dirs to ignore
+            for i in ignore:
+                if os.path.commonprefix([rfile, i]) == i:
+                    use = False  # don't use the file if it's in an ignore directory
+                    break  # break out of the ignore loop
+
+            # If the file is not in any ignored directory, check if it's in one of the dirs to include
+            if not use:
+                for i in include_override:
+                    if os.path.commonprefix([rfile, i]) == i:
+                        use = True  # use the file if it's in an include_override directory
+                        break  # break out of the include_override loop
+            if use:
+                copy.append(rfile)
+
+        total_files = len(files)
+        copied_files = 0
+
+        extra.update("Copying prefix, please be patient...")
+        window.refresh()
+
+        for f in copy:
+            src_path = os.path.join(source, f)
+            dest_path = os.path.join(dest, f)
+            try:
+                os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                shutil.copy2(src_path, dest_path, follow_symlinks=False)
+            except Exception as e:
+                log(f"Failed to copy {src_path} to {dest_path}: {e}")
+                continue
+
+            copied_files += 1
+            update_progress(copied_files, total_files)
+
     sg.theme("systemdefault")
 
     progress = sg.ProgressBar(100, orientation="h", s=(50, 10))
-    text = sg.Text("0%")
-    extra = sg.Text("Reading prefix directory, please wait..")
+    text = sg.Text("0% (0/?)")
+    extra = sg.Text("Reading prefix directory, please wait...")
     layout = [[extra], [progress], [text]]
     window = sg.Window("Copying Prefix", layout, finalize=True)
     window.refresh()
 
-    files = traverse_folders(source)
+    window.perform_long_operation(copy_files, "-COPY DONE-")
 
-    copy = []
-    for f in files:
-        rfile = os.path.relpath(f, source)  # get file path relative to source
-        use = True  # by default, use the file
-
-        # Check if the file is in one of the dirs to ignore
-        for i in ignore:
-            if os.path.commonprefix([rfile, i]) == i:
-                use = (
-                    False  # don't use the file if it's in an ignore directory
-                )
-                break  # break out of the ignore loop
-
-        # If the file is not in any ignored directory, check if it's in one of the dirs to include
-        if not use:
-            for i in include_override:
-                if os.path.commonprefix([rfile, i]) == i:
-                    use = True  # use the file if it's in an include_override directory
-                    break  # break out of the include_override loop
-        if use:
-            copy.append(rfile)
-
-    extra.update("Copying prefix, please be patient...")
-    window.refresh()
-
-    total_files = len(files)
-    copied_files = 0
-
-    for f in copy:
-        src_path = os.path.join(source, f)
-        dest_path = os.path.join(dest, f)
-        try:
-            os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-            shutil.copy2(src_path, dest_path, follow_symlinks=False)
-        except:
-            pass
-        copied_files += 1
-        update_progress(copied_files, total_files)
+    while True:
+        event, values = window.read(timeout=1000)
+        if event == "-COPY DONE-":
+            break
+        elif event is None:
+            sys.exit(0)
 
     window.close()
 
