@@ -48,8 +48,8 @@ jobs:
         run: |
           git fetch origin main
           git checkout main
-          git pull
-          git merge dev --strategy-option ours -m "Auto merge/sync branch 'dev' into 'main'" --allow-unrelated-histories
+          git pull origin main
+          git merge dev -m "Auto merge/sync branch 'dev' into 'main'" || git merge dev --strategy-option ours -m "Auto merge/sync branch 'dev' into 'main'" --allow-unrelated-histories
           git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -59,8 +59,8 @@ jobs:
         run: |
           git fetch origin dev
           git checkout dev
-          git pull
-          git merge main --strategy-option ours -m "Auto pull/sync back changes from 'main' into 'dev'" --allow-unrelated-histories
+          git pull origin dev
+          git merge main -m "Auto pull/sync back changes from 'main' into 'dev'" || git merge main --strategy-option ours -m "Auto pull/sync back changes from 'main' into 'dev'" --allow-unrelated-histories
           git push origin dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
