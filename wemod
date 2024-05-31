@@ -149,7 +149,8 @@ def scanfolderforversions(
                         closest_version_folder = folder_path
                         closest_version_number = folder_version_parts
                 elif (
-                    folder_version_parts[0] < current_version_parts[0] and priority >= 4
+                    folder_version_parts[0] < current_version_parts[0]
+                    and priority >= 4
                 ):
                     # Lower major version
                     if (
@@ -160,7 +161,8 @@ def scanfolderforversions(
                         closest_version_folder = folder_path
                         closest_version_number = folder_version_parts
                 elif (
-                    folder_version_parts[0] > current_version_parts[0] and priority >= 5
+                    folder_version_parts[0] > current_version_parts[0]
+                    and priority >= 5
                 ):
                     # Higher major version
                     if (
@@ -174,7 +176,9 @@ def scanfolderforversions(
 
 def syncwemod(
     folder: Optional[str] = None,
-) -> None:  # Symlink wemod data to make all wemod prefixes use the same wemod data
+) -> (
+    None
+):  # Symlink wemod data to make all wemod prefixes use the same wemod data
     response = None
     package_prefix = os.getenv(
         "PACKAGEPREFIX"
@@ -205,7 +209,10 @@ def syncwemod(
         destfile = os.path.join(
             STEAM_COMPAT_FOLDER,
             "prefixes",
-            "GE-Proton" + str(cut_proton_version[0]) + "." + str(cut_proton_version[1]),
+            "GE-Proton"
+            + str(cut_proton_version[0])
+            + "."
+            + str(cut_proton_version[1]),
         )
         os.makedirs(os.path.join(destfile, "temp"), exist_ok=True)
         shutil.rmtree(destfile)
@@ -226,7 +233,9 @@ def syncwemod(
         if exit_code != 0:
             exit_message = f"Archive creation failed with code '{exit_code}'"
             exit_with_message("ERROR", exit_message, exit_code)
-        os.system('xdg-open "%s"' % os.path.join(STEAM_COMPAT_FOLDER, "prefixes"))
+        os.system(
+            'xdg-open "%s"' % os.path.join(STEAM_COMPAT_FOLDER, "prefixes")
+        )
         log("Done creating Prefix zip")
         sys.exit(0)
 
@@ -238,7 +247,9 @@ def syncwemod(
         folder, "pfx/drive_c/users/steamuser/AppData/Roaming/WeMod"
     )  # link dest
 
-    log(f"Syncing wemod data from '{WeModExtenal}' to laucher dir '{WeModData}'")
+    log(
+        f"Syncing wemod data from '{WeModExtenal}' to laucher dir '{WeModData}'"
+    )
     if not os.path.isdir(WeModData):
         os.makedirs(WeModData)  # Make wemod data folder if missing
     if not os.path.isdir(WeModExtenal):
@@ -247,7 +258,8 @@ def syncwemod(
         WeModExtenal
     ):  # If the extenal data exist
         if (
-            len(os.listdir(WeModData)) > 0 and len(os.listdir(WeModExtenal)) > 0
+            len(os.listdir(WeModData)) > 0
+            and len(os.listdir(WeModExtenal)) > 0
         ):  # If wemod folder and extenal folder are not empty
             import FreeSimpleGUI as sg  # We ask what files to use
 
@@ -272,7 +284,9 @@ def syncwemod(
         )  # And symlink the data from the wemod laucher
         log("Linked wemod data to gameprefix")
 
-    if not os.path.exists(os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")):
+    if not os.path.exists(
+        os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
+    ):
         main()
 
 
@@ -339,11 +353,15 @@ def init(proton: str) -> None:
                 title="Mabye compatible WeMod version detected",
             )
         else:
-            log("No compatible Proton version found in the compatibility folder.")
+            log(
+                "No compatible Proton version found in the compatibility folder."
+            )
         if response == "Yes":
             # Copy the closest version's prefix to the gameprefix
             log(f"Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}")
-            syncwemod(closest_prefix_folder)  # Sync wemod data in closest version
+            syncwemod(
+                closest_prefix_folder
+            )  # Sync wemod data in closest version
             copy_folder_with_progress(
                 closest_prefix_folder, BASE_STEAM_COMPAT, {None}, {None}
             )
@@ -425,7 +443,9 @@ def find_closest_compatible_release(
                     # Exact match
                     closest_release = release
                     closest_version = release_version_parts
-                    closest_release_url = release["assets"][0]["browser_download_url"]
+                    closest_release_url = release["assets"][0][
+                        "browser_download_url"
+                    ]
                     break
                 elif (
                     release_version_parts[0] == current_version_parts[0]
@@ -524,7 +544,9 @@ def download_prefix(proton_dir: str) -> None:
 
     repo_concat = repo_user + "/" + repo_name
 
-    current_proton_version = read_version(os.path.join(BASE_STEAM_COMPAT, "version"))
+    current_proton_version = read_version(
+        os.path.join(BASE_STEAM_COMPAT, "version")
+    )
     current_version_parts = parse_version(current_proton_version)
 
     releases = get_github_releases(repo_concat)
@@ -554,7 +576,9 @@ def download_prefix(proton_dir: str) -> None:
             title="Mabye copatible version found",
         )
     else:
-        log(f"There was no version to download on repo '{repo_concat}', Error...")
+        log(
+            f"There was no version to download on repo '{repo_concat}', Error..."
+        )
         exit_with_message(
             "No downloads available",
             f"Nothing to download on repo '{repo_concat}'. Error.",
@@ -567,7 +591,8 @@ def download_prefix(proton_dir: str) -> None:
 
     # Download or use cached prefix
     prefix_path = cache(
-        file_name, lambda name: popup_download("Dowloading Prefix...", url, name)
+        file_name,
+        lambda name: popup_download("Dowloading Prefix...", url, name),
     )
 
     # Unpack the downloaded prefix
@@ -586,7 +611,9 @@ def download_prefix(proton_dir: str) -> None:
         os.remove(fullfile)
 
     syncwemod()
-    if not os.path.exists(os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")):
+    if not os.path.exists(
+        os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
+    ):
         main()
 
     log("Finished prefix copy")
@@ -597,7 +624,13 @@ def build_prefix(proton_dir: str) -> None:
     import FreeSimpleGUI as sg
 
     # Set environment path
-    path = os.path.join(SCRIPT_PATH, "bin") + ":" + proton_dir + ":" + os.getenv("PATH")
+    path = (
+        os.path.join(SCRIPT_PATH, "bin")
+        + ":"
+        + proton_dir
+        + ":"
+        + os.getenv("PATH")
+    )
 
     # deref
     winpath = os.path.join(WINEPREFIX, "drive_c", "windows")
@@ -639,10 +672,16 @@ be warned that GE-Proton 7 (the wemod-launcher opion) isn't working well, you ca
         wine("winecfg -v win7", path)
         dotnet48_result = wine(dotnet48, path)
 
-        if dotnet48_result != 0 and dotnet48_result != 194 and dotnet48_result != -15:
+        if (
+            dotnet48_result != 0
+            and dotnet48_result != 194
+            and dotnet48_result != -15
+        ):
             exit_with_message(
                 "dotnet48 install error",
-                "dotnet48 installation exited with code '{}'".format(dotnet48_result),
+                "dotnet48 installation exited with code '{}'".format(
+                    dotnet48_result
+                ),
             )
 
     wine("winecfg -v win10", path)  # Set Windows version to Windows 10
@@ -654,12 +693,16 @@ be warned that GE-Proton 7 (the wemod-launcher opion) isn't working well, you ca
     else:
         exit_with_message(
             "ERROR",
-            "Failed dependencies installation with code '{}'. Aborting...".format(resp),
+            "Failed dependencies installation with code '{}'. Aborting...".format(
+                resp
+            ),
             resp,
         )
 
 
-def split_list_by_delimiter(input_list: List[str], delimiter: str) -> List[List[str]]:
+def split_list_by_delimiter(
+    input_list: List[str], delimiter: str
+) -> List[List[str]]:
     result = []
     current_sublist = []
     for item in input_list:
@@ -786,7 +829,9 @@ else:
             venv_path = "wemod_venv"
         try:
             if os.path.isabs(venv_path):
-                subprocess.run([sys.executable, "-m", "venv", venv_path], check=True)
+                subprocess.run(
+                    [sys.executable, "-m", "venv", venv_path], check=True
+                )
             else:
                 subprocess.run(
                     [
@@ -799,7 +844,9 @@ else:
                 )
             log("Virtual environment created successfully.")
         except subprocess.CalledProcessError:
-            log("Failed to create virtual environment, trying to force install venv")
+            log(
+                "Failed to create virtual environment, trying to force install venv"
+            )
             return_code = pip("install --break-system-packages venv")
             if return_code != 0:
                 log(
@@ -813,7 +860,8 @@ else:
                 try:
                     if os.path.isabs(venv_path):
                         subprocess.run(
-                            [sys.executable, "-m", "venv", venv_path], check=True
+                            [sys.executable, "-m", "venv", venv_path],
+                            check=True,
                         )
                     else:
                         subprocess.run(
@@ -821,7 +869,9 @@ else:
                                 sys.executable,
                                 "-m",
                                 "venv",
-                                os.path.abspath(os.path.join(SCRIPT_PATH, venv_path)),
+                                os.path.abspath(
+                                    os.path.join(SCRIPT_PATH, venv_path)
+                                ),
                             ],
                             check=True,
                         )
@@ -854,7 +904,8 @@ else:
         if return_code != 0:
             log("CRITICAL: Dependencies can't be installed")
             exit_with_message(
-                "Dependencies install error", "Failed to install dependencies. Error."
+                "Dependencies install error",
+                "Failed to install dependencies. Error.",
             )
 
         log("Re-running script within virtual environment")

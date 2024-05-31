@@ -75,7 +75,9 @@ def download_wemod(temp_dir: str) -> str:
     return setup_file
 
 
-def unpack_wemod(setup_file: str, temp_dir: str, install_location: str) -> bool:
+def unpack_wemod(
+    setup_file: str, temp_dir: str, install_location: str
+) -> bool:
     try:
         import zipfile
         import tempfile
@@ -84,9 +86,9 @@ def unpack_wemod(setup_file: str, temp_dir: str, install_location: str) -> bool:
         archive = zipfile.ZipFile(setup_file, mode="r")
         names = archive.filelist
 
-        nupkg = list(filter(lambda name: str(name.filename).endswith(".nupkg"), names))[
-            0
-        ]
+        nupkg = list(
+            filter(lambda name: str(name.filename).endswith(".nupkg"), names)
+        )[0]
         tmp_nupkgd = tempfile.mktemp(prefix="wemod-nupkg-")
         archive.extract(nupkg, tmp_nupkgd)
         tmp_nupkg = os.path.join(tmp_nupkgd, nupkg.filename)
@@ -95,7 +97,10 @@ def unpack_wemod(setup_file: str, temp_dir: str, install_location: str) -> bool:
         archive = zipfile.ZipFile(tmp_nupkg, mode="r")
 
         net = list(
-            filter(lambda name: name.filename.startswith("lib/net"), archive.filelist)
+            filter(
+                lambda name: name.filename.startswith("lib/net"),
+                archive.filelist,
+            )
         )
 
         tmp_net = tempfile.mkdtemp(prefix="wemod-net")
@@ -123,7 +128,9 @@ def main() -> None:
     install_location = os.path.join(SCRIPT_PATH, "wemod_bin")
     winetricks = os.path.join(SCRIPT_PATH, "winetricks")
 
-    if os.getenv("FORCE_UPDATE_WEMOD", "0") == "1" or not os.path.isfile(winetricks):
+    if os.getenv("FORCE_UPDATE_WEMOD", "0") == "1" or not os.path.isfile(
+        winetricks
+    ):
         if os.path.isfile(winetricks):
             shutil.rmtree(winetricks)
         log("Winetricks not found...")

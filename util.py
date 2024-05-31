@@ -20,7 +20,9 @@ if os.path.exists(CONFIG_PATH):
 
 
 # Read a setting of the configfile
-def load_conf_setting(setting: str, section: str = DEF_SECTION) -> Optional[str]:
+def load_conf_setting(
+    setting: str, section: str = DEF_SECTION
+) -> Optional[str]:
     if section in CONFIG and setting in CONFIG[section]:
         return CONFIG[section][setting]
     return None
@@ -68,7 +70,9 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
         venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))
     pos_pip = None
     if venv_path:
-        python_executable = os.path.join(venv_path, os.path.basename(sys.executable))
+        python_executable = os.path.join(
+            venv_path, os.path.basename(sys.executable)
+        )
         pos_pip = os.path.join(venv_path, "bin", "pip")
         if not os.path.isfile(pos_pip):
             pos_pip = None
@@ -323,7 +327,9 @@ def winetricks(command: str, proton_bin: str) -> int:
             winetricks_sh,
         )
         log(f"setting exec permissions on '{winetricks_sh}'")
-        process = subprocess.Popen(f"sh -c 'chmod +x {winetricks_sh}'", shell=True)
+        process = subprocess.Popen(
+            f"sh -c 'chmod +x {winetricks_sh}'", shell=True
+        )
         exit_code = process.wait()
 
         if exit_code != 0:
@@ -350,7 +356,9 @@ def wine(command: str, proton_bin: str) -> int:
 
 
 # Function to display a message and exit
-def exit_with_message(title: str, exit_message: str, exit_code: int = 1) -> None:
+def exit_with_message(
+    title: str, exit_message: str, exit_code: int = 1
+) -> None:
     import FreeSimpleGUI as sg
 
     sg.theme("systemdefault")
@@ -382,7 +390,9 @@ def cache(file_path: str, default: Callable[[str], None]) -> str:
 def get_dotnet48() -> str:
     # Newer if you like to test: "https://download.visualstudio.microsoft.com/download/pr/2d6bb6b2-226a-4baa-bdec-798822606ff1/8494001c276a4b96804cde7829c04d7f/ndp48-x86-x64-allos-enu.exe"
     LINK = "https://download.visualstudio.microsoft.com/download/pr/7afca223-55d2-470a-8edc-6a1739ae3252/abd170b4b0ec15ad0222a809b761a036/ndp48-x86-x64-allos-enu."
-    cache_func = lambda FILE: popup_download("Downloading dotnet48", LINK, FILE)
+    cache_func = lambda FILE: popup_download(
+        "Downloading dotnet48", LINK, FILE
+    )
 
     dotnet48 = cache("ndp48-x86-x64-allos-enu.exe", cache_func)
     return dotnet48
@@ -406,8 +416,10 @@ def deref(path: str) -> None:
         src = link[1]
         perc = round(((i + 1) / len(links)) * 100, 2)
 
-        script += "rm '{}' && cat '{}' > '{}' && echo 'Progress: {}%';".format(
-            target, src, target, perc
+        script += (
+            "rm '{}' && cat '{}' > '{}' && echo 'Progress: {}%';".format(
+                target, src, target, perc
+            )
         )
 
     with tempfile.NamedTemporaryFile() as tmp:
@@ -460,7 +472,9 @@ def copy_folder_with_progress(
     def traverse_folders(path: str) -> List[str]:
         allf = []
         directory = pathlib.Path(path)
-        for item in directory.rglob("*"):  # sorted(, key=lambda x: str(x).count('/')):
+        for item in directory.rglob(
+            "*"
+        ):  # sorted(, key=lambda x: str(x).count('/')):
             if item.is_file():
                 allf.append(item)
         return allf
@@ -491,7 +505,9 @@ def copy_folder_with_progress(
         # Check if the file is in one of the dirs to ignore
         for i in ignore:
             if os.path.commonprefix([rfile, i]) == i:
-                use = False  # don't use the file if it's in an ignore directory
+                use = (
+                    False  # don't use the file if it's in an ignore directory
+                )
                 break  # break out of the ignore loop
 
         # If the file is not in any ignored directory, check if it's in one of the dirs to include
