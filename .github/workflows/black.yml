@@ -30,18 +30,14 @@ jobs:
       - name: Checkout dev
         if: github.ref == 'refs/heads/dev'
         run: |
-          # Fetch and checkout dev branch
-          git fetch origin dev
+          # Checkout dev branch
           git checkout dev
-          git pull origin dev
 
       - name: Checkout main
         if: github.ref == 'refs/heads/main'
         run: |
-          # Fetch and checkout dev branch
-          git fetch origin dev
-          git checkout dev
-          git pull origin dev
+          # Checkout main branch
+          git checkout main
       
       - name: Run Black
         id: run_black
