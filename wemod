@@ -24,7 +24,6 @@ from util import (
     popup_execute,
 )
 
-
 # Define paths and constants
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 BAT_FILE = "\\\\".join(SCRIPT_PATH.split(os.sep) + ["wemod.bat"])
