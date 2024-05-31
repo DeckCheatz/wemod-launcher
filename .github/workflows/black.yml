@@ -38,7 +38,7 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
-          git commit -m 'Format code with Black' || echo "No changes to commit"
+          git commit -m 'Github actions automatic code formating' -m 'The is a automatic task, run by a github workflow, to automatically format the python code in the repo, with the codeformater "black"' || echo "No changes to commit"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,7 +48,7 @@ jobs:
         run: |
           git fetch origin main
           git checkout main
-          git merge dev --strategy-option ours -m "Merge branch 'dev' into 'main'" --allow-unrelated-histories
+          git merge dev --strategy-option ours -m "Auto merge/sync branch 'dev' into 'main'" --allow-unrelated-histories
           git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -58,7 +58,7 @@ jobs:
         run: |
           git fetch origin dev
           git checkout dev
-          git merge main --strategy-option ours -m "Pull back changes from 'main' into 'dev'" --allow-unrelated-histories
+          git merge main --strategy-option ours -m "Auto pull/sync back changes from 'main' into 'dev'" --allow-unrelated-histories
           git push origin dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
