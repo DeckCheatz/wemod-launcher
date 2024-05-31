@@ -286,7 +286,9 @@ def syncwemod(
         )  # And symlink the data from the wemod laucher
         log("Linked wemod data to gameprefix")
 
-    if not os.path.exists(os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")):
+    if not os.path.exists(
+        os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
+    ):
         main()
 
 
@@ -612,7 +614,9 @@ def download_prefix(proton_dir: str) -> None:
         os.remove(fullfile)
 
     syncwemod()
-    if not os.path.exists(os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")):
+    if not os.path.exists(
+        os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
+    ):
         main()
 
     log("Finished prefix copy")
@@ -825,7 +829,9 @@ else:
 save_conf_setting("ScriptName", script_name)
 save_conf_setting("Version", script_version)
 log(f"The script {script_name} is running on version {script_version}")
-print(f"The wemod script {script_name} is running on version {script_version}")
+print(
+    f"The wemod script {script_name} is running on version {script_version}"
+)
 
 if check_dependencies(requirements_txt):
     log("All dependencies are already installed.")
