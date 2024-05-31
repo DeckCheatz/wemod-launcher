@@ -15,6 +15,7 @@ from util import (
     save_conf_setting,
     cache,
     exit_with_message,
+    show_message,
     get_dotnet48,
     popup_download,
     wine,
@@ -36,8 +37,7 @@ elif loacom:
         BASE_STEAM_COMPAT = str(loacom)
     else:
         BASE_STEAM_COMPAT = os.path.abspath(os.path.join(SCRIPT_PATH, loacom))
-
-del loacom
+del loacom  # Delete temp base compat variable
 
 WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
 STEAM_COMPAT_FOLDER = os.path.abspath(os.path.dirname(BASE_STEAM_COMPAT))
@@ -189,7 +189,7 @@ def syncwemod(
             if package_prefix.lower() != "true":
                 try:
                     package_prefix = int(package_prefix)
-                except:
+                except Exception as e:
                     package_prefix = "false"
                 else:
                     if package_prefix > 0:
@@ -261,10 +261,12 @@ def syncwemod(
             len(os.listdir(WeModData)) > 0
             and len(os.listdir(WeModExtenal)) > 0
         ):  # If wemod folder and extenal folder are not empty
-            import FreeSimpleGUI as sg  # We ask what files to use
+            # We ask what files to use
 
-            response = sg.popup_yes_no(
-                f"Warnig wemod might have been installed previously.\nUse wemod laucher dir account (Yes) or\nUse wemod prefix/game dir account (No)"
+            response = show_message(
+                f"Warnig wemod might have been installed previously.\nUse wemod laucher dir account (Yes) or\nUse wemod prefix/game dir account (No)",
+                title="Multiple accounts found",
+                yesno=True,
             )
         if (response == "No" or len(os.listdir(WeModData)) == 0) and len(
             os.listdir(WeModExtenal)
@@ -335,22 +337,21 @@ def init(proton: str) -> None:
             and current_version_parts
             and closest_version[0] == current_version_parts[0]
         ):
-            import FreeSimpleGUI as sg
 
-            response = sg.popup_yes_no(
+            response = show_message(
                 f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} dosn't have WeMod installed. Would you like to use the closest proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is probably going to work?",
                 title="Likely compatible WeMod version detected",
+                yesno=True,
             )
         elif (
             closest_version
             and current_version_parts
             and closest_version[0] != current_version_parts[0]
         ):
-            import FreeSimpleGUI as sg
-
-            response = sg.popup_yes_no(
+            response = show_message(
                 f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} dosn't have WeMod installed. Would you like to attempt to use the closest proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which may result in some issues?",
                 title="Mabye compatible WeMod version detected",
+                yesno=True,
             )
         else:
             log(
@@ -410,8 +411,8 @@ def init(proton: str) -> None:
 def get_github_releases(repo_name: str) -> List[Any]:
     try:
         import requests
-    except:
-        print("Failed to fetch releases.")
+    except Exception as e:
+        print(f"Failed to fetch releases, error reports {e}")
         return []
     url = f"https://api.github.com/repos/{repo_name}/releases"
     response = requests.get(url)
@@ -566,14 +567,16 @@ def download_prefix(proton_dir: str) -> None:
         and current_version_parts
         and closest_version[0] == current_version_parts[0]
     ):
-        response = sg.popup_yes_no(
+        response = show_message(
             f"This is most likely going to work, the version {closest_version[0]}.{closest_version[1]} is probably compatible with version {current_version_parts[0]}.{current_version_parts[1]}, download and use it?",
             title="Likely compatible version found",
+            yesno=True,
         )
     elif closest_version and current_version_parts:
-        response = sg.popup_yes_no(
+        response = show_message(
             f"The current version {closest_version[0]}.{closest_version[1]} might not be compatible with version {current_version_parts[0]}.{current_version_parts[1]}, download and use it?",
             title="Mabye copatible version found",
+            yesno=True,
         )
     else:
         log(
@@ -800,10 +803,35 @@ def run(skip_init: bool = False) -> str:
 requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
 
 script_name = "wemod-laucher"
+script_version = "1.013"
+last_name = load_conf_setting("ScriptName")
+last_version = load_conf_setting("Version")
+
+if last_name and last_name != script_name:
+    log("Warnig config might be for a other script, overwriting name")
+elif not last_name:
+    log("Adding script name to config")
+if last_version:
+    try:
+        if float(last_version) < float(script_version):
+            log(
+                f"Config on version {last_version} updating to {script_version}"
+            )
+        elif float(last_version) > float(script_version):
+            log(
+                f"Warnig config on version {last_version} downgrading to {script_version}"
+            )
+    except Exception as e:
+        log(f"Warnig config error '{e}' changing version to {script_version}")
+else:
+    log("Adding script version to config")
+
 save_conf_setting("ScriptName", script_name)
-script_version = "1.012"
 save_conf_setting("Version", script_version)
 log(f"The script {script_name} is running on version {script_version}")
+print(
+    f"The wemod script {script_name} is running on version {script_version}"
+)
 
 if check_dependencies(requirements_txt):
     log("All dependencies are already installed.")
@@ -893,13 +921,12 @@ else:
         venv_python = os.path.join(venv_path, "bin", "python")
 
         # Build the command to re-run the script within the virtual environment
-        script_file = os.path.abspath(
-            __file__
-        )  # Assuming the current script is being run
-        command = [venv_python, script_file] + sys.argv[
-            1:
-        ]  # Pass command line arguments
+        script_file = os.path.abspath(__file__)
 
+        # Pass  all command line arguments
+        command = [venv_python, script_file] + sys.argv[1:]
+
+        # Preinstall dependencies in the virtual environment
         return_code = pip(pip_install, venv_path)
         if return_code != 0:
             log("CRITICAL: Dependencies can't be installed")
@@ -909,8 +936,12 @@ else:
             )
 
         log("Re-running script within virtual environment")
+
         # Execute the script within the virtual environment
         process = subprocess.run(command, capture_output=True, text=True)
+
+        # Send output and error to steam console
+        # If function log worked it gets logged by the re-run
         print(str(process.stdout))
         print(str(process.stderr))
         sys.exit(process.returncode)
