@@ -26,25 +26,43 @@ jobs:
       - name: Install dependencies
         run: |
           pip install black
+
+      - name: Checkout dev
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          # Fetch and checkout dev branch
+          git fetch origin dev
+          git checkout dev
+          git pull origin dev
+
+      - name: Checkout main
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # Fetch and checkout dev branch
+          git fetch origin dev
+          git checkout dev
+          git pull origin dev
       
       - name: Run Black
+        id: run_black
         run: |
           black -l 78 -t py312 ./*.py ./wemod
 
-      - name: Commit changes
-        if: success()
-        id: commit_changes
+      - name: Commit changes on dev
+        if: github.ref == 'refs/heads/dev' && steps.run_black.outcome == 'success'
+        id: commit_changes_dev
         run: |
+          # Commit changes
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
-          git commit -m 'Github actions automatic code formating' -m 'The is a automatic task, run by a github workflow, to automatically format the python code in the repo, with the codeformater "black"' || echo "No changes to commit"
+          git commit -m 'Github actions automatic code formatting on dev branch' -m 'This is an automatic task, run by a GitHub workflow, to automatically format the Python code in the repo, with the code formatter "black"' || echo "No changes to commit"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Merge dev into main
-        if: github.ref == 'refs/heads/dev' && steps.commit_changes.outcome == 'success'
+        if: github.ref == 'refs/heads/dev' && steps.commit_changes_dev.outcome == 'success'
         run: |
           # Fetch and checkout main branch
           git fetch origin main
@@ -78,9 +96,22 @@ jobs:
           git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit changes on main
+        if: github.ref == 'refs/heads/main' && steps.run_black.outcome == 'success'
+        id: commit_changes_main
+        run: |
+          # Commit changes
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .
+          git commit -m 'Github actions automatic code formatting on main branch' -m 'This is an automatic task, run by a GitHub workflow, to automatically format the Python code in the repo, with the code formatter "black"' || echo "No changes to commit"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
       - name: Merge main into dev
-        if: github.ref == 'refs/heads/main' && steps.commit_changes.outcome == 'success'
+        if: github.ref == 'refs/heads/main' && steps.commit_changes_main.outcome == 'success'
         run: |
           # Fetch and checkout dev branch
           git fetch origin dev
