@@ -7,6 +7,7 @@ import configparser
 from typing import Callable, Optional, List, Union
 from urllib import request
 
+
 # Set the script path and define the Wine prefix for Windows compatibility
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 WINEPREFIX = os.path.join(os.getenv("STEAM_COMPAT_DATA_PATH"), "pfx")
