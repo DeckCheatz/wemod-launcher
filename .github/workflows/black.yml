@@ -48,6 +48,7 @@ jobs:
         run: |
           git fetch origin main
           git checkout main
+          git pull
           git merge dev --strategy-option ours -m "Auto merge/sync branch 'dev' into 'main'" --allow-unrelated-histories
           git push origin main
         env:
@@ -58,6 +59,7 @@ jobs:
         run: |
           git fetch origin dev
           git checkout dev
+          git pull
           git merge main --strategy-option ours -m "Auto pull/sync back changes from 'main' into 'dev'" --allow-unrelated-histories
           git push origin dev
         env:
