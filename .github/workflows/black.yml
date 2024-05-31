@@ -60,42 +60,16 @@ jobs:
       - name: Merge dev into main
         if: github.ref == 'refs/heads/dev' && steps.commit_changes_dev.outcome == 'success'
         run: |
-          # Fetch and checkout main branch
           git fetch origin main
           git checkout main
           git pull origin main
+          git merge dev --strategy-option ours -m "Auto merge/sync branch 'dev' into 'main'" --allow-unrelated-histories
+          git push origin dev
 
-          # Create a temporary directory and copy the contents of the main branch including .git
-          mkdir ../tmp-main
-          cp -r . ../tmp-main
-
-          # Fetch and checkout the dev branch
           git fetch origin dev
           git checkout dev
           git pull origin dev
-
-          # Move .git directory temporarily to skip it during the 
-          mv .git ../tmp-git
-
-          # Copy the contents of the dev branch to the temporary directory
-          cp -r . ../tmp-main
-
-          # Move the .git directory back
-          mv ../tmp-git .git
-
-          # Change to the temporary directory, add changes, and commit
-          cd ../tmp-main
-          git add .
-          git commit -m "Auto merge/sync branch 'dev' into 'main' (code sync)" || echo "No changes to commit"
-
-          # Push changes to main branch
-          git push origin main
-
-          # Run old code as well to sync merge reqests
-          git fetch origin main
-          git checkout main
-          git pull origin main
-          git merge dev --strategy-option ours -m "Auto merge/sync branch 'dev' into 'main' (merge reqest sync)" --allow-unrelated-histories
+          git merge main --strategy-option ours -m "Auto pull/sync back changes from 'main' into 'dev'" --allow-unrelated-histories
           git push origin dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -116,42 +90,16 @@ jobs:
       - name: Merge main into dev
         if: github.ref == 'refs/heads/main' && steps.commit_changes_main.outcome == 'success'
         run: |
-          # Fetch and checkout dev branch
           git fetch origin dev
           git checkout dev
           git pull origin dev
+          git merge main --strategy-option ours -m "Auto pull/sync back changes from 'main' into 'dev'" --allow-unrelated-histories
+          git push origin dev
 
-          # Create a temporary directory and copy the contents of the dev branch including .git
-          mkdir ../tmp-dev
-          cp -r . ../tmp-dev
-
-          # Fetch and checkout the main branch
           git fetch origin main
           git checkout main
           git pull origin main
-
-          # Move .git directory temporarily to skip it during the 
-          mv .git ../tmp-git
-
-          # Copy the contents of the main branch to the temporary directory
-          cp -r . ../tmp-dev
-
-          # Move the .git directory back
-          mv ../tmp-git .git
-
-          # Change to the temporary directory, add changes, and commit
-          cd ../tmp-dev
-          git add .
-          git commit -m "Auto pull/sync back changes from 'main' into 'dev' (code sync)" || echo "No changes to commit"
-
-          # Push changes to dev branch
-          git push origin dev
-
-          # Run old code as well to sync merge reqests
-          git fetch origin dev
-          git checkout dev
-          git pull origin dev
-          git merge main --strategy-option ours -m "Auto pull/sync back changes from 'main' into 'dev' (merge reqest sync)" --allow-unrelated-histories
+          git merge dev --strategy-option ours -m "Auto merge/sync branch 'dev' into 'main'" --allow-unrelated-histories
           git push origin dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
