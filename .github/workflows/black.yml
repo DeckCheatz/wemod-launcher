@@ -1,0 +1,64 @@
+name: Lint and Format Code
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  lint-and-format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.12.3'
+
+      - name: Install dependencies
+        run: |
+          pip install black
+      
+      - name: Run Black
+        run: |
+          black -l 78 -t py312 ./*.py ./wemod
+
+      - name: Commit changes
+        if: success()
+        id: commit_changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .
+          git commit -m 'Format code with Black' || echo "No changes to commit"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge dev into main
+        if: github.ref == 'refs/heads/dev' && steps.commit_changes.outcome == 'success'
+        run: |
+          git fetch origin main
+          git checkout main
+          git merge dev --strategy-option ours -m "Merge branch 'dev' into 'main'" --allow-unrelated-histories
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge main into dev
+        if: github.ref == 'refs/heads/main' && steps.commit_changes.outcome == 'success'
+        run: |
+          git fetch origin dev
+          git checkout dev
+          git merge main --strategy-option ours -m "Pull back changes from 'main' into 'dev'" --allow-unrelated-histories
+          git push origin dev
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
