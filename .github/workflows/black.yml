@@ -90,6 +90,13 @@ jobs:
 
           # Push changes to main branch
           git push origin main
+
+          # Run old code as well to sync merge reqests
+          git fetch origin main
+          git checkout main
+          git pull origin main
+          git merge dev --strategy-option ours -m "Auto merge/sync branch 'dev' into 'main'" --allow-unrelated-histories
+          git push origin dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -138,6 +145,13 @@ jobs:
           git commit -m "Auto pull/sync back changes from 'main' into 'dev'" || echo "No changes to commit"
 
           # Push changes to dev branch
+          git push origin dev
+
+          # Run old code as well to sync merge reqests
+          git fetch origin dev
+          git checkout dev
+          git pull origin dev
+          git merge main --strategy-option ours -m "Auto pull/sync back changes from 'main' into 'dev'" --allow-unrelated-histories
           git push origin dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
