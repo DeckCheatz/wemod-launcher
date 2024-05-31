@@ -86,7 +86,7 @@ jobs:
           # Change to the temporary directory, add changes, and commit
           cd ../tmp-main
           git add .
-          git commit -m "Auto merge/sync branch 'dev' into 'main'" || echo "No changes to commit"
+          git commit -m "Auto merge/sync branch 'dev' into 'main' (code sync)" || echo "No changes to commit"
 
           # Push changes to main branch
           git push origin main
@@ -95,7 +95,7 @@ jobs:
           git fetch origin main
           git checkout main
           git pull origin main
-          git merge dev --strategy-option ours -m "Auto merge/sync branch 'dev' into 'main'" --allow-unrelated-histories
+          git merge dev --strategy-option ours -m "Auto merge/sync branch 'dev' into 'main' (merge reqest sync)" --allow-unrelated-histories
           git push origin dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -142,7 +142,7 @@ jobs:
           # Change to the temporary directory, add changes, and commit
           cd ../tmp-dev
           git add .
-          git commit -m "Auto pull/sync back changes from 'main' into 'dev'" || echo "No changes to commit"
+          git commit -m "Auto pull/sync back changes from 'main' into 'dev' (code sync)" || echo "No changes to commit"
 
           # Push changes to dev branch
           git push origin dev
@@ -151,7 +151,7 @@ jobs:
           git fetch origin dev
           git checkout dev
           git pull origin dev
-          git merge main --strategy-option ours -m "Auto pull/sync back changes from 'main' into 'dev'" --allow-unrelated-histories
+          git merge main --strategy-option ours -m "Auto pull/sync back changes from 'main' into 'dev' (merge reqest sync)" --allow-unrelated-histories
           git push origin dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
