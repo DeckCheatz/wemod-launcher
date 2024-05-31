@@ -97,6 +97,12 @@ jobs:
           git pull origin main
           git merge dev --strategy-option ours -m "Auto merge/sync branch 'dev' into 'main' (merge reqest sync)" --allow-unrelated-histories
           git push origin dev
+
+          git fetch origin dev
+          git checkout dev
+          git pull origin dev
+          git merge main --strategy-option ours -m "Auto pull/sync back changes from 'main' into 'dev' (merge reqest sync)" --allow-unrelated-histories
+          git push origin dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -152,6 +158,12 @@ jobs:
           git checkout dev
           git pull origin dev
           git merge main --strategy-option ours -m "Auto pull/sync back changes from 'main' into 'dev' (merge reqest sync)" --allow-unrelated-histories
+          git push origin dev
+
+          git fetch origin main
+          git checkout main
+          git pull origin main
+          git merge dev --strategy-option ours -m "Auto merge/sync branch 'dev' into 'main' (merge reqest sync)" --allow-unrelated-histories
           git push origin dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
