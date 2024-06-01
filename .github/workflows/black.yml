@@ -1,5 +1,4 @@
-name: Lint and Format Code
-
+name: Check Code and Sync main and dev
 on:
   push:
     branches:
@@ -26,20 +25,23 @@ jobs:
       - name: Install dependencies
         run: |
           pip install black
+          
       - name: Run Black
         id: run_black
         run: |
           black -l 78 -t py312 ./*.py ./wemod
+          
       - name: Increment version number
         if: steps.run_black.outcome == 'success'
         run: |
           awk '/script_version = "/ {
             ver = $3;
             ver = substr(ver, 2, length(ver) - 2);
-            new_ver = ver + 0.001;
-            printf("script_version = \"%.3f\"\n", new_ver);
+            new_ver = ver + 0.0001;
+            printf("script_version = \"%.4f\"\n", new_ver);
           }
           !/script_version = "/ { print $0 }' wemod > wemod.tmp && mv wemod.tmp wemod
+          
       - name: Commit changes on dev
         if: github.ref == 'refs/heads/dev' && steps.run_black.outcome == 'success'
         id: commit_changes_dev
@@ -52,7 +54,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create pull request to merge dev into main
+      - name: Merge dev into main
         if: github.ref == 'refs/heads/dev' && steps.commit_changes_dev.outcome == 'success'
         uses: peter-evans/create-pull-request@v3
         id: create_pr_dev_to_main
@@ -76,7 +78,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
-      - name: Create pull request to merge main into dev
+      - name: Merge main into dev
         if: github.ref == 'refs/heads/main' && steps.commit_changes_main.outcome == 'success'
         uses: peter-evans/create-pull-request@v3
         id: create_pr_main_to_dev
