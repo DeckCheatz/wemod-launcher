@@ -26,39 +26,24 @@ jobs:
       - name: Install dependencies
         run: |
           pip install black
-
-      - name: Checkout dev
-        if: github.ref == 'refs/heads/dev'
+      - name: Run Black
+        id: run_black
         run: |
-          # Checkout dev branch
-          git checkout dev
-
-      - name: Checkout main
-        if: github.ref == 'refs/heads/main'
-        run: |
-          # Checkout main branch
-          git checkout main
-
+          black -l 78 -t py312 ./*.py ./wemod
       - name: Increment version number
+        if: steps.run_black.outcome == 'success'
         run: |
-          awk '/script_version = / {
+          awk '/script_version = "/ {
             ver = $3;
             ver = substr(ver, 2, length(ver) - 2);
             new_ver = ver + 0.001;
             printf("script_version = \"%.3f\"\n", new_ver);
           }
-          !/script_version = / { print $0 }' wemod > wemod.tmp && mv wemod.tmp wemod
-      
-      - name: Run Black
-        id: run_black
-        run: |
-          black -l 78 -t py312 ./*.py ./wemod
-
+          !/script_version = "/ { print $0 }' wemod > wemod.tmp && mv wemod.tmp wemod
       - name: Commit changes on dev
         if: github.ref == 'refs/heads/dev' && steps.run_black.outcome == 'success'
         id: commit_changes_dev
         run: |
-          # Commit changes
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
@@ -67,53 +52,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Merge dev into main
+      - name: Create pull request to merge dev into main
         if: github.ref == 'refs/heads/dev' && steps.commit_changes_dev.outcome == 'success'
-        run: |
-          # Fetch and checkout main branch
-          git fetch origin main
-          git checkout main
-          git pull origin main
-
-          # Create a temporary directory and copy the contents of the main branch including .git
-          mkdir ../tmp-main
-          cp -r . ../tmp-main
-
-          # Fetch and checkout the dev branch
-          git fetch origin dev
-          git checkout dev
-          git pull origin dev
-
-          # Move .git directory temporarily to skip it during the 
-          mv .git ../tmp-git
-
-          # Copy the contents of the dev branch to the temporary directory
-          cp -r . ../tmp-main
-
-          # Move the .git directory back
-          mv ../tmp-git .git
-
-          # Change to the temporary directory, add changes, and commit
-          cd ../tmp-main
-          git add .
-          git commit -m "Auto merge/sync branch 'dev' into 'main' (code sync)" || echo "No changes to commit"
-
-          # Push changes to main branch
-          git push origin main
-          
-          # git fetch origin main # Cant get this to work
-          # git checkout main
-          # git pull origin main
-          # git merge origin/dev --no-ff --strategy-option ours -m "Auto merge/sync branch 'dev' into 'main' (merge reqest sync)" --allow-unrelated-histories
-          # git push origin dev
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: peter-evans/create-pull-request@v3
+        id: create_pr_dev_to_main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Auto merge/sync branch 'dev' into 'main'"
+          branch: "main"
+          base: "dev"
+          title: "Auto merge/sync branch 'dev' into 'main'"
+          body: "This PR was created automatically to merge changes from dev into main."
 
       - name: Commit changes on main
         if: github.ref == 'refs/heads/main' && steps.run_black.outcome == 'success'
         id: commit_changes_main
         run: |
-          # Commit changes
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
@@ -122,45 +76,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
-      - name: Merge main into dev
+      - name: Create pull request to merge main into dev
         if: github.ref == 'refs/heads/main' && steps.commit_changes_main.outcome == 'success'
-        run: |
-          # Fetch and checkout dev branch
-          git fetch origin dev
-          git checkout dev
-          git pull origin dev
-
-          # Create a temporary directory and copy the contents of the dev branch including .git
-          mkdir ../tmp-dev
-          cp -r . ../tmp-dev
-
-          # Fetch and checkout the main branch
-          git fetch origin main
-          git checkout main
-          git pull origin main
-
-          # Move .git directory temporarily to skip it during the 
-          mv .git ../tmp-git
-
-          # Copy the contents of the main branch to the temporary directory
-          cp -r . ../tmp-dev
-
-          # Move the .git directory back
-          mv ../tmp-git .git
-
-          # Change to the temporary directory, add changes, and commit
-          cd ../tmp-dev
-          git add .
-          git commit -m "Auto pull/sync back changes from 'main' into 'dev' (code sync)" || echo "No changes to commit"
-
-          # Push changes to dev branch
-          git push origin dev
-          
-          # Run old code as well to sync merge reqests # Cant get this to work
-          # git fetch origin dev
-          # git checkout dev
-          # git pull origin dev
-          # git merge origin/main --no-ff --strategy-option ours -m "Auto pull/sync back changes from 'main' into 'dev' (merge reqest sync)" --allow-unrelated-histories
-          # git push origin dev
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: peter-evans/create-pull-request@v3
+        id: create_pr_main_to_dev
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Auto pull/sync back changes from 'main' into 'dev'"
+          branch: "dev"
+          base: "main"
+          title: "Auto pull/sync back changes from 'main' into 'dev'"
+          body: "This PR was created automatically to pull back changes from main into dev."
