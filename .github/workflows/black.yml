@@ -31,25 +31,33 @@ jobs:
         run: |
           black -l 78 -t py312 ./*.py ./wemod
           
-      - name: Increment version number
-        if: steps.run_black.outcome == 'success'
-        run: |
-          awk '/script_version = "/ {
-            ver = $3;
-            ver = substr(ver, 2, length(ver) - 2);
-            new_ver = ver + 0.0001;
-            printf("script_version = \"%.4f\"\n", new_ver);
-          }
-          !/script_version = "/ { print $0 }' wemod > wemod.tmp && mv wemod.tmp wemod
-          
-      - name: Commit changes on dev
+      - name: Commit changes on dev and update version
         if: github.ref == 'refs/heads/dev' && steps.run_black.outcome == 'success'
         id: commit_changes_dev
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
-          git commit -m 'Github actions automatic code formatting on dev branch' -m 'This is an automatic task, run by a GitHub workflow, to automatically format the Python code in the repo, with the code formatter "black"' || echo "No changes to commit"
+          # Check if there are any changes staged
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            # Check if specific files have changed
+            CHANGED_FILES=$(git diff --cached --name-only | grep -E '^(wemod.bat|wemod|util.py|setup.py)$')
+            if [ -n "$CHANGED_FILES" ]; then
+              echo "Files that triggered version increment: $CHANGED_FILES"
+              # Increment version number if specified files have changed
+              awk '/script_version = "/ {
+                ver = $3;
+                ver = substr(ver, 2, length(ver) - 2);
+                new_ver = ver + 0.0001;
+                printf("script_version = \"%.4f\"\n", new_ver);
+              }
+              !/script_version = "/ { print $0 }' wemod > wemod.tmp && mv wemod.tmp wemod
+              git add wemod
+            fi
+            git commit -m 'Github actions automatic code formatting on dev branch' -m 'This is an automatic task, run by a GitHub workflow, to automatically format the Python code in the repo, with the code formatter "black"' || echo "No changes to commit"
+          fi
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -66,14 +74,33 @@ jobs:
           title: "Auto merge/sync branch 'dev' into 'main'"
           body: "This PR was created automatically to merge changes from dev into main."
 
-      - name: Commit changes on main
+      - name: Commit changes on main and update version
         if: github.ref == 'refs/heads/main' && steps.run_black.outcome == 'success'
         id: commit_changes_main
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
-          git commit -m 'Github actions automatic code formatting on main branch' -m 'This is an automatic task, run by a GitHub workflow, to automatically format the Python code in the repo, with the code formatter "black"' || echo "No changes to commit"
+          # Check if there are any changes staged
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            # Check if specific files have changed
+            CHANGED_FILES=$(git diff --cached --name-only | grep -E '^(wemod.bat|wemod|util.py|setup.py)$')
+            if [ -n "$CHANGED_FILES" ]; then
+              echo "Files that triggered version increment: $CHANGED_FILES"
+              # Increment version number if specified files have changed
+              awk '/script_version = "/ {
+                ver = $3;
+                ver = substr(ver, 2, length(ver) - 2);
+                new_ver = ver + 0.0001;
+                printf("script_version = \"%.4f\"\n", new_ver);
+              }
+              !/script_version = "/ { print $0 }' wemod > wemod.tmp && mv wemod.tmp wemod
+              git add wemod
+            fi
+            git commit -m 'Github actions automatic code formatting on dev branch' -m 'This is an automatic task, run by a GitHub workflow, to automatically format the Python code in the repo, with the code formatter "black"' || echo "No changes to commit"
+          fi
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
