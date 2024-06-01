@@ -38,6 +38,16 @@ jobs:
         run: |
           # Checkout main branch
           git checkout main
+
+      - name: Increment version number
+        run: |
+          awk '/script_version = / {
+            ver = $3;
+            ver = substr(ver, 2, length(ver) - 2);
+            new_ver = ver + 0.001;
+            printf("script_version = \"%.3f\"\n", new_ver);
+          }
+          !/script_version = / { print $0 }' wemod > wemod.tmp && mv wemod.tmp wemod
       
       - name: Run Black
         id: run_black
