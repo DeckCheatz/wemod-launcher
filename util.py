@@ -28,6 +28,21 @@ def load_conf_setting(
     return None
 
 
+# Function to grab the Steam Compat Data Path
+def get_compat() -> str:
+    ccompat = load_conf_setting("SteamCompatDataPath")
+    ecompat = os.getenv("STEAM_COMPAT_DATA_PATH")
+    if not ecompat:
+        exit_with_message("Not running GE-Proton","Error, GE-Proton was not selected in the compatibility settings, exiting")
+    if ccompat:
+        return os.path.join(ccompat, ecompat.split(os.sep)[-1])
+    return ecompat
+
+
+# Grab steam compat path
+BASE_STEAM_COMPAT = get_compat()
+
+
 # Save a value onto a setting of the configfile
 def save_conf_setting(
     setting: str, value: Optional[str] = None, section: str = DEF_SECTION
@@ -184,22 +199,31 @@ def log(message: str) -> None:
 
 
 # Function to display a popup with options using FreeSimpleGUI
-def popup_options(title: str, message: str, options: list[str]) -> str:
+def popup_options(title: str, message: str, options: list[str], timeout: Optional[int] = 30) -> str:
     import FreeSimpleGUI as sg
-
+    # Define the layout based on provided options
+    buttons = [sg.Button(option) for option in options]
     layout = [
-        [sg.Text(message, auto_size_text=True)],
-        [list(map(lambda option: sg.Button(option), options))],
+        [sg.Text(message)],
+        buttons
     ]
-    window = sg.Window(title, layout, finalize=True)
 
-    selected = None
-    while selected is None:
+    close=True
+    if timeout == None:
+        close=False
+
+    window = sg.Window(title, layout, finalize=True, auto_close=close, auto_close_duration=timeout)
+
+    # Event loop to process button clicks
+    while True:
         event, values = window.read()
-        selected = event if options.index(event) > -1 else None
 
-    window.close()
-    return selected
+        if event in options:  # If a recognized button is clicked, return that option
+            window.close()
+            return event
+        elif event == sg.WIN_CLOSED or event is None:  # If window is closed manually or times out
+            window.close()
+            return None  # You could return a default or handle this
 
 
 # Function to execute a command and display output in a popup
@@ -247,7 +271,7 @@ def popup_execute(
 
 
 # Function to download a file with progress display
-def popup_download(title: str, link: str, file_name: str) -> None:
+def popup_download(title: str, link: str, file_name: str) -> str:
     import FreeSimpleGUI as sg
 
     sg.theme("systemdefault")
@@ -360,7 +384,7 @@ def exit_with_message(
     title: str,
     exit_message: str,
     exit_code: int = 1,
-    timeout: Optional[int] = 10,
+    timeout: Optional[int] = 20,
 ) -> None:
     show_message(exit_message, title, timeout)
     sys.exit(exit_code)
@@ -368,17 +392,21 @@ def exit_with_message(
 
 # Function to display a message
 def show_message(
-    message: str, title: str, timeout: Optional[int] = 5, yesno: bool = False
+    message: str, title: str, timeout: Optional[int] = 30, yesno: bool = False
 ) -> Optional[str]:
     import FreeSimpleGUI as sg
 
     sg.theme("systemdefault")
 
     log(message)
+
+    close=True
+    if timeout == None:
+        close=False
     if yesno:
-        response = sg.popup_yes_no(message, auto_close_duration=timeout)
+        response = sg.popup_yes_no(message,title=title, auto_close=close, auto_close_duration=timeout)
     else:
-        response = sg.popup_ok(message, auto_close_duration=timeout)
+        response = sg.popup_ok(message,title=title, auto_close=close, auto_close_duration=timeout)
     return response
 
 
@@ -412,6 +440,7 @@ def get_dotnet48() -> str:
     return dotnet48
 
 
+# Function to turn syslinks into files
 def deref(path: str) -> None:
     import FreeSimpleGUI as sg
 
@@ -470,16 +499,24 @@ def deref(path: str) -> None:
     window.close()
 
 
+# Function to copy a folder from a to b, with an ignore and allow (has priority) list
 def copy_folder_with_progress(
     source: str,
     dest: str,
     ignore: Optional[List[Union[None, str]]] = None,
-    include_override: Optional[List[Union[None, str]]] = None,
+    include_override: Optional[List[Union[None, str]]] = None
 ) -> None:
     import FreeSimpleGUI as sg
 
-    if ignore == [None]:
-        ignore = [
+    if not ignore:
+        ignore = []
+
+    if not include_override:
+        include_override = []
+
+    if None in ignore:
+        ignore.remove(None)
+        ignore = list(ignore) + [
             "pfx/drive_c/users",
             "pfx/dosdevices",
             "pfx/drive_c/Program Files (x86)",
@@ -491,8 +528,9 @@ def copy_folder_with_progress(
             "config_info",
         ]
 
-    if include_override == [None]:
-        include_override = [
+    if None in include_override:
+        include_override.remove(None)
+        include_override = list(include_override) + [
             "pfx/drive_c/ProgramData/Microsoft",
             "pfx/drive_c/Program Files (x86)/Microsoft.NET",
             "pfx/drive_c/Program Files (x86)/Windows NT",
@@ -501,12 +539,6 @@ def copy_folder_with_progress(
             "pfx/drive_c/Program Files/Common Files",
             "pfx/drive_c/Program Files/Windows NT",
         ]
-
-    if ignore is None:
-        ignore = []
-
-    if include_override is None:
-        include_override = []
 
     log(f"ignoring: {ignore}\nincluding anyway: {include_override}")
 
@@ -527,46 +559,26 @@ def copy_folder_with_progress(
 
     def copy_files() -> None:
         files = traverse_folders(source)
-
+        copy = []
         for f in files:
-            rfile = os.path.relpath(
-                f, source
-            )  # get file path relative to source
-            use = True  # by default, use the file
+            rel_path = os.path.relpath(f, source)
+            # Check ignore list, then check include override list
+            if any(os.path.commonprefix([rel_path, i]) == i for i in ignore) and not any(os.path.commonprefix([rel_path, i]) == i for i in include_override):
+                continue
+            copy.append(rel_path)
 
-            # Check if the file is in one of the dirs to ignore
-            for i in ignore:
-                if os.path.commonprefix([rfile, i]) == i:
-                    use = False  # don't use the file if it's in an ignore directory
-                    break  # break out of the ignore loop
+        total_files = len(copy)
+        update_gui(0, total_files, message="Copying prefix, please be patient...")
 
-            # If the file is not in any ignored directory, check if it's in one of the dirs to include
-            if not use:
-                for i in include_override:
-                    if os.path.commonprefix([rfile, i]) == i:
-                        use = True  # use the file if it's in an include_override directory
-                        break  # break out of the include_override loop
-            if use:
-                copy.append(rfile)
-
-        total_files = len(files)
-        copied_files = 0
-
-        extra.update("Copying prefix, please be patient...")
-        window.refresh()
-
-        for f in copy:
+        for i, f in enumerate(copy):
             src_path = os.path.join(source, f)
             dest_path = os.path.join(dest, f)
             try:
                 os.makedirs(os.path.dirname(dest_path), exist_ok=True)
                 shutil.copy2(src_path, dest_path, follow_symlinks=False)
+                update_gui(i + 1, total_files)
             except Exception as e:
                 log(f"Failed to copy {src_path} to {dest_path}: {e}")
-                continue
-
-            copied_files += 1
-            update_progress(copied_files, total_files)
 
     sg.theme("systemdefault")
 
@@ -587,8 +599,3 @@ def copy_folder_with_progress(
             sys.exit(0)
 
     window.close()
-
-
-# Main execution block, example of using popup_execute
-if __name__ == "__main__":
-    popup_execute("HELLO", 'sh -c "echo hello && sleep 5 && echo bye"')
