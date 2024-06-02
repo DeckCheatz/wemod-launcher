@@ -175,6 +175,7 @@ def main() -> None:
                 + os.path.join(SCRIPT_PATH, "wemod")
                 + '" before "%command%" in your game "LAUNCH OPTIONS".',
                 auto_close_duration=5,
+                auto_close=True,
             )
 
             if not unpacked:
@@ -184,14 +185,17 @@ def main() -> None:
 
 
 def init() -> None:
-    print("Ensuring Dependencies...")
-    requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
-    return_code = pip("install -r " + requirements_txt, shell=True)
-    if return_code != 0:
-        print("Failed to install dependencies. Exiting...")
-        exit(return_code)
-    else:
-        main()
+    script_file = os.path.abspath(__file__)
+    command = [script_file] + sys.argv[1:]
+
+    # Execute the main script so the venv gets created
+    process = subprocess.run(command, capture_output=True, text=True)
+
+    # Send output and error to steam console
+    # If function log worked it gets logged by the re-run
+    print(str(process.stdout))
+    print(str(process.stderr))
+    sys.exit(process.returncode)
 
 
 if __name__ == "__main__":
