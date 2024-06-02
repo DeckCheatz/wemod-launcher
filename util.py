@@ -488,6 +488,7 @@ def deref(path: str) -> None:
 
     def find_symlinks(path: str) -> List[List[str]]:
         import pathlib
+
         links = []
         directory = pathlib.Path(path)
         for item in directory.rglob("*"):
@@ -568,6 +569,7 @@ def copy_folder_with_progress(
 
     def traverse_folders(path: str) -> List[str]:
         import pathlib
+
         allf = []
         directory = pathlib.Path(path)
         for item in directory.rglob("*"):
@@ -584,6 +586,7 @@ def copy_folder_with_progress(
 
     def copy_files() -> None:
         import shutil
+
         files = traverse_folders(source)
         copy = []
         for f in files:
