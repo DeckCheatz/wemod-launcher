@@ -487,6 +487,7 @@ def deref(path: str) -> None:
             update_progress(int((i + 1) / total_links * 100))
 
     def find_symlinks(path: str) -> List[List[str]]:
+        import pathlib
         links = []
         directory = pathlib.Path(path)
         for item in directory.rglob("*"):
@@ -566,6 +567,7 @@ def copy_folder_with_progress(
     log(f"ignoring: {ignore}\nincluding anyway: {include_override}")
 
     def traverse_folders(path: str) -> List[str]:
+        import pathlib
         allf = []
         directory = pathlib.Path(path)
         for item in directory.rglob("*"):
@@ -581,24 +583,33 @@ def copy_folder_with_progress(
         window.refresh()
 
     def copy_files() -> None:
+        import shutil
         files = traverse_folders(source)
         copy = []
         for f in files:
-            rel_path = os.path.relpath(f, source)
-            # Check ignore list, then check include override list
-            if any(
-                os.path.commonprefix([rel_path, i]) == i for i in ignore
-            ) and not any(
-                os.path.commonprefix([rel_path, i]) == i
-                for i in include_override
-            ):
-                continue
-            copy.append(rel_path)
+            rfile = os.path.relpath(
+                f, source
+            )  # get file path relative to source
+            use = True  # by default, use the file
+
+            # Check if the file is in one of the dirs to ignore
+            for i in ignore:
+                if os.path.commonprefix([rfile, i]) == i:
+                    use = False  # don't use the file if it's in an ignore directory
+                    break  # break out of the ignore loop
+
+            # If the file is not in any ignored directory, check if it's in one of the dirs to include
+            if not use:
+                for i in include_override:
+                    if os.path.commonprefix([rfile, i]) == i:
+                        use = True  # use the file if it's in an include_override directory
+                        break  # break out of the include_override loop
+            if use:
+                copy.append(rfile)
 
         total_files = len(copy)
-        update_gui(
-            0, total_files, message="Copying prefix, please be patient..."
-        )
+        extra.update("Copying prefix, please be patient...")
+        window.refresh()
 
         for i, f in enumerate(copy):
             src_path = os.path.join(source, f)
@@ -606,7 +617,7 @@ def copy_folder_with_progress(
             try:
                 os.makedirs(os.path.dirname(dest_path), exist_ok=True)
                 shutil.copy2(src_path, dest_path, follow_symlinks=False)
-                update_gui(i + 1, total_files)
+                update_progress(i + 1, total_files)
             except Exception as e:
                 log(f"Failed to copy {src_path} to {dest_path}: {e}")
 
