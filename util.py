@@ -33,7 +33,10 @@ def get_compat() -> str:
     ccompat = load_conf_setting("SteamCompatDataPath")
     ecompat = os.getenv("STEAM_COMPAT_DATA_PATH")
     if not ecompat:
-        exit_with_message("Not running GE-Proton","Error, GE-Proton was not selected in the compatibility settings, exiting")
+        exit_with_message(
+            "Not running GE-Proton",
+            "Error, GE-Proton was not selected in the compatibility settings, exiting",
+        )
     if ccompat:
         return os.path.join(ccompat, ecompat.split(os.sep)[-1])
     return ecompat
@@ -199,29 +202,39 @@ def log(message: str) -> None:
 
 
 # Function to display a popup with options using FreeSimpleGUI
-def popup_options(title: str, message: str, options: list[str], timeout: Optional[int] = 30) -> str:
+def popup_options(
+    title: str, message: str, options: list[str], timeout: Optional[int] = 30
+) -> str:
     import FreeSimpleGUI as sg
+
     # Define the layout based on provided options
     buttons = [sg.Button(option) for option in options]
-    layout = [
-        [sg.Text(message)],
-        buttons
-    ]
+    layout = [[sg.Text(message)], buttons]
 
-    close=True
+    close = True
     if timeout == None:
-        close=False
+        close = False
 
-    window = sg.Window(title, layout, finalize=True, auto_close=close, auto_close_duration=timeout)
+    window = sg.Window(
+        title,
+        layout,
+        finalize=True,
+        auto_close=close,
+        auto_close_duration=timeout,
+    )
 
     # Event loop to process button clicks
     while True:
         event, values = window.read()
 
-        if event in options:  # If a recognized button is clicked, return that option
+        if (
+            event in options
+        ):  # If a recognized button is clicked, return that option
             window.close()
             return event
-        elif event == sg.WIN_CLOSED or event is None:  # If window is closed manually or times out
+        elif (
+            event == sg.WIN_CLOSED or event is None
+        ):  # If window is closed manually or times out
             window.close()
             return None  # You could return a default or handle this
 
@@ -400,13 +413,23 @@ def show_message(
 
     log(message)
 
-    close=True
+    close = True
     if timeout == None:
-        close=False
+        close = False
     if yesno:
-        response = sg.popup_yes_no(message,title=title, auto_close=close, auto_close_duration=timeout)
+        response = sg.popup_yes_no(
+            message,
+            title=title,
+            auto_close=close,
+            auto_close_duration=timeout,
+        )
     else:
-        response = sg.popup_ok(message,title=title, auto_close=close, auto_close_duration=timeout)
+        response = sg.popup_ok(
+            message,
+            title=title,
+            auto_close=close,
+            auto_close_duration=timeout,
+        )
     return response
 
 
@@ -504,7 +527,7 @@ def copy_folder_with_progress(
     source: str,
     dest: str,
     ignore: Optional[List[Union[None, str]]] = None,
-    include_override: Optional[List[Union[None, str]]] = None
+    include_override: Optional[List[Union[None, str]]] = None,
 ) -> None:
     import FreeSimpleGUI as sg
 
@@ -563,12 +586,19 @@ def copy_folder_with_progress(
         for f in files:
             rel_path = os.path.relpath(f, source)
             # Check ignore list, then check include override list
-            if any(os.path.commonprefix([rel_path, i]) == i for i in ignore) and not any(os.path.commonprefix([rel_path, i]) == i for i in include_override):
+            if any(
+                os.path.commonprefix([rel_path, i]) == i for i in ignore
+            ) and not any(
+                os.path.commonprefix([rel_path, i]) == i
+                for i in include_override
+            ):
                 continue
             copy.append(rel_path)
 
         total_files = len(copy)
-        update_gui(0, total_files, message="Copying prefix, please be patient...")
+        update_gui(
+            0, total_files, message="Copying prefix, please be patient..."
+        )
 
         for i, f in enumerate(copy):
             src_path = os.path.join(source, f)
