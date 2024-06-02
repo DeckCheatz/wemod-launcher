@@ -13,6 +13,7 @@ from util import (
     deref,
     load_conf_setting,
     save_conf_setting,
+    get_compat,
     cache,
     exit_with_message,
     show_message,
@@ -28,16 +29,7 @@ from util import (
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 BAT_FILE = "\\\\".join(SCRIPT_PATH.split(os.sep) + ["wemod.bat"])
 WEMOD_BAT = f"start 'Z:{BAT_FILE}'"
-loacom = load_conf_setting("SteamCompatDataPath")
-if not loacom:
-    BASE_STEAM_COMPAT = os.getenv("STEAM_COMPAT_DATA_PATH")
-elif loacom:
-    if os.path.isabs(loacom):
-        BASE_STEAM_COMPAT = str(loacom)
-    else:
-        BASE_STEAM_COMPAT = os.path.abspath(os.path.join(SCRIPT_PATH, loacom))
-del loacom  # Delete temp base compat variable
-
+BASE_STEAM_COMPAT = get_compat()
 WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
 STEAM_COMPAT_FOLDER = os.path.abspath(os.path.dirname(BASE_STEAM_COMPAT))
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
@@ -216,7 +208,7 @@ def syncwemod(
         os.makedirs(os.path.join(destfile, "temp"), exist_ok=True)
         shutil.rmtree(destfile)
         os.makedirs(destfile, exist_ok=True)
-        copy_folder_with_progress(BASE_STEAM_COMPAT, destfile, {None}, {None})
+        copy_folder_with_progress(BASE_STEAM_COMPAT, destfile, [None], [None])
         if os.path.exists(destfile + ".zip"):
             os.remove(destfile + ".zip")
         archive_command = (
@@ -270,10 +262,7 @@ def syncwemod(
         if (response == "No" or len(os.listdir(WeModData)) == 0) and len(
             os.listdir(WeModExtenal)
         ) > 0:
-            if response == None:
-                log("Local wemod data was missing")
-            else:
-                log("The local wemod data was requested to be overwritten")
+            log("The local wemod data was requested to be overwritten")
             shutil.rmtree(WeModData)
             shutil.copytree(
                 WeModExtenal, WeModData
@@ -342,6 +331,8 @@ def init(proton: str) -> None:
                 title="Likely compatible WeMod version detected",
                 yesno=True,
             )
+            if response == None:
+                response = "Yes"
         elif (
             closest_version
             and current_version_parts
@@ -363,7 +354,7 @@ def init(proton: str) -> None:
                 closest_prefix_folder
             )  # Sync wemod data in closest version
             copy_folder_with_progress(
-                closest_prefix_folder, BASE_STEAM_COMPAT, {None}, {None}
+                closest_prefix_folder, BASE_STEAM_COMPAT, [None], [None]
             )
             syncwemod()  # Sync wemod data
             log(
@@ -514,9 +505,6 @@ def find_closest_compatible_release(
 
 # Function to download and unpack a pre-configured wineprefix
 def download_prefix(proton_dir: str) -> None:
-    from shutil import which
-    import FreeSimpleGUI as sg
-
     # Check and prepare for first launch
     if not os.path.exists(WINEPREFIX + "/drive_c"):
         log(WINEPREFIX)
@@ -553,7 +541,7 @@ def download_prefix(proton_dir: str) -> None:
     closest_version, url = find_closest_compatible_release(
         releases, current_version_parts
     )
-    file_name = f"wemod_prefix{current_version_parts[0]}.{current_version_parts[1]}.zip"
+    file_name = f"wemod_prefix{closest_version[0]}.{closest_version[1]}.zip"
 
     if (
         closest_version
@@ -571,6 +559,8 @@ def download_prefix(proton_dir: str) -> None:
             title="Likely compatible version found",
             yesno=True,
         )
+        if response == None:
+            response = "Yes"
     elif closest_version and current_version_parts:
         response = show_message(
             f"The current version {closest_version[0]}.{closest_version[1]} might not be compatible with version {current_version_parts[0]}.{current_version_parts[1]}, download and use it?",
@@ -653,7 +643,7 @@ be warned that GE-Proton 7 (the wemod-launcher opion) isn't working well, you ca
     # Add dependencies to the list
     deps.append("-q sdl cjkfonts vkd3d dxvk2030")
 
-    if dotnet48_method == "winetricks":
+    if dotnet48_method == "winetricks" or dotnet48_method == None:
         deps.append("-q dotnet48")
 
     # Install dependencies
@@ -802,7 +792,7 @@ def run(skip_init: bool = False) -> str:
 requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
 
 script_name = "wemod-laucher"
-script_version = "1.017"
+script_version = "1.0152"
 last_name = load_conf_setting("ScriptName")
 last_version = load_conf_setting("Version")
 
