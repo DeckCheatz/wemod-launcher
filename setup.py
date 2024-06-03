@@ -158,7 +158,7 @@ def main() -> None:
     ):
         if os.path.isdir(install_location):
             shutil.rmtree(install_location, ignore_errors=True)
-        
+
         temp_dir = tempfile.mkdtemp(prefix="wemod-launcher-")
         setup_file = download_wemod(temp_dir)
         unpacked = unpack_wemod(setup_file, temp_dir, install_location)
