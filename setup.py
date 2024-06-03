@@ -158,16 +158,21 @@ def main() -> None:
     ):
         if os.path.isdir(install_location):
             shutil.rmtree(install_location, ignore_errors=True)
-        else:
-            temp_dir = tempfile.mkdtemp(prefix="wemod-launcher-")
-            setup_file = download_wemod(temp_dir)
-            unpacked = unpack_wemod(setup_file, temp_dir, install_location)
+        
+        temp_dir = tempfile.mkdtemp(prefix="wemod-launcher-")
+        setup_file = download_wemod(temp_dir)
+        unpacked = unpack_wemod(setup_file, temp_dir, install_location)
 
-            show_message(
-                "Wemod Downloaded",
-                f"Setup completed successfully.\nMake shure the LAUNCH OPTIONS of the game say '{os.path.join(SCRIPT_PATH, "wemod")} %command%'",
-                timeout=5,
-            )
+        show_message(
+            f"Setup completed successfully.\nMake shure the LAUNCH OPTIONS of the game say '{os.path.join(SCRIPT_PATH, "wemod")} %command%'",
+            title="Wemod Downloaded",
+            timeout=5,
+        )
+
+        if not unpacked:
+            log("Failed to unpack WeMod.")
+            sg.popup("Failed to unpack WeMod.", "Failed to unpack WeMod.")
+            sys.exit(1)
 
             if not unpacked:
                 log("Failed to unpack WeMod.")
