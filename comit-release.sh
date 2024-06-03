@@ -60,7 +60,7 @@ FILE_NAME=$(basename "$FILE_PATH")
 
 RELEASE_DESCRIPTION="This is the download for a WeMod ready GE-Proton$VERSION_NAME prefix.  
 **If you want to download the WeMod Launcher check the guide.**  
-`The WeMod Launcher will auto download this prefix if needed.`"
+\`The WeMod Launcher will auto download this prefix if needed.\`"
 
 echo ""
 echo "API_URL: $API_URL"
