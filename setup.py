@@ -165,7 +165,7 @@ def main() -> None:
 
             show_message(
                 "Wemod Downloaded",
-                f"Setup completed successfully.\nMake shure the LAUNCH OPTIONS of the game say '{os.path.join(SCRIPT_PATH, "wemod")} %command%'"
+                f"Setup completed successfully.\nMake shure the LAUNCH OPTIONS of the game say '{os.path.join(SCRIPT_PATH, "wemod")} %command%'",
                 timeout=5,
             )
 
