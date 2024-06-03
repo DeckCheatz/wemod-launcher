@@ -44,7 +44,7 @@ jobs:
 
           current_ver=$(awk '/script_version = "/ {print $3}' wemod | tr -d '"')
           awk -v ver="$current_ver" '/The wemod_laucher is currently on version / {
-            printf("**The wemod_laucher is currently on version %.3f.**\n", ver);
+            printf("**WeMod Launcher is currently on version %.3f.**\n", ver);
           }
           !/The wemod_laucher is currently on version / { print $0 }' readme.md > readme.tmp && mv readme.tmp readme.md
           
