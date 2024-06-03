@@ -63,6 +63,12 @@ Check the [Changelog](changelog.md) or the [Wiki features section](../../wiki/Fe
 
 <div><img src="https://cdn.discordapp.com/emojis/1113579884749529198.gif?size=20&quality=lossless" alt="WeModApp"/>&nbsp;<b>WeMod Linux is developed by DaniAsh551 in recent support by Marvin1099.</b></div>  
 
-<div><img src="https://cdn.discordapp.com/emojis/999743709677633536.gif?size=20&quality=lossless" alt="WeModApp"/>&nbsp;<b>If you find this guide helpful, we encourage you to star the project.</b></div><br>   
+<div><img src="https://cdn.discordapp.com/emojis/999743709677633536.gif?size=20&quality=lossless" alt="WeModApp"/>&nbsp;<b>If you find this guide helpful, we encourage you to star the project.</b></div><br> 
 
-[![Star History Chart](https://api.star-history.com/svg?repos=DaniAsh551/wemod-launcher&type=Date)](https://star-history.com/#DaniAsh551/wemod-launcher&Date)
+<a href="https://star-history.com/#DaniAsh551/wemod-launcher&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=DaniAsh551/wemod-launcher&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=DaniAsh551/wemod-launcher&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=DaniAsh551/wemod-launcher&type=Date" />
+ </picture>
+</a>
