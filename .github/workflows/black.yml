@@ -43,10 +43,10 @@ jobs:
           !/script_version = "/ { print $0 }' wemod > wemod.tmp && mv wemod.tmp wemod
 
           current_ver=$(awk '/script_version = "/ {print $3}' wemod | tr -d '"')
-          awk -v ver="$current_ver" '/The wemod_laucher is currently on version / {
-            printf("**WeMod Launcher is currently on version %.3f.**\n", ver);
+          awk -v ver="$current_ver" '/The WeMod Launcher is currently on version / {
+            printf("**The WeMod Launcher is currently on version %.3f.**\n", ver);
           }
-          !/The wemod_laucher is currently on version / { print $0 }' readme.md > readme.tmp && mv readme.tmp readme.md
+          !/The WeMod Launcher is currently on version / { print $0 }' readme.md > readme.tmp && mv readme.tmp readme.md
           
       - name: Commit changes on dev
         if: github.ref == 'refs/heads/dev' && steps.run_black.outcome == 'success'
