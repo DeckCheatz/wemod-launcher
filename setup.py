@@ -176,7 +176,9 @@ def main() -> None:
 
 
 def init() -> None:
-    script_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "wemod"))
+    script_file = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "wemod")
+    )
     command = [script_file] + sys.argv[1:]
 
     # Execute the main script so the venv gets created
