@@ -4,7 +4,7 @@ import stat
 import sys
 import os
 import tempfile
-from util import download_progress, pip, log
+from util import download_progress, pip, log, show_message
 
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -136,12 +136,6 @@ def main() -> None:
         log("Winetricks not found...")
         log("Downloading latest winetricks...")
 
-        sg.popup(
-            "Winetricks",
-            "Fetching latest winetricks...",
-            any_key_closes=True,
-            auto_close_duration=1,
-        )
         download_progress(
             "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks",
             winetricks,
@@ -159,7 +153,7 @@ def main() -> None:
 
     if (
         not os.path.isdir(install_location)
-        or not os.path.exists(os.path.join(install_location, "WeMod.exe"))
+        or not os.path.isfile(os.path.join(install_location, "WeMod.exe"))
         or os.getenv("FORCE_UPDATE_WEMOD", "0") == "1"
     ):
         if os.path.isdir(install_location):
@@ -169,13 +163,10 @@ def main() -> None:
             setup_file = download_wemod(temp_dir)
             unpacked = unpack_wemod(setup_file, temp_dir, install_location)
 
-            sg.popup(
-                "Completed",
-                'Setup completed successfully. Now just simply add: "'
-                + os.path.join(SCRIPT_PATH, "wemod")
-                + '" before "%command%" in your game "LAUNCH OPTIONS".',
-                auto_close_duration=5,
-                auto_close=True,
+            show_message(
+                "Wemod Downloaded",
+                f"Setup completed successfully.\nMake shure the LAUNCH OPTIONS of the game say '{os.path.join(SCRIPT_PATH, "wemod")} %command%'"
+                timeout=5,
             )
 
             if not unpacked:
@@ -185,7 +176,7 @@ def main() -> None:
 
 
 def init() -> None:
-    script_file = os.path.abspath(__file__)
+    script_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "wemod"))
     command = [script_file] + sys.argv[1:]
 
     # Execute the main script so the venv gets created
