@@ -164,7 +164,9 @@ def main() -> None:
         unpacked = unpack_wemod(setup_file, temp_dir, install_location)
 
         show_message(
-            "Setup completed successfully.\nMake shure the LAUNCH OPTIONS of the game say '" + {os.path.join(SCRIPT_PATH, "wemod")} + " %command%'",
+            "Setup completed successfully.\nMake shure the LAUNCH OPTIONS of the game say '"
+            + {os.path.join(SCRIPT_PATH, "wemod")}
+            + " %command%'",
             title="Wemod Downloaded",
             timeout=5,
         )
