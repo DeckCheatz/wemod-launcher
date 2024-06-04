@@ -9,7 +9,7 @@ We (`wemod-launcher`) enable you to run it on Linux (and by extension, the Steam
 ## Info
 This is the wemod-laucher branch,  
 from which the ready to play WeMod Prefixes are published from.  
-Simlpy use the wemod laucher with the download option when asked to auto download the the correct prefix, without any additional work needed. 
+Simlpy use the wemod laucher, with the download option, when asked to, to auto download the the correct prefix, without any additional work needed. 
 None of the prefixes are uploaded to the repo directly,  
 but are added to the releases instead.
 
