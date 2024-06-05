@@ -289,7 +289,11 @@ def init(proton: str) -> None:
 
     prefix_version_file = os.path.join(BASE_STEAM_COMPAT, "version")
     if not os.path.isfile():
-        exit_with_message("Missing proton version",f"Error, the GE-Proton version file is missing it should be located at\n'{prefix_version_file}'.\nAllways run the game on GE-Proton.\nAlso try to run the game once  without the WeMod Laucher",timeout=30)
+        exit_with_message(
+            "Missing proton version",
+            f"Error, the GE-Proton version file is missing it should be located at\n'{prefix_version_file}'.\nAllways run the game on GE-Proton.\nAlso try to run the game once  without the WeMod Laucher",
+            timeout=30,
+        )
 
     # If wemod is not installed try to copy a working prefix to the current one
     log(f"Looking for init file '{INIT_FILE}'")
@@ -386,7 +390,7 @@ def init(proton: str) -> None:
 
     # Determine proton directory
 
-    proton_dir = os.path.join(os.path.dirname(proton),"files","bin")
+    proton_dir = os.path.join(os.path.dirname(proton), "files", "bin")
     log(f"Using wine from Proton at path: '{proton_dir}'")
 
     # Call appropriate function based on user choice
@@ -791,7 +795,7 @@ def run(skip_init: bool = False) -> str:
 requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
 
 script_name = "wemod-laucher"
-script_version = "1.030"
+script_version = "1.031"
 last_name = load_conf_setting("ScriptName")
 last_version = load_conf_setting("Version")
 
