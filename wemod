@@ -287,15 +287,16 @@ def init(proton: str) -> None:
         os.makedirs(os.getenv("STEAM_COMPAT_DATA_PATH"), exist_ok=True)
         os.makedirs(WINEPREFIX, exist_ok=True)
 
+    prefix_version_file = os.path.join(BASE_STEAM_COMPAT, "version")
+    if not os.path.isfile():
+        exit_with_message("Missing proton version",f"Error, the GE-Proton version file is missing it should be located at\n'{prefix_version_file}'.\nAllways run the game on GE-Proton.\nAlso try to run the game once  without the WeMod Laucher",timeout=30)
+
     # If wemod is not installed try to copy a working prefix to the current one
     log(f"Looking for init file '{INIT_FILE}'")
     if not os.path.exists(INIT_FILE):
         # Grab active proton version
-        current_proton_version = read_version(
-            os.path.join(BASE_STEAM_COMPAT, "version")
-        )
+        current_proton_version = read_version(prefix_version_file)
         current_version_parts = parse_version(current_proton_version)
-
         log(
             f"Loking for compatible wine prefixes in '{STEAM_COMPAT_FOLDER}' with proton version '{current_version_parts[0]}.{current_version_parts[1]}'"
         )
@@ -384,11 +385,9 @@ def init(proton: str) -> None:
     )
 
     # Determine proton directory
-    proton_dir = proton.split("/")[:-1]
-    proton_dir.append("files")
-    proton_dir.append("bin")
-    proton_dir = "/".join(proton_dir)
-    log("Using wine from Proton at path: '{}'".format(proton_dir))
+
+    proton_dir = os.path.join(os.path.dirname(proton),"files","bin")
+    log(f"Using wine from Proton at path: '{proton_dir}'")
 
     # Call appropriate function based on user choice
     if prefix_op == "build":
