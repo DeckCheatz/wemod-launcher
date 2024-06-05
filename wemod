@@ -75,7 +75,7 @@ def read_version(version_file: str) -> Optional[str]:  # read file
     try:
         with open(version_file, "r") as file:
             return file.read().strip()
-    except FileNotFoundError:
+    except Exception as e:
         return None
 
 
