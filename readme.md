@@ -49,7 +49,8 @@ Check the [Changelog](changelog.md) or the [Wiki features section](../../wiki/Fe
 11. Select Yes/Ok until no more windows appear
 12. WeMod will start with the game
 13. Login and click play in WeMod for chosen game   
-14. Set Mods and Switch to game
+14. Set Mods and Switch to game or close the WeMod window,  
+    it will keep running in the background
 </div>
 
 **Optionally** check out how to edit the new [Config File](../../wiki/Config-Update)
