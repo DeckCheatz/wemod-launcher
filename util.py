@@ -112,7 +112,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
             log("pip finished")
             return process.returncode
         elif b"externally-managed-environment" in stderr:
-            log("ERROR: Externally managed environment detected.")
+            log("Externally managed environment detected.")
             return 99
 
     # Try to use the built-in pip
@@ -128,7 +128,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
         log("pip finished")
         return process.returncode
     elif b"externally-managed-environment" in stderr:
-        log("ERROR: Externally managed environment detected.")
+        log("Externally managed environment detected.")
         return 99
 
     # If -m pip failed, fallback to using pip.pyz
@@ -160,7 +160,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
     if process.wait() == 0:
         log("pip finished")
     elif b"externally-managed-environment" in stderr:
-        log("ERROR: Externally managed environment detected.")
+        log("Externally managed environment detected.")
         return 99
     # Return the exit code of the process
     return process.returncode
