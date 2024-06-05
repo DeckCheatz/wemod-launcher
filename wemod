@@ -291,16 +291,23 @@ def init(proton: str) -> None:
     if not os.path.isfile(prefix_version_file):
         exit_with_message(
             "Missing proton version",
-            f"Error, the GE-Proton version file is missing it should be located at\n'{prefix_version_file}'.\nAllways run the game on GE-Proton.\nAlso try to run the game once  without the WeMod Laucher",
+            f"Error, the GE-Proton version file is missing it should be located at:\n'{prefix_version_file}'.\nAllways run the game on GE-Proton.\nAlso try to run the game once  without the WeMod Laucher",
+            timeout=30,
+        )
+
+    # Grab active proton version
+    current_proton_version = read_version(prefix_version_file)
+    current_version_parts = parse_version(current_proton_version)
+    if current_version_parts == None:
+        exit_with_message(
+            "Missing proton version",
+            f"Error, the GE-Proton version file could not be read, its at:\n'{prefix_version_file}'.\nTry to delete the game prefix at:\n'{BASE_STEAM_COMPAT}'",
             timeout=30,
         )
 
     # If wemod is not installed try to copy a working prefix to the current one
     log(f"Looking for init file '{INIT_FILE}'")
     if not os.path.exists(INIT_FILE):
-        # Grab active proton version
-        current_proton_version = read_version(prefix_version_file)
-        current_version_parts = parse_version(current_proton_version)
         log(
             f"Loking for compatible wine prefixes in '{STEAM_COMPAT_FOLDER}' with proton version '{current_version_parts[0]}.{current_version_parts[1]}'"
         )
