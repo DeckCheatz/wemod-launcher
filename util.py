@@ -9,7 +9,6 @@ from urllib import request
 
 # Set the script path and define the Wine prefix for Windows compatibility
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
-WINEPREFIX = os.path.join(os.getenv("STEAM_COMPAT_DATA_PATH"), "pfx")
 # Set config location, and start config paser
 CONFIG_PATH = os.path.join(SCRIPT_PATH, "wemod.conf")
 DEF_SECTION = "Settings"
@@ -28,6 +27,47 @@ def load_conf_setting(
     return None
 
 
+# Function to display a message and exit
+def exit_with_message(
+    title: str,
+    exit_message: str,
+    exit_code: int = 1,
+    timeout: Optional[int] = 20,
+) -> None:
+    show_message(exit_message, title, timeout)
+    sys.exit(exit_code)
+
+
+# Function to display a message
+def show_message(
+    message: str, title: str, timeout: Optional[int] = 30, yesno: bool = False
+) -> Optional[str]:
+    import FreeSimpleGUI as sg
+
+    sg.theme("systemdefault")
+
+    log(message)
+
+    close = True
+    if timeout == None:
+        close = False
+    if yesno:
+        response = sg.popup_yes_no(
+            message,
+            title=title,
+            auto_close=close,
+            auto_close_duration=timeout,
+        )
+    else:
+        response = sg.popup_ok(
+            message,
+            title=title,
+            auto_close=close,
+            auto_close_duration=timeout,
+        )
+    return response
+
+
 # Function to grab the Steam Compat Data Path
 def get_compat() -> str:
     ccompat = load_conf_setting("SteamCompatDataPath")
@@ -44,6 +84,7 @@ def get_compat() -> str:
 
 # Grab steam compat path
 BASE_STEAM_COMPAT = get_compat()
+WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
 
 
 # Save a value onto a setting of the configfile
@@ -390,47 +431,6 @@ def wine(command: str, proton_bin: str) -> int:
     # Execute the command and return the response
     resp = popup_execute("wine", command)
     return resp
-
-
-# Function to display a message and exit
-def exit_with_message(
-    title: str,
-    exit_message: str,
-    exit_code: int = 1,
-    timeout: Optional[int] = 20,
-) -> None:
-    show_message(exit_message, title, timeout)
-    sys.exit(exit_code)
-
-
-# Function to display a message
-def show_message(
-    message: str, title: str, timeout: Optional[int] = 30, yesno: bool = False
-) -> Optional[str]:
-    import FreeSimpleGUI as sg
-
-    sg.theme("systemdefault")
-
-    log(message)
-
-    close = True
-    if timeout == None:
-        close = False
-    if yesno:
-        response = sg.popup_yes_no(
-            message,
-            title=title,
-            auto_close=close,
-            auto_close_duration=timeout,
-        )
-    else:
-        response = sg.popup_ok(
-            message,
-            title=title,
-            auto_close=close,
-            auto_close_duration=timeout,
-        )
-    return response
 
 
 # Function to handle caching of files
