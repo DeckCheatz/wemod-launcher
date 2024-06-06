@@ -79,10 +79,10 @@ def get_compat() -> str:
                 "Error, GE-Proton was not selected in the compatibility settings, exiting",
             )
         except Exception as e:
-            ecompat = os.path.join(SCRIPT_PATH,".cache","nogame")
+            ecompat = os.path.join(SCRIPT_PATH, ".cache", "nogame")
     if ccompat:
         ecompat = os.path.join(ccompat, ecompat.split(os.sep)[-1])
-    os.makedirs(ecompat,exist_ok=True)
+    os.makedirs(ecompat, exist_ok=True)
     return ecompat
 
 
