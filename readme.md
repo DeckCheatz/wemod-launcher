@@ -37,7 +37,7 @@ Check the [Wiki Changelog](../../wiki/Changes) or the [Wiki features section](..
 2. Also Search for and install `ProtonUp-QT` in the store.
 3. Download the latest `GE-Proton` in `ProtonUp-QT`  
    **NOTE:** After some testing it seams `Proton` also works  
-   So you can try to run the laucher with `Proton` and without `GE-Proton`
+   So you can try to run the launcher with `Proton` and without `GE-Proton`
 4. Restart Steam/SteamOS
 5. Run `git clone https://github.com/DaniAsh551/wemod-launcher.git` in the Konsole/Terminal
 6. In the WeMod chosen game, open the steam game settings  
