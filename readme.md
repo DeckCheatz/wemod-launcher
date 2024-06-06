@@ -25,9 +25,9 @@ If you would like to support the project, manly we need some more developers.
 <br>
 <br>But realy if you can help with some code that would be geat.
 <br>You are also welcome to report your findings/suggestions.
-<br>For more infos on sugesstions check out the <a href="../../wiki/Suggestions">wiki Suggestion info</a>
+<br>For more infos on sugesstions check out the <a href="../../wiki/Suggestions">Wiki Suggestion info</a>
 
-Check the [Changelog](changelog.md) or the [Wiki features section](../../wiki/Features) for changes.
+Check the [Wiki Changelog](../../wiki/Changes) or the [Wiki features section](../../wiki/Features) for changes.
 
 ## Quick Guide
 <div><img src="https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=20&quality=lossless" alt="Alert"/>&nbsp;<b> This guide only includes the most relevant info and might not be enough to run WeMod,</b>
@@ -35,7 +35,9 @@ Check the [Changelog](changelog.md) or the [Wiki features section](../../wiki/Fe
   
 1. First `Python venv` and `TK` need to be installed.
 2. Also Search for and install `ProtonUp-QT` in the store.
-3. Download the latest `GE-Proton` in `ProtonUp-QT`
+3. Download the latest `GE-Proton` in `ProtonUp-QT`  
+   **NOTE:** After some testing it seams `Proton` also works  
+   So you can try to run the laucher with `Proton` and without `GE-Proton`
 4. Restart Steam/SteamOS
 5. Run `git clone https://github.com/DaniAsh551/wemod-launcher.git` in the Konsole/Terminal
 6. In the WeMod chosen game, open the steam game settings  
@@ -53,7 +55,7 @@ Check the [Changelog](changelog.md) or the [Wiki features section](../../wiki/Fe
     it will keep running in the background
 </div>
 
-**Optionally** check out how to edit the new [Config File](../../wiki/Config-Update)
+**Optionally:** Check out tutorials on how to use specific [WeMod Laucher features](../../wiki/Launcher-Tutorials)
 
 ****
 <h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=20&quality=lossless" alt="Heart"/>&nbsp;Additional</h3>
