@@ -25,13 +25,13 @@ If you would like to support the project, manly we need some more developers.
 <br>
 <br>But realy if you can help with some code that would be geat.
 <br>You are also welcome to report your findings/suggestions.
-<br>For more infos on sugesstions check out the <a href="../../wiki/Suggestions">Wiki Suggestion info</a>
+<br>For more infos on sugesstions check out the <a href="https://github.com/DaniAsh551/wemod-launcher/wiki/Suggestions">Wiki Suggestion info</a>
 
-Check the [Wiki Changelog](../../wiki/Changes) or the [Wiki features section](../../wiki/Features) for changes.
+Check the [Wiki Changelog](https://github.com/DaniAsh551/wemod-launcher/wiki/Changes) or the [Wiki features section](https://github.com/DaniAsh551/wemod-launcher/wiki/Features) for changes.
 
 ## Quick Guide
 <div><img src="https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=20&quality=lossless" alt="Alert"/>&nbsp;<b> This guide only includes the most relevant info and might not be enough to run WeMod,</b>
-<div> &nbsp; &nbsp; &nbsp; &nbsp; if so check out the <a href="../../wiki/Full-Guide">Full Guide</a> <b>OR</b> the <a href="https://youtu.be/5UlVCZvIl1E">video tutorial by Marvin1099</a>
+<div> &nbsp; &nbsp; &nbsp; &nbsp; if so check out the <a href="https://github.com/DaniAsh551/wemod-launcher/wiki/Full-Guide">Full Guide</a> <b>OR</b> the <a href="https://youtu.be/5UlVCZvIl1E">video tutorial by Marvin1099</a>
   
 1. First `Python venv` and `TK` need to be installed.
 2. Also Search for and install `ProtonUp-QT` in the store.
@@ -55,7 +55,7 @@ Check the [Wiki Changelog](../../wiki/Changes) or the [Wiki features section](..
     it will keep running in the background
 </div>
 
-**Optionally:** Check out tutorials on how to use specific [WeMod Laucher features](../../wiki/Launcher-Tutorials)
+**Optionally:** Check out tutorials on how to use specific [WeMod Laucher features](https://github.com/DaniAsh551/wemod-launcher/wiki/Launcher-Tutorials)
 
 ****
 <h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=20&quality=lossless" alt="Heart"/>&nbsp;Additional</h3>
