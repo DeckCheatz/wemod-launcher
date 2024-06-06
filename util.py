@@ -73,12 +73,16 @@ def get_compat() -> str:
     ccompat = load_conf_setting("SteamCompatDataPath")
     ecompat = os.getenv("STEAM_COMPAT_DATA_PATH")
     if not ecompat:
-        exit_with_message(
-            "Not running GE-Proton",
-            "Error, GE-Proton was not selected in the compatibility settings, exiting",
-        )
+        try:
+            exit_with_message(
+                "Not running GE-Proton",
+                "Error, GE-Proton was not selected in the compatibility settings, exiting",
+            )
+        except Exception as e:
+            ecompat = os.path.join(SCRIPT_PATH,".cache","nogame")
     if ccompat:
-        return os.path.join(ccompat, ecompat.split(os.sep)[-1])
+        ecompat = os.path.join(ccompat, ecompat.split(os.sep)[-1])
+    os.makedirs(ecompat,exist_ok=True)
     return ecompat
 
 
