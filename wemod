@@ -36,13 +36,12 @@ WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
 
 
-def parse_version(version_str: Optional[str] = None) -> Optional[List[int]]:
+def parse_version(version_str: Optional[Union[list,str]] = None) -> Optional[List[int]]:
     if version_str and isinstance(version_str, str):
         # Replace '-' with '.' and ',' with '.'
-        dot_version = version_str.replace("-", ".").replace(",", ".")
+        numbers = version_str.replace("-", ".").replace(",", ".")
 
         # Clean up number
-        numbers = str(dot_version + ".0")
         majornumber = None
         minornumber = None
         addat = 0
@@ -55,11 +54,18 @@ def parse_version(version_str: Optional[str] = None) -> Optional[List[int]]:
                         majornumber = currentnumber
                     elif addat == 1:
                         minornumber = currentnumber
-            elif number and number == "." and currentnumber:
-                addat += 1
+            elif number and number == "." and currentnumber and addat == 0:
+                addat = 1
                 currentnumber = ""
-            if addat > 1:
-                break
+
+        if not minornumber:
+           minornumber = 0
+        if len(minornumber.lstrip("0")) > 2:
+            minornumber = minornumber.lstrip("0")
+            if len(minornumber) > 3:
+                minornumber = minornumber[:2]
+            else:
+                minornumber = minornumber[:1]
 
         if majornumber and minornumber:  # Return numbers if set
             return [int(majornumber), int(minornumber)]
