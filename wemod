@@ -36,7 +36,9 @@ WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
 
 
-def parse_version(version_str: Optional[Union[list,str]] = None) -> Optional[List[int]]:
+def parse_version(
+    version_str: Optional[Union[list, str]] = None
+) -> Optional[List[int]]:
     if version_str and isinstance(version_str, str):
         # Replace '-' with '.' and ',' with '.'
         numbers = version_str.replace("-", ".").replace(",", ".")
@@ -59,7 +61,7 @@ def parse_version(version_str: Optional[Union[list,str]] = None) -> Optional[Lis
                 currentnumber = ""
 
         if not minornumber:
-           minornumber = 0
+            minornumber = 0
         if len(minornumber.lstrip("0")) > 2:
             minornumber = minornumber.lstrip("0")
             if len(minornumber) > 3:
@@ -808,7 +810,7 @@ def run(skip_init: bool = False) -> str:
 requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
 
 script_name = "wemod-laucher"
-script_version = "1.042"
+script_version = "1.043"
 last_name = load_conf_setting("ScriptName")
 last_version = load_conf_setting("Version")
 
