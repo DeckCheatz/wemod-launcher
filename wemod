@@ -998,6 +998,23 @@ else:
         print(str(process.stdout))
         print(str(process.stderr))
         sys.exit(process.returncode)
+    else: # On installed dependencies
+        # Build the command to re-run the script
+        script_file = os.path.abspath(__file__)
+
+        # Pass  all command line arguments
+        command = [sys.executable, script_file] + sys.argv[1:]
+
+        log("Re-running script to apply dependencies")
+
+        # Execute the script
+        process = subprocess.run(command, capture_output=True, text=True)
+
+        # Send output and error to steam console
+        # If function log worked it gets logged by the re-run
+        print(str(process.stdout))
+        print(str(process.stderr))
+        sys.exit(process.returncode)
 
 
 # Main execution block
