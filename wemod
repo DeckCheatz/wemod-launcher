@@ -28,9 +28,14 @@ from util import (
 # Define paths and constants
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 BAT_FILE = "\\\\".join(SCRIPT_PATH.split(os.sep) + ["wemod.bat"])
-WEMOD_BAT = f"start 'Z:{BAT_FILE}'"
+WEMOD_BAT = ["start", f"Z:{BAT_FILE}"]
 BASE_STEAM_COMPAT = get_compat()
 WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
+if os.path.isfile(os.path.join(BASE_STEAM_COMPAT, "version")):
+    try:
+        os.symlink(BASE_STEAM_COMPAT, os.path.join(BASE_STEAM_COMPAT,"pfx"))
+    except Exception as e:
+        pass
 STEAM_COMPAT_FOLDER = os.path.abspath(os.path.dirname(BASE_STEAM_COMPAT))
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
@@ -299,8 +304,8 @@ def init(proton: str) -> None:
     if not os.path.isfile(prefix_version_file):
         exit_with_message(
             "Missing proton version",
-            f"Error, the GE-Proton version file is missing it should be located at:\n'{prefix_version_file}'.\nAllways run the game on GE-Proton.\nAlso try to run the game once  without the WeMod Laucher",
-            timeout=30,
+            f"Error, the GE-Proton version file is missing it should be located at:\n'{prefix_version_file}'.\nAllways run the game on GE-Proton.\nAlso try to run the game once  without the WeMod Laucher\nIf you use a external laucher create this file and save the version in there (eg. GE-Wine8.26)",
+            timeout=40,
         )
 
     # Grab active proton version
@@ -373,6 +378,7 @@ def init(proton: str) -> None:
             syncwemod(
                 closest_prefix_folder
             )  # Sync wemod data in closest version
+
             copy_folder_with_progress(
                 closest_prefix_folder, BASE_STEAM_COMPAT, [None], [None]
             )
@@ -745,22 +751,67 @@ def run(skip_init: bool = False) -> str:
     # Get passed args
     ARGS = sys.argv[1:]
 
-    # Subdivide the list into multiple lists based on delimiter
-    AARGS = split_list_by_delimiter(ARGS, "--")
+    tools = os.getenv("STEAM_COMPAT_TOOL_PATHS").split(os.pathsep)
+    fnr=-1
+    # find the first argument that has the proton tool path
+    if tools:
+        for tool in tools:
+            for nr, aarg in enumerate(ARGS):
+                if aarg and len(aarg) > 2 and aarg[0] == os.sep:
+                    if tool == os.path.dirname(aarg):
+                        if nr > fnr:
+                            fnr = nr
+                            break
 
-    # Log the args for future improvment
-    log(
-        f"The subsplit args list is {len(AARGS)} long and the full contents are: {AARGS}"
-    )
+    verb = ["waitforexitandrun"]
+    if fnr >= 0: # if the proton tool path was found
+        # Log the args for future improvment
+        log(
+            f"The normal args list is {len(ARGS)} long and the full contents are: {ARGS}"
+        )
 
-    # Take the steam command part and merge it back into one list split by delimiter
-    REAPER_CMD = join_lists_with_delimiter(AARGS[:-1], "--")
+        # Take the start of the command
+        REAPER_CMD = ARGS[:fnr]
 
-    # Take the end that runs the game
-    PROTON_CMD = AARGS[-1]
+        # Take the full proton tool path
+        PROTON = ARGS[fnr]
 
-    # Take the proton path
-    PROTON = PROTON_CMD[0]
+        # If custom runner don't use a verb
+        if ARGS[(fnr+1)].find(".exe") >= 0:
+            fnr -= 1
+            verb = []
+
+        # Get the game exe
+        GAME_EXE = os.path.realpath(ARGS[(fnr+2)])
+
+        # Add more args at the end
+        LAUNCH_OPTIONS = ARGS[(fnr+3):]
+    else:
+        # Subdivide the list into multiple lists based on delimiter
+        AARGS = split_list_by_delimiter(ARGS, "--")
+
+        # Log the args for future improvment
+        log(
+            f"The subsplit args list is {len(AARGS)} long and the full contents are: {AARGS}"
+        )
+
+        # Take the steam command part and merge it back into one list split by delimiter
+        REAPER_CMD = join_lists_with_delimiter(AARGS[:-1], "--")
+
+        # Add removed -- back at the end
+        REAPER_CMD += ["--"]
+
+        # Take the end that runs the game
+        PROTON_CMD = AARGS[-1]
+
+        # Take the proton path
+        PROTON = PROTON_CMD[0]
+
+        # Get the game exe
+        GAME_EXE = os.path.realpath(PROTON_CMD[2])
+
+        # Add more args at the end
+        LAUNCH_OPTIONS = PROTON_CMD[3:]
 
     # Initialize environment if not skipped
     if not skip_init:
@@ -769,33 +820,24 @@ def run(skip_init: bool = False) -> str:
     # Get working dir
     WORK_DIR = os.path.realpath(os.getcwd())
 
-    # Get game exe
-    GAME_EXE = os.path.realpath(PROTON_CMD[2])
-
     # Make gamepath be relative to workdir (workdir is the root game dir)
     REL_EXE = os.path.relpath(GAME_EXE, WORK_DIR)
 
     # Make shure the gamepath is in windows format
     WIN_CMD = REL_EXE.replace(os.sep, "\\\\")
 
-    # If we have more args we prepare them to be added at the end
-    if len(PROTON_CMD) > 3:
-        LAUNCH_OPTIONS = " '" + "' '".join(PROTON_CMD[3:]) + "'"
-    else:
-        LAUNCH_OPTIONS = ""
-
-    # Create the reaper string
-    REAPER_STR = "' '".join(REAPER_CMD)
+    # Log the found parts of the command
+    log(f"D:{WORK_DIR}\nR:{REAPER_CMD}\nP:{PROTON}\nV:{verb}\nB:{WEMOD_BAT}\nG:{WIN_CMD}\nW:{WIN_CMD}\nL:{LAUNCH_OPTIONS}")
 
     # Construct the final command
-    FINAL = f"'{REAPER_STR}' -- '{PROTON}' waitforexitandrun {WEMOD_BAT} '{WIN_CMD}'{LAUNCH_OPTIONS}"
+    FINAL = REAPER_CMD + [PROTON] + verb + WEMOD_BAT + [WIN_CMD] + LAUNCH_OPTIONS
 
     # Log the final command
     log(f"Executing:\n\t{FINAL}\n")
     print(f"Executing:\n\t{FINAL}\n")
 
     # Execute the final command
-    process = subprocess.Popen(FINAL, stdout=subprocess.PIPE, shell=True)
+    process = subprocess.Popen(FINAL, stdout=subprocess.PIPE)
     for line in iter(process.stdout.readline, ""):
         if line == None or line == b"":
             break
