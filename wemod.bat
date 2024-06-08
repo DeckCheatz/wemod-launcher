@@ -23,73 +23,41 @@ REM Start WeMod.exe and get its PID
 echo Starting %wemodname%.
 start "" %wemodpath%
 
-:wemod
 set wemodPID=
-for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%" 2>NUL') do set wemodPID=%%b
-if not errorlevel 0 (
-    goto wemod
+REM Get the wemod pid over proton
+for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%" 2>NUL') do (
+    set void=%%a
+    set wemodPID=%%b
 )
+REM On fail try once more to get the wemod pid over proton
 if not defined wemodPID (
-    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%" 2>NUL') do set wemodPID=%%b
+    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%" 2>NUL') do (
+        set void=%%a
+        set wemodPID=%%b
+    )
+)
+REM If still not set get wemod pid over wine
+if not defined wemodPID (
+    for /F "TOKENS=2 delims=," %%d in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%" 2>NUL') do (
+        set wemodPID=%%d
+    )
+)
+REM On fail try once more to get wemod pid over wine
+if not defined wemodPID (
+    for /F "TOKENS=2 delims=," %%d in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%" 2>NUL') do (
+        set wemodPID=%%d
+    )
 )
 
-REM Start the custom command and get its PID
-
-echo Running game "%~1" with args: %args%
-start "" %*
-
+echo WeMod found with pid %wemodPID%
 echo.
-echo Running loop to check for the game.
-echo Minimize this window, don't close it.
-echo If you close this window, WeMod won't close with the game.
-echo.
 
-REM Couter to check if the game was detected correctly
-set /A counter=0
-
-:game
-for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "IMAGENAME eq %~n1%~x1" /NH 2>NUL') do set commandPID=%%b
-if not errorlevel 0 (
-    goto game
-)
-if not defined commandPID (
-    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "IMAGENAME eq %~n1%~x1" /NH 2>NUL') do set commandPID=%%b
-)
-:loop
-set runningPID=
-for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "PID eq %commandPID%" /NH') do set runningPID=%%b
-if not errorlevel 0 (
-    goto loop
-)
-if not defined runningPID (
-    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "PID eq %commandPID%" /NH') do set runningPID=%%b
-    if not errorlevel 0 (
-        goto loop
-    )
-)
-if not defined runningPID (
-    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist.exe /FI "PID eq %commandPID%" /NH') do set runningPID=%%b
-    if not errorlevel 0 (
-        goto loop
-    )
-)
-
-if defined runningPID (
-    @ping localhost -n 1 > NUL 2>&1
-    if %counter% LSS 50 (
-        set /A counter=%counter%+1
-    )
-    goto loop
-)
-
+REM Start the game and wait for exit
+echo Running game "%~1" and waiting for close
+echo The full command is: %*
+start /wait "" %*
 
 if defined wemodPID (
-    if %counter% LSS 50 (
-        echo.
-        echo Game was probably not detected correctly, press a key to exit WeMod
-        pause
-        echo.
-    )
     C:/windows/system32/taskkill.exe /PID %wemodPID% /F 2>NUL
     C:/windows/system32/taskkill.exe /PID %wemodPID% /F 2>NUL
 )
