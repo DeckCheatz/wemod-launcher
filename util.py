@@ -94,14 +94,20 @@ def get_compat() -> str:
                 tools = os.getenv("STEAM_COMPAT_TOOL_PATHS")
                 if tools and len(tools.strip(os.pathsep)) > 0:
                     if wine:
-                        os.environ['STEAM_COMPAT_TOOL_PATHS'] = tools.strip(os.pathsep) + ":" + os.path.dirname(wine)
+                        os.environ["STEAM_COMPAT_TOOL_PATHS"] = (
+                            tools.strip(os.pathsep)
+                            + ":"
+                            + os.path.dirname(wine)
+                        )
                 else:
                     if not wine:
                         exit_with_message(
                             "Not wine not found",
                             "Error, wine not found,\nthe WINE environment variable needs to be set if using extenal runners, exiting",
                         )
-                    os.environ['STEAM_COMPAT_TOOL_PATHS'] = os.path.dirname(wine)
+                    os.environ["STEAM_COMPAT_TOOL_PATHS"] = os.path.dirname(
+                        wine
+                    )
             else:
                 exit_with_message(
                     "Not running wine",
@@ -121,7 +127,7 @@ BASE_STEAM_COMPAT = get_compat()
 WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
 if os.path.isfile(os.path.join(BASE_STEAM_COMPAT, "version")):
     try:
-        os.symlink(BASE_STEAM_COMPAT, os.path.join(BASE_STEAM_COMPAT,"pfx"))
+        os.symlink(BASE_STEAM_COMPAT, os.path.join(BASE_STEAM_COMPAT, "pfx"))
     except Exception as e:
         pass
 
