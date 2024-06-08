@@ -33,7 +33,7 @@ BASE_STEAM_COMPAT = get_compat()
 WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
 if os.path.isfile(os.path.join(BASE_STEAM_COMPAT, "version")):
     try:
-        os.symlink(BASE_STEAM_COMPAT, os.path.join(BASE_STEAM_COMPAT,"pfx"))
+        os.symlink(BASE_STEAM_COMPAT, os.path.join(BASE_STEAM_COMPAT, "pfx"))
     except Exception as e:
         pass
 STEAM_COMPAT_FOLDER = os.path.abspath(os.path.dirname(BASE_STEAM_COMPAT))
@@ -752,7 +752,7 @@ def run(skip_init: bool = False) -> str:
     ARGS = sys.argv[1:]
 
     tools = os.getenv("STEAM_COMPAT_TOOL_PATHS").split(os.pathsep)
-    fnr=-1
+    fnr = -1
     # find the first argument that has the proton tool path
     if tools:
         for tool in tools:
@@ -764,7 +764,7 @@ def run(skip_init: bool = False) -> str:
                             break
 
     verb = ["waitforexitandrun"]
-    if fnr >= 0: # if the proton tool path was found
+    if fnr >= 0:  # if the proton tool path was found
         # Log the args for future improvment
         log(
             f"The normal args list is {len(ARGS)} long and the full contents are: {ARGS}"
@@ -777,15 +777,15 @@ def run(skip_init: bool = False) -> str:
         PROTON = ARGS[fnr]
 
         # If custom runner don't use a verb
-        if ARGS[(fnr+1)].find(".exe") >= 0:
+        if ARGS[(fnr + 1)].find(".exe") >= 0:
             fnr -= 1
             verb = []
 
         # Get the game exe
-        GAME_EXE = os.path.realpath(ARGS[(fnr+2)])
+        GAME_EXE = os.path.realpath(ARGS[(fnr + 2)])
 
         # Add more args at the end
-        LAUNCH_OPTIONS = ARGS[(fnr+3):]
+        LAUNCH_OPTIONS = ARGS[(fnr + 3) :]
     else:
         # Subdivide the list into multiple lists based on delimiter
         AARGS = split_list_by_delimiter(ARGS, "--")
@@ -827,10 +827,14 @@ def run(skip_init: bool = False) -> str:
     WIN_CMD = REL_EXE.replace(os.sep, "\\\\")
 
     # Log the found parts of the command
-    log(f"D:{WORK_DIR}\nR:{REAPER_CMD}\nP:{PROTON}\nV:{verb}\nB:{WEMOD_BAT}\nG:{WIN_CMD}\nW:{WIN_CMD}\nL:{LAUNCH_OPTIONS}")
+    log(
+        f"D:{WORK_DIR}\nR:{REAPER_CMD}\nP:{PROTON}\nV:{verb}\nB:{WEMOD_BAT}\nG:{WIN_CMD}\nW:{WIN_CMD}\nL:{LAUNCH_OPTIONS}"
+    )
 
     # Construct the final command
-    FINAL = REAPER_CMD + [PROTON] + verb + WEMOD_BAT + [WIN_CMD] + LAUNCH_OPTIONS
+    FINAL = (
+        REAPER_CMD + [PROTON] + verb + WEMOD_BAT + [WIN_CMD] + LAUNCH_OPTIONS
+    )
 
     # Log the final command
     log(f"Executing:\n\t{FINAL}\n")
@@ -852,7 +856,7 @@ def run(skip_init: bool = False) -> str:
 requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
 
 script_name = "wemod-laucher"
-script_version = "1.044"
+script_version = "1.045"
 last_name = load_conf_setting("ScriptName")
 last_version = load_conf_setting("Version")
 
