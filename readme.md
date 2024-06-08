@@ -55,7 +55,9 @@ Check the [Wiki Changelog](https://github.com/DaniAsh551/wemod-launcher/wiki/Cha
     it will keep running in the background
 </div>
 
-**Optionally:** Check out tutorials on how to use specific [WeMod Laucher features](https://github.com/DaniAsh551/wemod-launcher/wiki/Launcher-Tutorials)
+**Optionally:** Check out tutorials on how to use specific [WeMod Laucher features](https://github.com/DaniAsh551/wemod-launcher/wiki/Launcher-Tutorials)  
+**Like:** Check how to [Use External Launchers](https://github.com/DaniAsh551/wemod-launcher/wiki/Using-External-Launchers) (Use The WeMod Launcher outside of Steam)  
+**OR:** Check out how to [Edit The Config](https://github.com/DaniAsh551/wemod-launcher/wiki/Config-Usage)  
 
 ****
 <h3><img src="https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=20&quality=lossless" alt="Heart"/>&nbsp;Additional</h3>
