@@ -856,7 +856,7 @@ def run(skip_init: bool = False) -> str:
 requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
 
 script_name = "wemod-laucher"
-script_version = "1.046"
+script_version = "1.047"
 last_name = load_conf_setting("ScriptName")
 last_version = load_conf_setting("Version")
 
@@ -998,7 +998,7 @@ else:
         print(str(process.stdout))
         print(str(process.stderr))
         sys.exit(process.returncode)
-    else: # On installed dependencies
+    else:  # On installed dependencies
         # Build the command to re-run the script
         script_file = os.path.abspath(__file__)
 
