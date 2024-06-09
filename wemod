@@ -840,12 +840,19 @@ def run(skip_init: bool = False) -> str:
     log(f"Executing:\n\t{FINAL}\n")
     print(f"Executing:\n\t{FINAL}\n")
 
-
-    ttfile = os.path.join(SCRIPT_PATH,'temp.time')
-    ttime = open(ttfile, 'w')
-    ttime.write('')
+    ttfile = os.path.join(SCRIPT_PATH, "temp.time")
+    ttime = open(ttfile, "w")
+    ttime.write("")
     ttime.close()
-    command = 'for i in {1..60};do sleep 1; if [ ! -f "' + ttfile + '" ]; then break; fi; done; if [ -f "' + ttfile + '" ]; then rm "' + ttfile + '"; fi'
+    command = (
+        'for i in {1..60};do sleep 1; if [ ! -f "'
+        + ttfile
+        + '" ]; then break; fi; done; if [ -f "'
+        + ttfile
+        + '" ]; then rm "'
+        + ttfile
+        + '"; fi'
+    )
     ttime = subprocess.Popen(command, shell=True)
 
     # Execute the final command
@@ -869,7 +876,7 @@ def run(skip_init: bool = False) -> str:
 requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
 
 script_name = "wemod-laucher"
-script_version = "1.048"
+script_version = "1.049"
 last_name = load_conf_setting("ScriptName")
 last_version = load_conf_setting("Version")
 
