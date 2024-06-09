@@ -840,14 +840,27 @@ def run(skip_init: bool = False) -> str:
     log(f"Executing:\n\t{FINAL}\n")
     print(f"Executing:\n\t{FINAL}\n")
 
+
+    ttfile = os.path.join(SCRIPT_PATH,'temp.time')
+    ttime = open(ttfile, 'w')
+    ttime.write('')
+    ttime.close()
+    command = 'for i in {1..60};do sleep 1; if [ ! -f "' + ttfile + '" ]; then break; fi; done; if [ -f "' + ttfile + '" ]; then rm "' + ttfile + '"; fi'
+    ttime = subprocess.Popen(command, shell=True)
+
     # Execute the final command
     process = subprocess.Popen(FINAL, stdout=subprocess.PIPE)
+
     for line in iter(process.stdout.readline, ""):
         if line == None or line == b"":
             break
         log(line.decode("utf8"))
 
     resp = process.wait()
+
+    if os.path.exists(ttfile):
+        os.remove(ttfile)
+
     log(f"Exit command with '{resp}'")
     return "EXIT"
 
