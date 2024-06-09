@@ -4,6 +4,7 @@
 SET mypath=%~dp0
 SET wemodname=WeMod.exe
 SET wemodpath=%mypath:~0,-1%\wemod_bin\%wemodname%
+SET temptime=%mypath:~0,-1%\temp.time
 
 echo Hello from WeMod Launcher.
 echo.
@@ -58,6 +59,11 @@ echo The full command is: %*
 start /wait "" %*
 
 if defined wemodPID (
+    if exist %temptime% (
+        echo.
+        echo Game closed to fast, Game detection may have failed, Press any key to exit
+        pause
+    )
     C:/windows/system32/taskkill.exe /PID %wemodPID% /F 2>NUL
     C:/windows/system32/taskkill.exe /PID %wemodPID% /F 2>NUL
 )
