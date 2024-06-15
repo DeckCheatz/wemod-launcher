@@ -876,7 +876,7 @@ def run(skip_init: bool = False) -> str:
 requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
 
 script_name = "wemod-laucher"
-script_version = "1.051"
+script_version = "1.052"
 last_name = load_conf_setting("ScriptName")
 last_version = load_conf_setting("Version")
 
@@ -1008,7 +1008,9 @@ else:
                 "Failed to install dependencies. Error.",
             )
 
-        log(f"Re-running script within virtual environment,\nthe command used is:\n{command}")
+        log(
+            f"Re-running script within virtual environment,\nthe command used is:\n{command}"
+        )
 
         # Execute the script within the virtual environment
         process = subprocess.run(command, capture_output=True, text=True)
@@ -1035,7 +1037,9 @@ else:
         # Pass  all command line arguments
         command = [nexe, script_file] + sys.argv[1:]
 
-        log(f"Re-running script to apply dependencies,\nthe command used is:\n{command}")
+        log(
+            f"Re-running script to apply dependencies,\nthe command used is:\n{command}"
+        )
 
         # Execute the script
         process = subprocess.run(command, capture_output=True, text=True)
