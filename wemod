@@ -1008,7 +1008,7 @@ else:
                 "Failed to install dependencies. Error.",
             )
 
-        log("Re-running script within virtual environment")
+        log(f"Re-running script within virtual environment,\nthe command used is:\n{command}")
 
         # Execute the script within the virtual environment
         process = subprocess.run(command, capture_output=True, text=True)
@@ -1022,10 +1022,20 @@ else:
         # Build the command to re-run the script
         script_file = os.path.abspath(__file__)
 
-        # Pass  all command line arguments
-        command = [sys.executable, script_file] + sys.argv[1:]
+        venv_path = load_conf_setting("VirtualEnvironment")
+        if venv_path and not os.path.isabs(venv_path):
+            venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))
 
-        log("Re-running script to apply dependencies")
+        if venv_path:
+            venv_python = os.path.join(venv_path, "bin", "python")
+            nexe = venv_python
+        else:
+            nexe = sys.executable
+
+        # Pass  all command line arguments
+        command = [nexe, script_file] + sys.argv[1:]
+
+        log(f"Re-running script to apply dependencies,\nthe command used is:\n{command}")
 
         # Execute the script
         process = subprocess.run(command, capture_output=True, text=True)
