@@ -1038,17 +1038,17 @@ else:
         command = [nexe, script_file] + sys.argv[1:]
 
         log(
-            f"Re-running script to apply dependencies,\nthe command used is:\n{command}"
+            f"Skiping script rerun, since its not working right now\nThis is used to apply dependencies,\nthe command would be:\n{command}"
         )
 
         # Execute the script
-        process = subprocess.run(command, capture_output=True, text=True)
+        #process = subprocess.run(command, capture_output=True, text=True)
 
         # Send output and error to steam console
         # If function log worked it gets logged by the re-run
-        print(str(process.stdout))
-        print(str(process.stderr))
-        sys.exit(process.returncode)
+        #print(str(process.stdout))
+        #print(str(process.stderr))
+        #sys.exit(process.returncode)
 
 
 # Main execution block
