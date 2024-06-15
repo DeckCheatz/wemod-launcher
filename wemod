@@ -876,7 +876,7 @@ def run(skip_init: bool = False) -> str:
 requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
 
 script_name = "wemod-laucher"
-script_version = "1.052"
+script_version = "1.053"
 last_name = load_conf_setting("ScriptName")
 last_version = load_conf_setting("Version")
 
@@ -1042,13 +1042,13 @@ else:
         )
 
         # Execute the script
-        #process = subprocess.run(command, capture_output=True, text=True)
+        # process = subprocess.run(command, capture_output=True, text=True)
 
         # Send output and error to steam console
         # If function log worked it gets logged by the re-run
-        #print(str(process.stdout))
-        #print(str(process.stderr))
-        #sys.exit(process.returncode)
+        # print(str(process.stdout))
+        # print(str(process.stderr))
+        # sys.exit(process.returncode)
 
 
 # Main execution block
