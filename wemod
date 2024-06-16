@@ -658,16 +658,14 @@ def build_prefix(proton_dir: str) -> None:
     # Choose method to install dotnet48
     dotnet48_method = popup_options(
         "dotnet48",
-        """Would you like to install dotnet48 with winetricks (default) or with wemod-launcher?
-winetricks is for GE-Proton 8 or above and wemod-launcher is for GE-Proton 7
-be warned that GE-Proton 7 (the wemod-launcher opion) isn't working well, you can try using it anyway""",
+        "Would you like to install dotnet48 with winetricks (default, for GE-Proton8 or above)\nor with wemod-launcher (ONLY USE FOR GE-Proton7)\nWARNING: The wemod-launcher option isn't working well, you can try using it anyway (ONLY ON GE-Proton7)",
         ["winetricks", "wemod-launcher"],
     )
 
     # Add dependencies to the list
     deps.append("-q sdl cjkfonts vkd3d dxvk2030")
 
-    if dotnet48_method == "winetricks" or dotnet48_method == None:
+    if not dotnet48_method or dotnet48_method == "winetricks":
         deps.append("-q dotnet48")
 
     # Install dependencies
@@ -682,7 +680,7 @@ be warned that GE-Proton 7 (the wemod-launcher opion) isn't working well, you ca
         resp = winetricks(deps[dep_i], path)
 
     # Install dotnet48 using wemod-launcher if selected
-    if dotnet48_method == "wemod-launcher":
+    if dotnet48_method and dotnet48_method == "wemod-launcher":
         log("Installing dotnet48...")
         dotnet48 = get_dotnet48()
         wine("winecfg -v win7", path)
