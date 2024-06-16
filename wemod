@@ -828,7 +828,7 @@ def run(skip_init: bool = False) -> str:
 
     # Log the found parts of the command
     log(
-        f"D:{WORK_DIR}\nR:{REAPER_CMD}\nP:{PROTON}\nV:{verb}\nB:{WEMOD_BAT}\nG:{WIN_CMD}\nW:{WIN_CMD}\nL:{LAUNCH_OPTIONS}"
+        f"D:{WORK_DIR}\nR:{REAPER_CMD}\nP:{PROTON}\nV:{verb}\nB:{WEMOD_BAT}\nG:{WIN_CMD}\nW:{WORK_DIR}\nL:{LAUNCH_OPTIONS}"
     )
 
     # Construct the final command
