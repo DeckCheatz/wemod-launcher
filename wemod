@@ -876,7 +876,7 @@ def run(skip_init: bool = False) -> str:
 requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
 
 script_name = "wemod-laucher"
-script_version = "1.053"
+script_version = "1.054"
 last_name = load_conf_setting("ScriptName")
 last_version = load_conf_setting("Version")
 
