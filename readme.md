@@ -40,18 +40,19 @@ Check the [Wiki Changelog](https://github.com/DaniAsh551/wemod-launcher/wiki/Cha
    So you can try to run the launcher with `Proton` and without `GE-Proton`
 4. Restart Steam/SteamOS
 5. Run `git clone https://github.com/DaniAsh551/wemod-launcher.git` in the Konsole/Terminal
-6. In the WeMod chosen game, open the steam game settings  
+6. Run `sudo chmod -R ug+x /home/$USER/wemod-launcher` in the Konsole/Terminal
+7. In the WeMod chosen game, open the steam game settings  
    and in the `Compatibility` tab change the proton version to the downloaded one.
-7. Also add the command `/home/$USER/wemod-launcher/wemod %command%`,  
+8. Also add the command `/home/$USER/wemod-launcher/wemod %command%`,  
    in the steam game settings under `Launch Options`
-8. Start the game
-9. Select no to the copy prefix question if it says it `might work`  
-   If it says it `likely works` go to 11.
-10. Select download
-11. Select Yes/Ok until no more windows appear
-12. WeMod will start with the game
-13. Login and click play in WeMod for chosen game   
-14. Set Mods and Switch to game or close the WeMod window,  
+9. Start the game
+10. Select no to the copy prefix question if it says it `might work`  
+   If it says it `likely works` go to 12.
+11. Select download
+12. Select Yes/Ok until no more windows appear
+13. WeMod will start with the game
+14. Login and click play in WeMod for chosen game   
+15. Set Mods and Switch to game or close the WeMod window,  
     it will keep running in the background
 </div>
 
