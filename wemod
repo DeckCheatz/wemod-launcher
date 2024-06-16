@@ -405,7 +405,7 @@ def init(proton: str) -> None:
     # User choice for prefix setup
     prefix_op = popup_options(
         "Prefix Setup",
-        "Would you like to build/modify your prefix or download an already setup one?",
+        "Would you like to build/modify (only works on some systems) your prefix\nor download (faster and works on all systems) an already setup one?",
         ["build", "download"],
     )
 
@@ -415,7 +415,7 @@ def init(proton: str) -> None:
     log(f"Using wine from Proton at path: '{proton_dir}'")
 
     # Call appropriate function based on user choice
-    if prefix_op == "build":
+    if prefix_op and prefix_op == "build":
         build_prefix(proton_dir)
     else:
         download_prefix(proton_dir)
