@@ -46,7 +46,7 @@ def show_message(
 
     sg.theme("systemdefault")
 
-    #log(message)
+    # log(message)
 
     close = True
     if timeout == None:
