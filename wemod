@@ -177,7 +177,9 @@ def syncwemod(
         )  # And symlink the data from the wemod laucher
         log("Linked wemod data to gameprefix")
 
-    if not os.path.exists(os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")):
+    if not os.path.exists(
+        os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
+    ):
         setup_main()
 
 
@@ -403,7 +405,9 @@ def download_prefix(proton_dir: str) -> None:
         os.remove(fullfile)
 
     syncwemod()
-    if not os.path.exists(os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")):
+    if not os.path.exists(
+        os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
+    ):
         setup_main()
 
     log("Finished prefix copy")
@@ -561,7 +565,7 @@ def run(skip_init: bool = False) -> str:
         GAME_EXE = os.path.realpath(PROTON_CMD[fnr])
 
         # Add more args at the end
-        LAUNCH_OPTIONS = PROTON_CMD[(fnr+1):]
+        LAUNCH_OPTIONS = PROTON_CMD[(fnr + 1) :]
 
     # Initialize environment if not skipped
     if not skip_init:
@@ -583,7 +587,12 @@ def run(skip_init: bool = False) -> str:
 
     # Construct the final command
     FINAL = (
-        REAPER_CMD + [PROTON] + verb + BAT_COMMAND + [WIN_CMD] + LAUNCH_OPTIONS
+        REAPER_CMD
+        + [PROTON]
+        + verb
+        + BAT_COMMAND
+        + [WIN_CMD]
+        + LAUNCH_OPTIONS
     )
 
     ttfile = os.path.join(SCRIPT_PATH, "temp.time")
@@ -591,15 +600,17 @@ def run(skip_init: bool = False) -> str:
     ttime.write("")
     ttime.close()
     command = (
-        f'for i in $(seq 1 {tout}); do '
-        + 'sleep 1; '
+        f"for i in $(seq 1 {tout}); do "
+        + "sleep 1; "
         + f'if [ ! -f "{ttfile}" ]; then '
-        + 'break; fi; '
-        + 'done; '
+        + "break; fi; "
+        + "done; "
         + f'if [ -f "{ttfile}" ]; then '
         + f'rm "{ttfile}"; fi'
     )
-    log(f"Creating a game time tracking file, the bash command run is:\n\t{command}")
+    log(
+        f"Creating a game time tracking file, the bash command run is:\n\t{command}"
+    )
     ttime = subprocess.Popen(command, shell=True)
 
     # Log the final command
@@ -618,14 +629,19 @@ def run(skip_init: bool = False) -> str:
 
     if len(verb) == 0:
         try:
-            if os.path.isdir(os.path.join(WINEPREFIX,"drive_c")):
+            if os.path.isdir(os.path.join(WINEPREFIX, "drive_c")):
                 os.environ["WINEPREFIX"] = WINEPREFIX
-            elif os.path.isdir(os.path.join(BASE_STEAM_COMPAT,"drive_c")):
+            elif os.path.isdir(os.path.join(BASE_STEAM_COMPAT, "drive_c")):
                 os.environ["WINEPREFIX"] = BASE_STEAM_COMPAT
             else:
                 os.environ["WINEPREFIX"] = WINEPREFIX
 
-            wserver = subprocess.run(["wineserver", "--wait"], bufsize=1, capture_output=True, text=True)
+            wserver = subprocess.run(
+                ["wineserver", "--wait"],
+                bufsize=1,
+                capture_output=True,
+                text=True,
+            )
         except Exception as e:
             log(f"Problem loading the winesever waiter, the error is:\n\t{e}")
         else:
@@ -663,7 +679,9 @@ if __name__ == "__main__":
         RESP = run()
     except Exception as e:
         RESP = "ERR:\n" + str(e)
-        logy = show_message("Error occored, open the log?","Error occored",30,True)
+        logy = show_message(
+            "Error occored, open the log?", "Error occored", 30, True
+        )
 
     # Log final response or error
     log(str(RESP) + "\n\n\n")

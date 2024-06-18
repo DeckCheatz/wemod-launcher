@@ -303,7 +303,7 @@ def script_manager() -> None:
     else:
         return
     script_name = "wemod-laucher"
-    script_version = "1.059"
+    script_version = "1.060"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 

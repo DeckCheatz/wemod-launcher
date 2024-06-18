@@ -32,6 +32,7 @@ def check_dependencies(requirements_file: str) -> bool:
                 importlib.import_module(package)
             except ImportError:
                 from coreutils import log
+
                 log(f"{package} is missing")
                 ret = False
     return ret
@@ -51,6 +52,7 @@ def save_conf_setting(
     setting: str, value: Optional[str] = None, section: str = DEF_SECTION
 ) -> None:
     from coreutils import log
+
     if not isinstance(section, str):
         log("Error adding the given section, it wasn't a string")
         return
@@ -117,7 +119,6 @@ def parse_version(
     elif isinstance(version_str, list):
         return version_str
     return None
-
 
 
 def winpath(path: str, dobble: bool = True, addfront: str = "Z:") -> str:
