@@ -50,13 +50,14 @@ def find_closest_compatible_release(
     closest_release = None
     closest_version = None
     closest_release_url = None
-    priority = 5
+    priority = 6
 
     for release in releases:
         tag_name = release.get("tag_name")
         if tag_name and tag_name.startswith("PfxVer"):
             release_version_parts = parse_version(tag_name)
             if release_version_parts and current_version_parts:
+                print(f"main {release_version_parts[0]} -- scan {current_version_parts[0]}")
                 if (
                     release_version_parts[0] == current_version_parts[0]
                     and release_version_parts[1] == current_version_parts[1]
@@ -64,71 +65,42 @@ def find_closest_compatible_release(
                     # Exact match
                     closest_release = release
                     closest_version = release_version_parts
-                    closest_release_url = release["assets"][0][
-                        "browser_download_url"
-                    ]
+                    closest_release_url = release["assets"][0]["browser_download_url"]
                     break
                 elif (
                     release_version_parts[0] == current_version_parts[0]
                     and release_version_parts[1] < current_version_parts[1]
-                    and priority >= 2
                 ):
                     # Same major, lower minor version
-                    if (
-                        not closest_release
-                        or release_version_parts[1] > closest_version[1]
-                    ):
+                    if priority > 2 or (priority == 2 and (not closest_release or release_version_parts[1] > closest_version[1])):
                         priority = 2
                         closest_release = release
                         closest_version = release_version_parts
-                        closest_release_url = release["assets"][0][
-                            "browser_download_url"
-                        ]
+                        closest_release_url = release["assets"][0]["browser_download_url"]
                 elif (
                     release_version_parts[0] == current_version_parts[0]
                     and release_version_parts[1] > current_version_parts[1]
-                    and priority >= 3
                 ):
                     # Same major, higher minor version
-                    if (
-                        not closest_release
-                        or release_version_parts[1] < closest_version[1]
-                    ):
+                    if priority > 3 or (priority == 3 and (not closest_release or release_version_parts[1] < closest_version[1])):
                         priority = 3
                         closest_release = release
                         closest_version = release_version_parts
-                        closest_release_url = release["assets"][0][
-                            "browser_download_url"
-                        ]
-                elif (
-                    release_version_parts[0] < current_version_parts[0]
-                    and priority >= 4
-                ):
+                        closest_release_url = release["assets"][0]["browser_download_url"]
+                elif release_version_parts[0] < current_version_parts[0]:
                     # Lower major version
-                    if (
-                        not closest_release
-                        or release_version_parts[1] > closest_version[1]
-                    ):
+                    if priority > 4 or (priority == 4 and (not closest_release or release_version_parts[0] > closest_version[0] or (release_version_parts[0] == closest_version[0] and release_version_parts[1] > closest_version[1]))):
                         priority = 4
                         closest_release = release
                         closest_version = release_version_parts
-                        closest_release_url = release["assets"][0][
-                            "browser_download_url"
-                        ]
-                elif (
-                    release_version_parts[0] > current_version_parts[0]
-                    and priority >= 5
-                ):
+                        closest_release_url = release["assets"][0]["browser_download_url"]
+                elif release_version_parts[0] > current_version_parts[0]:
                     # Higher major version
-                    if (
-                        not closest_release
-                        or release_version_parts[1] < closest_version[1]
-                    ):
+                    if priority > 5 or (priority == 5 and (not closest_release or release_version_parts[0] < closest_version[0] or (release_version_parts[0] == closest_version[0] and release_version_parts[1] < closest_version[1]))):
+                        priority = 5
                         closest_release = release
                         closest_version = release_version_parts
-                        closest_release_url = release["assets"][0][
-                            "browser_download_url"
-                        ]
+                        closest_release_url = release["assets"][0]["browser_download_url"]
 
     return closest_version, closest_release_url
 
