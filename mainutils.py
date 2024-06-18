@@ -323,9 +323,11 @@ def deref(path: str) -> None:
 def copy_folder_with_progress(
     source: str,
     dest: str,
+    zipup: bool = False,
     ignore: Optional[List[Union[None, str]]] = None,
     include_override: Optional[List[Union[None, str]]] = None,
 ) -> None:
+    import zipfile
     import FreeSimpleGUI as sg
 
     if not ignore:
@@ -406,18 +408,29 @@ def copy_folder_with_progress(
                 copy.append(rfile)
 
         total_files = len(copy)
-        extra.update("Copying prefix, please be patient...")
+        if zipup:
+            extra.update("Zipping file, please be patient...")
+        else:
+            extra.update("Copying prefix, please be patient...")
         window.refresh()
 
-        for i, f in enumerate(copy):
-            src_path = os.path.join(source, f)
-            dest_path = os.path.join(dest, f)
-            try:
-                os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-                shutil.copy2(src_path, dest_path, follow_symlinks=False)
-                update_progress(i + 1, total_files)
-            except Exception as e:
-                log(f"Failed to copy {src_path} to {dest_path}: {e}")
+        if zipup:
+            with zipfile.ZipFile(dest, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                for i, f in enumerate(copy):
+                    arcname = f
+                    zipf.write(os.path.join(source, f), arcname)
+                    update_progress(i + 1, total_files)
+        else:
+            for i, f in enumerate(copy):
+                src_path = os.path.join(source, f)
+                dest_path = os.path.join(dest, f)
+                try:
+                    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                    shutil.copy2(src_path, dest_path, follow_symlinks=False)
+                    update_progress(i + 1, total_files)
+                except Exception as e:
+                    log(f"Failed to copy {src_path} to {dest_path}: {e}")
+
 
     sg.theme("systemdefault")
 
@@ -425,9 +438,14 @@ def copy_folder_with_progress(
     text = sg.Text("0% (0/?)")
     extra = sg.Text("Reading prefix directory, please wait...")
     layout = [[extra], [progress], [text]]
-    window = sg.Window("Copying Prefix", layout, finalize=True)
-    window.refresh()
 
+
+    if zipup:
+        window = sg.Window("Copying Prefix", layout, finalize=True)
+    else:
+        window = sg.Window("Zipping File", layout, finalize=True)
+
+    window.refresh()
     window.perform_long_operation(copy_files, "-COPY DONE-")
 
     while True:
