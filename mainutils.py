@@ -415,7 +415,7 @@ def copy_folder_with_progress(
         window.refresh()
 
         if zipup:
-            with zipfile.ZipFile(dest, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as zipf:
                 for i, f in enumerate(copy):
                     arcname = f
                     zipf.write(os.path.join(source, f), arcname)
@@ -431,14 +431,12 @@ def copy_folder_with_progress(
                 except Exception as e:
                     log(f"Failed to copy {src_path} to {dest_path}: {e}")
 
-
     sg.theme("systemdefault")
 
     progress = sg.ProgressBar(100, orientation="h", s=(50, 10))
     text = sg.Text("0% (0/?)")
     extra = sg.Text("Reading prefix directory, please wait...")
     layout = [[extra], [progress], [text]]
-
 
     if zipup:
         window = sg.Window("Copying Prefix", layout, finalize=True)
