@@ -116,7 +116,14 @@ def scanfolderforversions(
                     and folder_version_parts[1] < current_version_parts[1]
                 ):
                     # Same major, lower minor version
-                    if priority > 2 or (priority == 2 and (not closest_version_folder or folder_version_parts[1] > closest_version_number[1])):
+                    if priority > 2 or (
+                        priority == 2
+                        and (
+                            not closest_version_folder
+                            or folder_version_parts[1]
+                            > closest_version_number[1]
+                        )
+                    ):
                         priority = 2
                         closest_version_folder = folder_path
                         closest_version_number = folder_version_parts
@@ -125,19 +132,52 @@ def scanfolderforversions(
                     and folder_version_parts[1] > current_version_parts[1]
                 ):
                     # Same major, higher minor version
-                    if priority > 3 or (priority == 3 and (not closest_version_folder or folder_version_parts[1] < closest_version_number[1])):
+                    if priority > 3 or (
+                        priority == 3
+                        and (
+                            not closest_version_folder
+                            or folder_version_parts[1]
+                            < closest_version_number[1]
+                        )
+                    ):
                         priority = 3
                         closest_version_folder = folder_path
                         closest_version_number = folder_version_parts
                 elif folder_version_parts[0] < current_version_parts[0]:
                     # Lower major version
-                    if priority > 4 or (priority == 4 and (not closest_version_folder or folder_version_parts[0] > closest_version_number[0] or (folder_version_parts[0] == closest_version_number[0] and folder_version_parts[1] > closest_version_number[1]))):
+                    if priority > 4 or (
+                        priority == 4
+                        and (
+                            not closest_version_folder
+                            or folder_version_parts[0]
+                            > closest_version_number[0]
+                            or (
+                                folder_version_parts[0]
+                                == closest_version_number[0]
+                                and folder_version_parts[1]
+                                > closest_version_number[1]
+                            )
+                        )
+                    ):
                         priority = 4
                         closest_version_folder = folder_path
                         closest_version_number = folder_version_parts
                 elif folder_version_parts[0] > current_version_parts[0]:
                     # Higher major version
-                    if priority > 5 or (priority == 5 and (not closest_version_folder or folder_version_parts[0] < closest_version_number[0] or (folder_version_parts[0] == closest_version_number[0] and folder_version_parts[1] < closest_version_number[1]))):
+                    if priority > 5 or (
+                        priority == 5
+                        and (
+                            not closest_version_folder
+                            or folder_version_parts[0]
+                            < closest_version_number[0]
+                            or (
+                                folder_version_parts[0]
+                                == closest_version_number[0]
+                                and folder_version_parts[1]
+                                < closest_version_number[1]
+                            )
+                        )
+                    ):
                         priority = 5
                         closest_version_folder = folder_path
                         closest_version_number = folder_version_parts
