@@ -38,11 +38,11 @@ jobs:
             ver = $3;
             ver = substr(ver, 2, length(ver) - 2);
             new_ver = ver + 0.001;
-            printf("script_version = \"%.3f\"\n", new_ver);
+            printf("    script_version = \"%.3f\"\n", new_ver);
           }
-          !/script_version = "/ { print $0 }' wemod > wemod.tmp && mv wemod.tmp wemod
+          !/script_version = "/ { print $0 }' coreutils.py > coreutils.py.tmp && mv coreutils.py.tmp coreutils.py
 
-          current_ver=$(awk '/script_version = "/ {print $3}' wemod | tr -d '"')
+          current_ver=$(awk '/script_version = "/ {print $3}' coreutils.py | tr -d '"')
           awk -v ver="$current_ver" '/The WeMod Launcher is currently on version / {
             printf("**The WeMod Launcher is currently on version %.3f.**\n", ver);
           }

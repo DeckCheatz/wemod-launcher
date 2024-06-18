@@ -2,187 +2,76 @@
 
 import os
 import sys
-import shutil
 import subprocess
-from setup import main
-from typing import Optional, List, Union, Dict, Any
-from util import (
-    check_dependencies,
-    pip,
-    popup_options,
-    deref,
+
+# Import core utils without download dependencies
+from corenodep import (
+    split_list_by_delimiter,
+    join_lists_with_delimiter,
     load_conf_setting,
     save_conf_setting,
-    get_compat,
-    cache,
-    exit_with_message,
-    show_message,
-    get_dotnet48,
-    popup_download,
-    wine,
-    winetricks,
-    log,
-    popup_execute,
+    parse_version,
+    read_file,
+    winpath,
 )
 
-# Define paths and constants
-SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
-BAT_FILE = "\\\\".join(SCRIPT_PATH.split(os.sep) + ["wemod.bat"])
-WEMOD_BAT = ["start", f"Z:{BAT_FILE}"]
-BASE_STEAM_COMPAT = get_compat()
-WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
-if os.path.isfile(os.path.join(BASE_STEAM_COMPAT, "version")):
-    try:
-        os.symlink(BASE_STEAM_COMPAT, os.path.join(BASE_STEAM_COMPAT, "pfx"))
-    except Exception as e:
-        pass
-STEAM_COMPAT_FOLDER = os.path.abspath(os.path.dirname(BASE_STEAM_COMPAT))
-WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
-INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
+# Import core utils
+from coreutils import (
+    log,
+    cache,
+    show_message,
+    exit_with_message,
+    popup_options,
+    script_manager,
+)
 
 
-def parse_version(
-    version_str: Optional[Union[list, str]] = None
-) -> Optional[List[int]]:
-    if version_str and isinstance(version_str, str):
-        # Replace '-' with '.' and ',' with '.'
-        numbers = version_str.replace("-", ".").replace(",", ".")
-
-        # Clean up number
-        majornumber = None
-        minornumber = None
-        addat = 0
-        currentnumber = ""
-        for number in numbers:
-            if number and number.isnumeric():
-                currentnumber += str(number)
-                if currentnumber:
-                    if addat == 0:
-                        majornumber = currentnumber
-                    elif addat == 1:
-                        minornumber = currentnumber
-            elif number and number == "." and currentnumber and addat == 0:
-                addat = 1
-                currentnumber = ""
-
-        if not minornumber:
-            minornumber = 0
-        if len(minornumber.lstrip("0")) > 2:
-            minornumber = minornumber.lstrip("0")
-            if len(minornumber) > 3:
-                minornumber = minornumber[:2]
-            else:
-                minornumber = minornumber[:1]
-
-        if majornumber and minornumber:  # Return numbers if set
-            return [int(majornumber), int(minornumber)]
-        else:
-            return None
-
-    elif isinstance(version_str, list):
-        return version_str
-    return None
+# Import utils that need constants
+from constutils import (
+    enshure_wine,
+    scanfolderforversions,
+    winetricks,
+    wine,
+)
 
 
-def read_version(version_file: str) -> Optional[str]:  # read file
-    try:
-        with open(version_file, "r") as file:
-            return file.read().strip()
-    except Exception as e:
-        return None
+# Import main utils
+from mainutils import (
+    find_closest_compatible_release,
+    get_github_releases,
+    popup_execute,
+    popup_download,
+    get_dotnet48,
+    deref,
+)
+
+# Import from setup
+from setup import (
+    venv_manager,
+    setup_main,
+)
+
+from typing import (
+    Optional,
+)
+
+# Import consts
+from consts import (
+    BASE_STEAM_COMPAT,
+    BAT_COMMAND,
+    STEAM_COMPAT_FOLDER,
+    WINEPREFIX,
+    INIT_FILE,
+)
+
+SCRIPT_FILE = os.path.realpath(__file__)
+SCRIPT_PATH = os.path.dirname(SCRIPT_FILE)
 
 
-# Scan the steam compat folder for wemod installed prefixes
-def scanfolderforversions(
-    current_version_parts: List[Union[int, None]] = [None, None]
-) -> List[Union[int, None]]:
-    # At default we dont know of any available version
-    closest_version_folder = None
-    closest_version_number = None
-    priority = 5
-
-    # For all folders in steam compat
-    for folder in os.listdir(STEAM_COMPAT_FOLDER):
-        # Get the version file, folder path and check if wemod is installed
-        folder_path = os.path.join(STEAM_COMPAT_FOLDER, folder)
-        version_file = os.path.join(folder_path, "version")
-
-        if os.path.isdir(folder_path) and os.path.exists(
-            os.path.join(folder_path, "pfx", ".wemod_installer")
-        ):
-            folder_version_parts = parse_version(read_version(version_file))
-
-            if (
-                folder_version_parts
-                and isinstance(folder_version_parts, list)
-                and folder_version_parts[0]
-                and folder_version_parts[1]
-            ):
-                if (
-                    folder_version_parts[0] == current_version_parts[0]
-                    and folder_version_parts[1] == current_version_parts[1]
-                ):
-                    # Same major and minor version
-                    closest_version_folder = folder_path
-                    closest_version_number = folder_version_parts
-                    break
-                elif (
-                    folder_version_parts[0] == current_version_parts[0]
-                    and folder_version_parts[1] < current_version_parts[1]
-                    and priority >= 2
-                ):
-                    # Same major, lower minor version
-                    if (
-                        not closest_version_folder
-                        or folder_version_parts[1] > closest_version_number[1]
-                    ):
-                        priority = 2
-                        closest_version_folder = folder_path
-                        closest_version_number = folder_version_parts
-                elif (
-                    folder_version_parts[0] == current_version_parts[0]
-                    and folder_version_parts[1] > current_version_parts[1]
-                    and priority >= 3
-                ):
-                    # Same major, higher minor version
-                    if (
-                        not closest_version_folder
-                        or folder_version_parts[1] < closest_version_number[1]
-                    ):
-                        priority = 3
-                        closest_version_folder = folder_path
-                        closest_version_number = folder_version_parts
-                elif (
-                    folder_version_parts[0] < current_version_parts[0]
-                    and priority >= 4
-                ):
-                    # Lower major version
-                    if (
-                        not closest_version_folder
-                        or folder_version_parts[1] > closest_version_number[1]
-                    ):
-                        priority = 4
-                        closest_version_folder = folder_path
-                        closest_version_number = folder_version_parts
-                elif (
-                    folder_version_parts[0] > current_version_parts[0]
-                    and priority >= 5
-                ):
-                    # Higher major version
-                    if (
-                        not closest_version_folder
-                        or folder_version_parts[1] < closest_version_number[1]
-                    ):
-                        closest_version_folder = folder_path
-                        closest_version_number = folder_version_parts
-    return closest_version_number, closest_version_folder
-
-
+# Symlink wemod data to make all wemod prefixes use the same wemod data
 def syncwemod(
     folder: Optional[str] = None,
-) -> (
-    None
-):  # Symlink wemod data to make all wemod prefixes use the same wemod data
+) -> None:
     response = None
     package_prefix = os.getenv(
         "PACKAGEPREFIX"
@@ -201,12 +90,13 @@ def syncwemod(
                         save_conf_setting("PackagePrefix", package_prefix)
                         package_prefix = "true"
     if package_prefix and folder == None and package_prefix.lower() == "true":
-        from util import copy_folder_with_progress
+        import shutil
+        from mainutils import copy_folder_with_progress
 
         log(
             "Prefix packaging was requested with PACKAGEPREFIX=true in front of the command"
         )
-        current_proton_version = read_version(
+        current_proton_version = read_file(
             os.path.join(BASE_STEAM_COMPAT, "version")
         )
         cut_proton_version = parse_version(current_proton_version)
@@ -287,29 +177,20 @@ def syncwemod(
         )  # And symlink the data from the wemod laucher
         log("Linked wemod data to gameprefix")
 
-    if not os.path.exists(
-        os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
-    ):
-        main()
+    if not os.path.exists(os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")):
+        setup_main()
 
 
 # Initialize the environment
 def init(proton: str) -> None:
     # Create wineprefix directory if it doesn't exist
     if not os.path.isdir(WINEPREFIX):
-        os.makedirs(os.getenv("STEAM_COMPAT_DATA_PATH"), exist_ok=True)
-        os.makedirs(WINEPREFIX, exist_ok=True)
+        os.makedirs(BASE_STEAM_COMPAT, exist_ok=True)
 
-    prefix_version_file = os.path.join(BASE_STEAM_COMPAT, "version")
-    if not os.path.isfile(prefix_version_file):
-        exit_with_message(
-            "Missing proton version",
-            f"Error, the GE-Proton version file is missing it should be located at:\n'{prefix_version_file}'.\nAllways run the game on GE-Proton.\nAlso try to run the game once  without the WeMod Laucher\nIf you use a external laucher create this file and save the version in there (eg. GE-Wine8.26)",
-            timeout=40,
-        )
+    prefix_version_file = enshure_wine()
 
     # Grab active proton version
-    current_proton_version = read_version(prefix_version_file)
+    current_proton_version = read_file(prefix_version_file)
     current_version_parts = parse_version(current_proton_version)
     if current_version_parts == None:
         exit_with_message(
@@ -336,7 +217,7 @@ def init(proton: str) -> None:
                 f"Found was '{cut_version[0]}.{cut_version[1]}' on '{current_version_parts[0]}.{current_version_parts[1]}'"
             )
 
-        from util import copy_folder_with_progress
+        from mainutils import copy_folder_with_progress
 
         response = "No"
         if (
@@ -422,111 +303,6 @@ def init(proton: str) -> None:
     syncwemod()  # Sync wemod data
 
 
-def get_github_releases(repo_name: str) -> List[Any]:
-    try:
-        import requests
-    except Exception as e:
-        print(f"Failed to fetch releases, error reports {e}")
-        return []
-    url = f"https://api.github.com/repos/{repo_name}/releases"
-    response = requests.get(url)
-    if response.status_code == 200:
-        releases = response.json()
-        return releases
-    else:
-        print("Failed to fetch releases.")
-        return []
-
-
-def find_closest_compatible_release(
-    releases, current_version_parts: List[Union[int, None]] = [None, None]
-) -> List[Union[Optional[List[int]], Optional[str]]]:
-    closest_release = None
-    closest_version = None
-    closest_release_url = None
-    priority = 5
-
-    for release in releases:
-        tag_name = release.get("tag_name")
-        if tag_name and tag_name.startswith("PfxVer"):
-            release_version_parts = parse_version(tag_name)
-            if release_version_parts and current_version_parts:
-                if (
-                    release_version_parts[0] == current_version_parts[0]
-                    and release_version_parts[1] == current_version_parts[1]
-                ):
-                    # Exact match
-                    closest_release = release
-                    closest_version = release_version_parts
-                    closest_release_url = release["assets"][0][
-                        "browser_download_url"
-                    ]
-                    break
-                elif (
-                    release_version_parts[0] == current_version_parts[0]
-                    and release_version_parts[1] < current_version_parts[1]
-                    and priority >= 2
-                ):
-                    # Same major, lower minor version
-                    if (
-                        not closest_release
-                        or release_version_parts[1] > closest_version[1]
-                    ):
-                        priority = 2
-                        closest_release = release
-                        closest_version = release_version_parts
-                        closest_release_url = release["assets"][0][
-                            "browser_download_url"
-                        ]
-                elif (
-                    release_version_parts[0] == current_version_parts[0]
-                    and release_version_parts[1] > current_version_parts[1]
-                    and priority >= 3
-                ):
-                    # Same major, higher minor version
-                    if (
-                        not closest_release
-                        or release_version_parts[1] < closest_version[1]
-                    ):
-                        priority = 3
-                        closest_release = release
-                        closest_version = release_version_parts
-                        closest_release_url = release["assets"][0][
-                            "browser_download_url"
-                        ]
-                elif (
-                    release_version_parts[0] < current_version_parts[0]
-                    and priority >= 4
-                ):
-                    # Lower major version
-                    if (
-                        not closest_release
-                        or release_version_parts[1] > closest_version[1]
-                    ):
-                        priority = 4
-                        closest_release = release
-                        closest_version = release_version_parts
-                        closest_release_url = release["assets"][0][
-                            "browser_download_url"
-                        ]
-                elif (
-                    release_version_parts[0] > current_version_parts[0]
-                    and priority >= 5
-                ):
-                    # Higher major version
-                    if (
-                        not closest_release
-                        or release_version_parts[1] < closest_version[1]
-                    ):
-                        closest_release = release
-                        closest_version = release_version_parts
-                        closest_release_url = release["assets"][0][
-                            "browser_download_url"
-                        ]
-
-    return closest_version, closest_release_url
-
-
 # Function to download and unpack a pre-configured wineprefix
 def download_prefix(proton_dir: str) -> None:
     # Check and prepare for first launch
@@ -556,7 +332,7 @@ def download_prefix(proton_dir: str) -> None:
 
     repo_concat = repo_user + "/" + repo_name
 
-    current_proton_version = read_version(
+    current_proton_version = read_file(
         os.path.join(BASE_STEAM_COMPAT, "version")
     )
     current_version_parts = parse_version(current_proton_version)
@@ -627,15 +403,12 @@ def download_prefix(proton_dir: str) -> None:
         os.remove(fullfile)
 
     syncwemod()
-    if not os.path.exists(
-        os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
-    ):
-        main()
+    if not os.path.exists(os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")):
+        setup_main()
 
     log("Finished prefix copy")
 
 
-# Function to build a new wineprefix
 def build_prefix(proton_dir: str) -> None:
     import FreeSimpleGUI as sg
 
@@ -649,9 +422,9 @@ def build_prefix(proton_dir: str) -> None:
     )
 
     # deref
-    winpath = os.path.join(WINEPREFIX, "drive_c", "windows")
-    log(f"Dereferencing '{winpath}'")
-    deref(winpath)
+    winfolder = os.path.join(WINEPREFIX, "drive_c", "windows")
+    log(f"Dereferencing '{winfolder}'")
+    deref(winfolder)
 
     deps = []
 
@@ -670,7 +443,7 @@ def build_prefix(proton_dir: str) -> None:
 
     # Install dependencies
     log("Running dependencies installation. This could take a while...")
-    main()
+    setup_main()
 
     # Install each dependency
     resp = 0
@@ -714,36 +487,6 @@ def build_prefix(proton_dir: str) -> None:
         )
 
 
-def split_list_by_delimiter(
-    input_list: List[str], delimiter: str
-) -> List[List[str]]:
-    result = []
-    current_sublist = []
-    for item in input_list:
-        if item == delimiter:
-            if current_sublist:
-                result.append(current_sublist)
-                current_sublist = []
-        else:
-            current_sublist.append(item)
-    if current_sublist:
-        result.append(current_sublist)
-    return result
-
-
-def join_lists_with_delimiter(
-    sublists: List[List[str]], delimiter: Optional[str] = None
-) -> List[str]:
-    result = []
-    for sublist in sublists:
-        result.extend(sublist)
-        if delimiter is not None:
-            result.append(delimiter)
-    if delimiter is not None and result:
-        result.pop()  # Remove the last delimiter if delimiter is not None
-    return result
-
-
 # Main run function
 def run(skip_init: bool = False) -> str:
     # Get passed args
@@ -762,10 +505,11 @@ def run(skip_init: bool = False) -> str:
                             break
 
     verb = ["waitforexitandrun"]
+    tout = 90
     if fnr >= 0:  # if the proton tool path was found
         # Log the args for future improvment
         log(
-            f"The normal args list is {len(ARGS)} long and the full contents are: {ARGS}"
+            f"The normal args list is {len(ARGS)} long and the full contents are:\n\t{ARGS}"
         )
 
         # Take the start of the command
@@ -778,6 +522,7 @@ def run(skip_init: bool = False) -> str:
         if ARGS[(fnr + 1)].find(".exe") >= 0:
             fnr -= 1
             verb = []
+            tout = 60
 
         # Get the game exe
         GAME_EXE = os.path.realpath(ARGS[(fnr + 2)])
@@ -790,7 +535,7 @@ def run(skip_init: bool = False) -> str:
 
         # Log the args for future improvment
         log(
-            f"The subsplit args list is {len(AARGS)} long and the full contents are: {AARGS}"
+            f"The subsplit args list is {len(AARGS)} long and the full contents are:\n\t{AARGS}"
         )
 
         # Take the steam command part and merge it back into one list split by delimiter
@@ -805,11 +550,18 @@ def run(skip_init: bool = False) -> str:
         # Take the proton path
         PROTON = PROTON_CMD[0]
 
+        fnr = 2
+        # If custom runner don't use a verb
+        if PROTON[1].find(".exe") >= 0:
+            fnr -= 1
+            verb = []
+            tout = 60
+
         # Get the game exe
-        GAME_EXE = os.path.realpath(PROTON_CMD[2])
+        GAME_EXE = os.path.realpath(PROTON_CMD[fnr])
 
         # Add more args at the end
-        LAUNCH_OPTIONS = PROTON_CMD[3:]
+        LAUNCH_OPTIONS = PROTON_CMD[(fnr+1):]
 
     # Initialize environment if not skipped
     if not skip_init:
@@ -821,37 +573,38 @@ def run(skip_init: bool = False) -> str:
     # Make gamepath be relative to workdir (workdir is the root game dir)
     REL_EXE = os.path.relpath(GAME_EXE, WORK_DIR)
 
-    # Make shure the gamepath is in windows format
-    WIN_CMD = REL_EXE.replace(os.sep, "\\\\")
+    # Make shure the relative gamepath is in windows format
+    WIN_CMD = winpath(REL_EXE, addfront="")
 
     # Log the found parts of the command
     log(
-        f"D:{WORK_DIR}\nR:{REAPER_CMD}\nP:{PROTON}\nV:{verb}\nB:{WEMOD_BAT}\nG:{WIN_CMD}\nW:{WORK_DIR}\nL:{LAUNCH_OPTIONS}"
+        f"D:{WORK_DIR}\nR:{REAPER_CMD}\nP:{PROTON}\nV:{verb}\nB:{BAT_COMMAND}\nG:{WIN_CMD}\nL:{LAUNCH_OPTIONS}"
     )
 
     # Construct the final command
     FINAL = (
-        REAPER_CMD + [PROTON] + verb + WEMOD_BAT + [WIN_CMD] + LAUNCH_OPTIONS
+        REAPER_CMD + [PROTON] + verb + BAT_COMMAND + [WIN_CMD] + LAUNCH_OPTIONS
     )
-
-    # Log the final command
-    log(f"Executing:\n\t{FINAL}\n")
-    print(f"Executing:\n\t{FINAL}\n")
 
     ttfile = os.path.join(SCRIPT_PATH, "temp.time")
     ttime = open(ttfile, "w")
     ttime.write("")
     ttime.close()
     command = (
-        'for i in {1..60};do sleep 1; if [ ! -f "'
-        + ttfile
-        + '" ]; then break; fi; done; if [ -f "'
-        + ttfile
-        + '" ]; then rm "'
-        + ttfile
-        + '"; fi'
+        f'for i in $(seq 1 {tout}); do '
+        + 'sleep 1; '
+        + f'if [ ! -f "{ttfile}" ]; then '
+        + 'break; fi; '
+        + 'done; '
+        + f'if [ -f "{ttfile}" ]; then '
+        + f'rm "{ttfile}"; fi'
     )
+    log(f"Creating a game time tracking file, the bash command run is:\n\t{command}")
     ttime = subprocess.Popen(command, shell=True)
+
+    # Log the final command
+    log(f"Executing:\n\t{FINAL}\n")
+    print(f"Executing:\n\t{FINAL}\n")
 
     # Execute the final command
     process = subprocess.Popen(FINAL, stdout=subprocess.PIPE)
@@ -863,198 +616,57 @@ def run(skip_init: bool = False) -> str:
 
     resp = process.wait()
 
+    if len(verb) == 0:
+        try:
+            if os.path.isdir(os.path.join(WINEPREFIX,"drive_c")):
+                os.environ["WINEPREFIX"] = WINEPREFIX
+            elif os.path.isdir(os.path.join(BASE_STEAM_COMPAT,"drive_c")):
+                os.environ["WINEPREFIX"] = BASE_STEAM_COMPAT
+            else:
+                os.environ["WINEPREFIX"] = WINEPREFIX
+
+            wserver = subprocess.run(["wineserver", "--wait"], bufsize=1, capture_output=True, text=True)
+        except Exception as e:
+            log(f"Problem loading the winesever waiter, the error is:\n\t{e}")
+        else:
+            print(str(wserver.stdout))
+            print(str(wserver.stderr))
+            retc = wserver.wait()
+
     if os.path.exists(ttfile):
         os.remove(ttfile)
 
-    log(f"Exit command with '{resp}'")
+    log(f"Exit command with:\n\t'{resp}'")
     return "EXIT"
 
 
-# Log Python version and ensure dependencies
-requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
-
-script_name = "wemod-laucher"
-script_version = "1.058"
-last_name = load_conf_setting("ScriptName")
-last_version = load_conf_setting("Version")
-
-if last_name and last_name != script_name:
-    log("Warnig config might be for a other script, overwriting name")
-elif not last_name:
-    log("Adding script name to config")
-if last_version:
-    try:
-        if float(last_version) < float(script_version):
-            log(
-                f"Config on version {last_version} updating to {script_version}"
-            )
-        elif float(last_version) > float(script_version):
-            log(
-                f"Warnig config on version {last_version} downgrading to {script_version}"
-            )
-    except Exception as e:
-        log(f"Warnig config error '{e}' changing version to {script_version}")
-else:
-    log("Adding script version to config")
-
-save_conf_setting("ScriptName", script_name)
-save_conf_setting("Version", script_version)
-log(f"The script {script_name} is running on version {script_version}")
-print(
-    f"The wemod script {script_name} is running on version {script_version}"
-)
-
-if check_dependencies(requirements_txt):
-    log("All dependencies are already installed.")
-else:
-    log("Dependencies missing")
-
-    log("Trying to install Dependencies...")
-
-    venv_path = load_conf_setting("VirtualEnvironment")
-    # Try to install the dependencies
-    pip_install = f"install -r '{requirements_txt}'"
-    if not venv_path:
-        return_code = pip(pip_install)
-    else:
-        return_code = 98
-    if return_code != 0:
-        if return_code != 98:
-            log("Creating virtual environment...")
-        else:
-            log("Ensuring virtual environment...")
-        # Create a virtual environment using venv
-        if not venv_path:
-            venv_path = "wemod_venv"
-        try:
-            if os.path.isabs(venv_path):
-                subprocess.run(
-                    [sys.executable, "-m", "venv", venv_path], check=True
-                )
-            else:
-                subprocess.run(
-                    [
-                        sys.executable,
-                        "-m",
-                        "venv",
-                        os.path.abspath(os.path.join(SCRIPT_PATH, venv_path)),
-                    ],
-                    check=True,
-                )
-            log("Virtual environment created successfully.")
-        except subprocess.CalledProcessError:
-            log(
-                "Failed to create virtual environment, trying to force install venv"
-            )
-            return_code = pip("install --break-system-packages venv")
-            if return_code != 0:
-                log(
-                    "CRITICAL: The python package 'venv' is not installed and could not be downloaded"
-                )
-                exit_with_message(
-                    "Missing python-venv",
-                    "The python package 'venv' is not installed and could not be downloaded. Error.",
-                )
-            else:
-                try:
-                    if os.path.isabs(venv_path):
-                        subprocess.run(
-                            [sys.executable, "-m", "venv", venv_path],
-                            check=True,
-                        )
-                    else:
-                        subprocess.run(
-                            [
-                                sys.executable,
-                                "-m",
-                                "venv",
-                                os.path.abspath(
-                                    os.path.join(SCRIPT_PATH, venv_path)
-                                ),
-                            ],
-                            check=True,
-                        )
-                    log("Virtual environment created successfully.")
-                except subprocess.CalledProcessError:
-                    log(
-                        "CRITICAL: Backup failed to create virtual environment, exiting"
-                    )
-                    exit_with_message(
-                        "Error on package venv",
-                        "Failed to create virtual environment. Error.",
-                    )
-
-        save_conf_setting("VirtualEnvironment", venv_path)
-        if venv_path and not os.path.isabs(venv_path):
-            venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))
-
-        # Determine the path to the Python executable within the virtual environment
-        venv_python = os.path.join(venv_path, "bin", "python")
-
-        # Build the command to re-run the script within the virtual environment
-        script_file = os.path.abspath(__file__)
-
-        # Pass  all command line arguments
-        command = [venv_python, script_file] + sys.argv[1:]
-
-        # Preinstall dependencies in the virtual environment
-        return_code = pip(pip_install, venv_path)
-        if return_code != 0:
-            log("CRITICAL: Dependencies can't be installed")
-            exit_with_message(
-                "Dependencies install error",
-                "Failed to install dependencies. Error.",
-            )
-
+if __name__ == "__main__":
+    script_manager()
+    python_venv = venv_manager()
+    if python_venv:
+        command = [python_venv, SCRIPT_FILE] + sys.argv[1:]
         log(
-            f"Re-running script within virtual environment,\nthe command used is:\n{command}"
+            f"Re-running script within virtual environment,\nThe command used is:\n\t{command}"
         )
-
         # Execute the script within the virtual environment
         process = subprocess.run(command, capture_output=True, text=True)
-
-        # Send output and error to steam console
-        # If function log worked it gets logged by the re-run
         print(str(process.stdout))
         print(str(process.stderr))
-        sys.exit(process.returncode)
-    else:  # On installed dependencies
-        # Build the command to re-run the script
-        script_file = os.path.abspath(__file__)
+        sys.exit(
+            process.returncode
+        )  # exit after it was run in a venv succesfully
 
-        venv_path = load_conf_setting("VirtualEnvironment")
-        if venv_path and not os.path.isabs(venv_path):
-            venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))
+    # Main execution block
+    RESP = ""
+    logy = "No"
+    try:
+        RESP = run()
+    except Exception as e:
+        RESP = "ERR:\n" + str(e)
+        logy = show_message("Error occored, open the log?","Error occored",30,True)
 
-        if venv_path:
-            venv_python = os.path.join(venv_path, "bin", "python")
-            nexe = venv_python
-        else:
-            nexe = sys.executable
+    # Log final response or error
+    log(str(RESP) + "\n\n\n")
 
-        # Pass  all command line arguments
-        command = [nexe, script_file] + sys.argv[1:]
-
-        log(
-            f"Skiping script rerun, since its not working right now\nThis is used to apply dependencies,\nthe command would be:\n{command}"
-        )
-
-        # Execute the script
-        # process = subprocess.run(command, capture_output=True, text=True)
-
-        # Send output and error to steam console
-        # If function log worked it gets logged by the re-run
-        # print(str(process.stdout))
-        # print(str(process.stderr))
-        # sys.exit(process.returncode)
-
-
-# Main execution block
-RESP = ""
-try:
-    RESP = run()
-except Exception as e:
-    RESP = "ERR:\n" + str(e)
-
-# Log final response or error
-log(str(RESP) + "\n\n\n")
+    if not logy or logy == "Yes":
+        log(open_log=True)

@@ -1,12 +1,36 @@
 #!/usr/bin/env python3
 
-import stat
-import sys
 import os
-import tempfile
-from util import download_progress, pip, log, show_message
+import sys
+import stat
+import subprocess
 
-SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
+from coreutils import (
+    log,
+    pip,
+    exit_with_message,
+)
+
+from corenodep import (
+    load_conf_setting,
+    save_conf_setting,
+    check_dependencies,
+)
+
+from coreutils import (
+    show_message,
+)
+
+from mainutils import (
+    download_progress,
+)
+
+from typing import (
+    Optional,
+)
+
+SCRIPT_IMP_FILE = os.path.realpath(__file__)
+SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
 
 
 def welcome() -> bool:
@@ -117,9 +141,91 @@ def unpack_wemod(
         return False
 
 
-def main() -> None:
-    import FreeSimpleGUI as sg
+def mk_venv() -> Optional[str]:
+    venv_path = load_conf_setting("VirtualEnvironment")
+    if not venv_path:
+        venv_path = "wemod_venv"
+    try:
+        if os.path.isabs(venv_path):
+            subprocess.run(
+                [sys.executable, "-m", "venv", venv_path], check=True
+            )
+        else:
+            subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "venv",
+                    os.path.abspath(os.path.join(SCRIPT_PATH, venv_path)),
+                ],
+                check=True,
+            )
+        log("Virtual environment created successfully.")
+    except Exception as e:
+        log(f"Failed to create virtual environment, with error {e}")
+        return None
+    else:
+        save_conf_setting("VirtualEnvironment", venv_path)
+        return venv_path
+
+
+def venv_manager() -> Optional[str]:
+    requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
+    if not check_dependencies(requirements_txt):
+        pip_install = f"install -r '{requirements_txt}'"
+        return_code = pip(pip_install)
+        if return_code == 0:
+            return None
+        # if dependencies cant just be installed
+        else:
+            # go the venv route
+            venv_path = mk_venv()
+            if not venv_path:
+                log(
+                    "Failed to create virtual environment, trying to force install venv"
+                )
+                return_code = pip("install --break-system-packages venv")
+                if return_code == 0:
+                    venv_path = mk_venv()
+                    if not venv_path:
+                        log(
+                            "CRITICAL: Backup failed to create virtual environment, exiting"
+                        )
+                        exit_with_message(
+                            "Error on package venv",
+                            "Failed to create virtual environment. Error.",
+                        )
+                else:
+                    log(
+                        "CRITICAL: The python package 'venv' is not installed and could not be downloaded"
+                    )
+                    exit_with_message(
+                        "Missing python-venv",
+                        "The python package 'venv' is not installed and could not be downloaded. Error.",
+                    )
+            # At this point we have a venv
+            if venv_path and not os.path.isabs(venv_path):
+                venv_path = os.path.join(SCRIPT_PATH, venv_path)
+
+            # Determine the path to the Python executable within the virtual environment
+            venv_python = os.path.join(venv_path, "bin", "python")
+
+            # Preinstall dependencies in the virtual environment
+            return_code = pip(pip_install, venv_path)
+            if return_code != 0:
+                log("CRITICAL: Dependencies can't be installed")
+                exit_with_message(
+                    "Dependencies install error",
+                    "Failed to install dependencies. Error.",
+                )
+
+            return venv_python
+
+
+def setup_main() -> None:
     import shutil
+    import tempfile
+    import FreeSimpleGUI as sg
 
     if not welcome():
         print("Installation cancelled by user")
@@ -182,10 +288,8 @@ def main() -> None:
                 sys.exit(1)
 
 
-def init() -> None:
-    script_file = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "wemod")
-    )
+def run_wemod() -> None:
+    script_file = os.path.join(SCRIPT_PATH, "wemod")
     command = [sys.executable, script_file] + sys.argv[1:]
 
     # Execute the main script so the venv gets created
@@ -199,4 +303,4 @@ def init() -> None:
 
 
 if __name__ == "__main__":
-    init()
+    run_wemod()
