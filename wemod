@@ -602,11 +602,11 @@ def run(skip_init: bool = False) -> str:
     command = (
         f"for i in $(seq 1 {tout}); do "
         + "sleep 1; "
-        + f'if [ ! -f "{ttfile}" ]; then '
+        + f"if [ ! -f '{ttfile}' ]; then "
         + "break; fi; "
         + "done; "
-        + f'if [ -f "{ttfile}" ]; then '
-        + f'rm "{ttfile}"; fi'
+        + f"if [ -f '{ttfile}' ]; then "
+        + f"rm '{ttfile}'; fi"
     )
     log(
         f"Creating a game time tracking file, the bash command run is:\n\t{command}"
