@@ -106,29 +106,18 @@ def syncwemod(
             "GE-Proton"
             + str(cut_proton_version[0])
             + "."
-            + str(cut_proton_version[1]),
+            + str(cut_proton_version[1])
+            + ".zip",
         )
-        os.makedirs(os.path.join(destfile, "temp"), exist_ok=True)
-        shutil.rmtree(destfile)
-        os.makedirs(destfile, exist_ok=True)
-        copy_folder_with_progress(BASE_STEAM_COMPAT, destfile, [None], [None])
-        if os.path.exists(destfile + ".zip"):
-            os.remove(destfile + ".zip")
-        archive_command = (
-            f"cd '{destfile}' && zip -r '{os.path.basename(destfile)}.zip' *"
-        )
-        log(archive_command)
-        exit_code = popup_execute("Creating archive...", archive_command)
-        os.rename(
-            os.path.join(destfile, os.path.basename(destfile)) + ".zip",
-            destfile + ".zip",
-        )
-        shutil.rmtree(destfile)
-        if exit_code != 0:
-            exit_message = f"Archive creation failed with code '{exit_code}'"
-            exit_with_message("ERROR", exit_message, exit_code)
+        os.makedirs(os.path.join(os.path.dirname(destfile)), exist_ok=True)
+        if os.path.isfile(destfile):
+            os.remove(destfile)
+        log(f"Zipping folder '{BASE_STEAM_COMPAT}' into '{destfile}'")
+
+        copy_folder_with_progress(BASE_STEAM_COMPAT, destfile, True, [None], [None])
+
         os.system(
-            'xdg-open "%s"' % os.path.join(STEAM_COMPAT_FOLDER, "prefixes")
+            "xdg-open '" + os.path.join(STEAM_COMPAT_FOLDER, "prefixes") + "'"
         )
         log("Done creating Prefix zip")
         sys.exit(0)
@@ -263,7 +252,7 @@ def init(proton: str) -> None:
             )  # Sync wemod data in closest version
 
             copy_folder_with_progress(
-                closest_prefix_folder, BASE_STEAM_COMPAT, [None], [None]
+                closest_prefix_folder, BASE_STEAM_COMPAT, False, [None], [None]
             )
             syncwemod()  # Sync wemod data
             log(
@@ -390,27 +379,22 @@ def download_prefix(proton_dir: str) -> None:
     )
 
     # Unpack the downloaded prefix
-    log("Unpacking prefix...")
-    command = f"unzip -o '{prefix_path}' -d '{BASE_STEAM_COMPAT}'"
-    log(f"Using command for zip files: {command}")
+    log(f"Unpacking prefix file {prefix_path} into {BASE_STEAM_COMPAT}")
 
-    exit_code = popup_execute("Unpacking prefix...", command)
-    if exit_code != 0:
-        exit_message = f"Prefix unpacking failed with code '{exit_code}'"
-        exit_with_message("ERROR", exit_message, exit_code)
+    unpack_zip_with_progress(prefix_path, BASE_STEAM_COMPAT)
 
     # Delete cache file since the prefix copyer has been added there is no need to keep this file around
     fullfile = os.path.join(SCRIPT_PATH, ".cache", file_name)
-    if os.path.exists(fullfile):
+    if os.path.isfile(fullfile):
         os.remove(fullfile)
 
     syncwemod()
-    if not os.path.exists(
+    if not os.path.isfile(
         os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
     ):
         setup_main()
 
-    log("Finished prefix copy")
+    log("Finished prefix download and unpacking")
 
 
 def build_prefix(proton_dir: str) -> None:
