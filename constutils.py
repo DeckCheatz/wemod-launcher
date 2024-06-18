@@ -80,11 +80,11 @@ def enshure_wine() -> str:
 # Scan the steam compat folder for wemod installed prefixes
 def scanfolderforversions(
     current_version_parts: List[Union[int, None]] = [None, None]
-) -> List[Union[int, None]]:
-    # At default we dont know of any available version
+) -> List[Union[Optional[List[int]], Optional[str]]]:
+    # At default, we don't know of any available version
     closest_version_folder = None
     closest_version_number = None
-    priority = 5
+    priority = 6
 
     # For all folders in steam compat
     for folder in os.listdir(STEAM_COMPAT_FOLDER):
@@ -114,52 +114,34 @@ def scanfolderforversions(
                 elif (
                     folder_version_parts[0] == current_version_parts[0]
                     and folder_version_parts[1] < current_version_parts[1]
-                    and priority >= 2
                 ):
                     # Same major, lower minor version
-                    if (
-                        not closest_version_folder
-                        or folder_version_parts[1] > closest_version_number[1]
-                    ):
+                    if priority > 2 or (priority == 2 and (not closest_version_folder or folder_version_parts[1] > closest_version_number[1])):
                         priority = 2
                         closest_version_folder = folder_path
                         closest_version_number = folder_version_parts
                 elif (
                     folder_version_parts[0] == current_version_parts[0]
                     and folder_version_parts[1] > current_version_parts[1]
-                    and priority >= 3
                 ):
                     # Same major, higher minor version
-                    if (
-                        not closest_version_folder
-                        or folder_version_parts[1] < closest_version_number[1]
-                    ):
+                    if priority > 3 or (priority == 3 and (not closest_version_folder or folder_version_parts[1] < closest_version_number[1])):
                         priority = 3
                         closest_version_folder = folder_path
                         closest_version_number = folder_version_parts
-                elif (
-                    folder_version_parts[0] < current_version_parts[0]
-                    and priority >= 4
-                ):
+                elif folder_version_parts[0] < current_version_parts[0]:
                     # Lower major version
-                    if (
-                        not closest_version_folder
-                        or folder_version_parts[1] > closest_version_number[1]
-                    ):
+                    if priority > 4 or (priority == 4 and (not closest_version_folder or folder_version_parts[0] > closest_version_number[0] or (folder_version_parts[0] == closest_version_number[0] and folder_version_parts[1] > closest_version_number[1]))):
                         priority = 4
                         closest_version_folder = folder_path
                         closest_version_number = folder_version_parts
-                elif (
-                    folder_version_parts[0] > current_version_parts[0]
-                    and priority >= 5
-                ):
+                elif folder_version_parts[0] > current_version_parts[0]:
                     # Higher major version
-                    if (
-                        not closest_version_folder
-                        or folder_version_parts[1] < closest_version_number[1]
-                    ):
+                    if priority > 5 or (priority == 5 and (not closest_version_folder or folder_version_parts[0] < closest_version_number[0] or (folder_version_parts[0] == closest_version_number[0] and folder_version_parts[1] < closest_version_number[1]))):
+                        priority = 5
                         closest_version_folder = folder_path
                         closest_version_number = folder_version_parts
+
     return closest_version_number, closest_version_folder
 
 
