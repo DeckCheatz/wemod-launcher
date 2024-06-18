@@ -114,7 +114,9 @@ def syncwemod(
             os.remove(destfile)
         log(f"Zipping folder '{BASE_STEAM_COMPAT}' into '{destfile}'")
 
-        copy_folder_with_progress(BASE_STEAM_COMPAT, destfile, True, [None], [None])
+        copy_folder_with_progress(
+            BASE_STEAM_COMPAT, destfile, True, [None], [None]
+        )
 
         os.system(
             "xdg-open '" + os.path.join(STEAM_COMPAT_FOLDER, "prefixes") + "'"
@@ -252,7 +254,11 @@ def init(proton: str) -> None:
             )  # Sync wemod data in closest version
 
             copy_folder_with_progress(
-                closest_prefix_folder, BASE_STEAM_COMPAT, False, [None], [None]
+                closest_prefix_folder,
+                BASE_STEAM_COMPAT,
+                False,
+                [None],
+                [None],
             )
             syncwemod()  # Sync wemod data
             log(
