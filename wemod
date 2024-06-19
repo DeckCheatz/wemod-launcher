@@ -376,7 +376,7 @@ def download_prefix(proton_dir: str) -> None:
         )
         exit_with_message(
             "No downloads available",
-            f"Nothing to download on repo '{repo_concat}'. Error.",
+            f"Error, Nothing to download on repo '{repo_concat}',\nTo fix this you can try to delete the wemod.conf",
         )
     if response == "No":
         log(
