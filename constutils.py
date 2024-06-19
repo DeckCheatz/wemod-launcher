@@ -7,8 +7,9 @@ from urllib import request
 
 # Import consts
 from consts import (
-    BASE_STEAM_COMPAT,
     STEAM_COMPAT_FOLDER,
+    BASE_STEAM_COMPAT,
+    SCAN_FOLDER,
     WINEPREFIX,
 )
 
@@ -19,6 +20,8 @@ from coreutils import (
 )
 
 from corenodep import (
+    load_conf_setting,
+    save_conf_setting,
     parse_version,
     read_file,
 )
@@ -26,6 +29,7 @@ from corenodep import (
 from typing import (
     List,
     Union,
+    Optional,
 )
 
 from coreutils import (
@@ -86,16 +90,20 @@ def scanfolderforversions(
     closest_version_number = None
     priority = 6
 
+    # var to note a working protonge 7 prefix
+    prefix_path_seven = None
+
     # For all folders in steam compat
-    for folder in os.listdir(STEAM_COMPAT_FOLDER):
+    for folder in os.listdir(SCAN_FOLDER):
         # Get the version file, folder path and check if wemod is installed
-        folder_path = os.path.join(STEAM_COMPAT_FOLDER, folder)
+        folder_path = os.path.join(SCAN_FOLDER, folder)
         version_file = os.path.join(folder_path, "version")
 
         if os.path.isdir(folder_path) and os.path.exists(
             os.path.join(folder_path, "pfx", ".wemod_installer")
         ):
-            folder_version_parts = parse_version(read_file(version_file))
+            folder_version_str = read_file(version_file)
+            folder_version_parts = parse_version(folder_version_str)
 
             if (
                 folder_version_parts
@@ -107,23 +115,17 @@ def scanfolderforversions(
                     folder_version_parts[0] == current_version_parts[0]
                     and folder_version_parts[1] == current_version_parts[1]
                 ):
+                    priority = 1
                     # Same major and minor version
                     closest_version_folder = folder_path
                     closest_version_number = folder_version_parts
-                    break
+                    # break # enable if ver 7 was found by the users
                 elif (
                     folder_version_parts[0] == current_version_parts[0]
                     and folder_version_parts[1] < current_version_parts[1]
                 ):
                     # Same major, lower minor version
-                    if priority > 2 or (
-                        priority == 2
-                        and (
-                            not closest_version_folder
-                            or folder_version_parts[1]
-                            > closest_version_number[1]
-                        )
-                    ):
+                    if priority > 2 or (priority == 2 and (not closest_version_folder or folder_version_parts[1] > closest_version_number[1])):
                         priority = 2
                         closest_version_folder = folder_path
                         closest_version_number = folder_version_parts
@@ -132,55 +134,47 @@ def scanfolderforversions(
                     and folder_version_parts[1] > current_version_parts[1]
                 ):
                     # Same major, higher minor version
-                    if priority > 3 or (
-                        priority == 3
-                        and (
-                            not closest_version_folder
-                            or folder_version_parts[1]
-                            < closest_version_number[1]
-                        )
-                    ):
+                    if priority > 3 or (priority == 3 and (not closest_version_folder or folder_version_parts[1] < closest_version_number[1])):
                         priority = 3
                         closest_version_folder = folder_path
                         closest_version_number = folder_version_parts
                 elif folder_version_parts[0] < current_version_parts[0]:
                     # Lower major version
-                    if priority > 4 or (
-                        priority == 4
-                        and (
-                            not closest_version_folder
-                            or folder_version_parts[0]
-                            > closest_version_number[0]
-                            or (
-                                folder_version_parts[0]
-                                == closest_version_number[0]
-                                and folder_version_parts[1]
-                                > closest_version_number[1]
-                            )
-                        )
-                    ):
+                    if priority > 4 or (priority == 4 and (not closest_version_folder or folder_version_parts[0] > closest_version_number[0] or (folder_version_parts[0] == closest_version_number[0] and folder_version_parts[1] > closest_version_number[1]))):
                         priority = 4
                         closest_version_folder = folder_path
                         closest_version_number = folder_version_parts
                 elif folder_version_parts[0] > current_version_parts[0]:
                     # Higher major version
-                    if priority > 5 or (
-                        priority == 5
-                        and (
-                            not closest_version_folder
-                            or folder_version_parts[0]
-                            < closest_version_number[0]
-                            or (
-                                folder_version_parts[0]
-                                == closest_version_number[0]
-                                and folder_version_parts[1]
-                                < closest_version_number[1]
-                            )
-                        )
-                    ):
+                    if priority > 5 or (priority == 5 and (not closest_version_folder or folder_version_parts[0] < closest_version_number[0] or (folder_version_parts[0] == closest_version_number[0] and folder_version_parts[1] < closest_version_number[1]))):
                         priority = 5
                         closest_version_folder = folder_path
                         closest_version_number = folder_version_parts
+                # try to find any Proton7 prefix that the user might have for uploading
+                if folder_version_parts[0] == 7 and folder_version_str.find("GE-Proton") >= 0:
+                    minseven = load_conf_setting("ProtonMinorSeven")
+                    if minseven:
+                        minseven = int(minseven)
+                        if minseven < folder_version_parts[1]:
+                            save_conf_setting("ProtonMinorSeven",str(folder_version_parts[1]))
+                            prefix_path_seven = folder_path
+                    else:
+                        save_conf_setting("ProtonMinorSeven",str(folder_version_parts[1]))
+                        prefix_path_seven = folder_path
+
+    if prefix_path_seven:
+        from mainutils import copy_folder_with_progress
+        prefixesfolder = os.path.join(SCAN_FOLDER, "prefix")
+        os.makedirs(prefixesfolder, exists_ok=True)
+        protonconfminor = load_conf_setting("ProtonMinorSeven")
+        prefixesfile = os.path.join(prefixesfolder,f"Proton7.{protonconfminor}.zip")
+        # ask the user to upload the prefix if they have one
+        prresp = show_message("In your scanfolder the online missing prefix version with Proton 7 was found,\nplease be so kind and click yes to zip the prefix\nafter that upload it to something like https://www.sendgb.com/\nand lastly paste the link in a wemod issue", "Proton7 found", 60, True)
+        if prresp == "Yes":
+            copy_folder_with_progress(prefix_path_seven, prefixesfile, True, [None], [None])
+            os.system(f"xdg-open '{prefixesfolder}'")
+        elif prresp == "No":
+            save_conf_setting("ProtonMinorSeven","99")
 
     return closest_version_number, closest_version_folder
 
