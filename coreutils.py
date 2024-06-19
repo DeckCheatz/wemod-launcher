@@ -219,7 +219,7 @@ def cache(file_path: str, default: Callable[[str], None]) -> str:
 # Function to display options
 def popup_options(
     title: str, message: str, options: list[str], timeout: Optional[int] = 30
-) -> str:
+) -> Optional[str]:
     import FreeSimpleGUI as sg
 
     # Define the layout based on provided options
@@ -251,7 +251,8 @@ def popup_options(
             event == sg.WIN_CLOSED or event is None
         ):  # If window is closed manually or times out
             window.close()
-            return None  # You could return a default or handle this
+            return None
+    return None
 
 
 def get_user_input(
