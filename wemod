@@ -637,7 +637,6 @@ def run(skip_init: bool = False) -> str:
         else:
             print(str(wserver.stdout))
             print(str(wserver.stderr))
-            retc = wserver.wait()
 
     if os.path.exists(ttfile):
         os.remove(ttfile)
