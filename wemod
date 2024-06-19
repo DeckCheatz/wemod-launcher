@@ -336,11 +336,13 @@ def download_prefix(proton_dir: str) -> None:
     )
     current_version_parts = parse_version(current_proton_version)
 
+    closest_version = None
     releases = get_github_releases(repo_concat)
-    closest_version, url = find_closest_compatible_release(
-        releases, current_version_parts
-    )
-    file_name = f"wemod_prefix{closest_version[0]}.{closest_version[1]}.zip"
+    if len(releases) > 0:
+        closest_version, url = find_closest_compatible_release(
+            releases, current_version_parts
+        )
+        file_name = f"wemod_prefix{closest_version[0]}.{closest_version[1]}.zip"
 
     if (
         closest_version
