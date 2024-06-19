@@ -313,10 +313,10 @@ def download_prefix(proton_dir: str) -> None:
     repo_user = load_conf_setting("RepoUser")
     repo_name = load_conf_setting("RepoName")
     if not repo_name:
-        repo_name = "DaniAsh551"
+        repo_name = "wemod-launcher"
         save_conf_setting("RepoUser", repo_name)
     if not repo_user:
-        repo_user = "wemod-launcher"
+        repo_user = "DaniAsh551"
         save_conf_setting("RepoName", repo_user)
 
     repo_parts = os.getenv("REPO_STRING")
