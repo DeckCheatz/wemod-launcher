@@ -498,7 +498,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
         window.refresh()
 
     def unpack_files() -> None:
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
             files = zip_ref.namelist()
             total_files = len(files)
 
@@ -528,4 +528,3 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             sys.exit(0)
 
     window.close()
-
