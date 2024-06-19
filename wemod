@@ -38,6 +38,7 @@ from constutils import (
 # Import main utils
 from mainutils import (
     find_closest_compatible_release,
+    unpack_zip_with_progress,
     get_github_releases,
     popup_execute,
     popup_download,
