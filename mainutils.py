@@ -506,7 +506,10 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             window.refresh()
 
             for i, file in enumerate(files):
-                zip_ref.extract(file, dest_path)
+                try:
+                    zip_ref.extract(file, dest_path)
+                except Exception as e:
+                    log(f"Failed to extract {file} to {dest_path}: {e}")
                 update_progress(i + 1, total_files)
 
     sg.theme("systemdefault")
