@@ -484,3 +484,48 @@ def copy_folder_with_progress(
             sys.exit(0)
 
     window.close()
+
+
+def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
+    import zipfile
+    import FreeSimpleGUI as sg
+
+    def update_progress(unzipped: int, total: int) -> None:
+        """Update the GUI with the current progress."""
+        percentage = int(100 * (unzipped / total)) if total > 0 else 0
+        text.update(f"{percentage}% ({unzipped}/{total})")
+        progress.update(percentage)
+        window.refresh()
+
+    def unpack_files() -> None:
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            files = zip_ref.namelist()
+            total_files = len(files)
+
+            extra.update("Unpacking prefix, please be patient...")
+            window.refresh()
+
+            for i, file in enumerate(files):
+                zip_ref.extract(file, dest_path)
+                update_progress(i + 1, total_files)
+
+    sg.theme("systemdefault")
+
+    progress = sg.ProgressBar(100, orientation="h", s=(50, 10))
+    text = sg.Text("0% (0/?)")
+    extra = sg.Text("Reading ZIP file, please wait...")
+    layout = [[extra], [progress], [text]]
+    window = sg.Window("Unpacking Prefix", layout, finalize=True)
+    window.refresh()
+
+    window.perform_long_operation(unpack_files, "-UNPACK DONE-")
+
+    while True:
+        event, values = window.read(timeout=1000)
+        if event == "-UNPACK DONE-":
+            break
+        elif event is None:
+            sys.exit(0)
+
+    window.close()
+
