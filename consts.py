@@ -63,7 +63,7 @@ STEAM_COMPAT_FOLDER = os.path.dirname(BASE_STEAM_COMPAT)
 
 
 def get_scan_folder():
-    wscanfolder = os.getenv("SCAN_FOLDER")
+    wscanfolder = os.getenv("SCANFOLDER")
     cscanfolder = load_conf_setting("ScanFolder")
     if not wscanfolder:
         wscanfolder = cscanfolder
