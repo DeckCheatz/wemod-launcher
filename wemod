@@ -518,8 +518,8 @@ def run(skip_init: bool = False) -> str:
         # Take the full proton tool path
         PROTON = ARGS[fnr]
 
-        # If custom runner don't use a verb
-        if ARGS[(fnr + 1)].find(".exe") >= 0:
+        # If there is a file then it's a custom runner so don't use a verb
+        if ARGS[(fnr + 1)].find(".") >= 0:
             fnr -= 1
             verb = []
             tout = 60
@@ -551,8 +551,8 @@ def run(skip_init: bool = False) -> str:
         PROTON = PROTON_CMD[0]
 
         fnr = 2
-        # If custom runner don't use a verb
-        if PROTON[1].find(".exe") >= 0:
+        # If there is a file then it's a custom runner so don't use a verb
+        if ARGS[(fnr + 1)].find(".") >= 0:
             fnr -= 1
             verb = []
             tout = 60
