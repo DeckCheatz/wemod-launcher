@@ -57,9 +57,19 @@ def get_compat() -> str:
     os.makedirs(ecompat, exist_ok=True)
     return ecompat
 
-
 BASE_STEAM_COMPAT = get_compat()
 STEAM_COMPAT_FOLDER = os.path.dirname(BASE_STEAM_COMPAT)
+
+def get_scan_folder():
+    wscanfolder = os.getenv("SCAN_FOLDER")
+    cscanfolder = load_conf_setting("ScanFolder")
+    if not wscanfolder:
+        wscanfolder = cscanfolder
+    if not wscanfolder:
+        wscanfolder = STEAM_COMPAT_FOLDER
+    return wscanfolder
+
+SCAN_FOLDER = get_scan_folder()
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
 INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
