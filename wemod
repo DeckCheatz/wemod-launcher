@@ -73,6 +73,8 @@ SCRIPT_PATH = os.path.dirname(SCRIPT_FILE)
 def syncwemod(
     folder: Optional[str] = None,
 ) -> None:
+    import shutil
+
     response = None
     package_prefix = os.getenv(
         "PACKAGEPREFIX"
@@ -91,7 +93,6 @@ def syncwemod(
                         save_conf_setting("PackagePrefix", package_prefix)
                         package_prefix = "true"
     if package_prefix and folder == None and package_prefix.lower() == "true":
-        import shutil
         from mainutils import copy_folder_with_progress
 
         log(
