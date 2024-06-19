@@ -32,7 +32,11 @@ def get_github_releases(repo_name: str) -> List[Any]:
     except Exception as e:
         log(f"Failed to fetch releases, error reports {e}")
         from coreutils import exit_with_message
-        exit_with_message("Github Scan Failed",f"Failed to import requests for the gitub download with error:\n{e}")
+
+        exit_with_message(
+            "Github Scan Failed",
+            f"Failed to import requests for the gitub download with error:\n{e}",
+        )
         return []
     url = f"https://api.github.com/repos/{repo_name}/releases"
     response = requests.get(url)
@@ -42,7 +46,11 @@ def get_github_releases(repo_name: str) -> List[Any]:
     else:
         log("Failed to fetch releases.")
         from coreutils import exit_with_message
-        exit_with_message("Github Scan Failed",f"Failed to grab the github releases from {url},\nto fix this try to delete the config file")
+
+        exit_with_message(
+            "Github Scan Failed",
+            f"Failed to grab the github releases from {url},\nto fix this try to delete the config file",
+        )
         return []
 
 
