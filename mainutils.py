@@ -38,7 +38,9 @@ def get_github_releases(repo_name: str) -> List[Any]:
         releases = response.json()
         return releases
     else:
-        log(f"Failed to grab the github releases from '{url}',\nto fix this try to delete the config file")
+        log(
+            f"Failed to grab the github releases from '{url}',\nto fix this try to delete the config file"
+        )
         return []
 
 
