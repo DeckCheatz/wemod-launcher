@@ -44,7 +44,7 @@ def get_github_releases(repo_name: str) -> List[Any]:
         releases = response.json()
         return releases
     else:
-        log("Failed to fetch releases.")
+        log(f"Failed to fetch releases from {url}.")
         from coreutils import exit_with_message
 
         exit_with_message(
