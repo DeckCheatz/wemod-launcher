@@ -244,8 +244,10 @@ def self_update(path: Optional[str]) -> Optional[str]:
                 del os.environ["INITIAL_WEMOD_LAUCHER_START"]
             if path == None:
                 path = sys.executable
+            log("Update finished")
     except Exception as e:
         log(f"Failed to update, the following error appeared:\n\t{e}")
+        
 
     os.chdir(original_cwd)
     return path
