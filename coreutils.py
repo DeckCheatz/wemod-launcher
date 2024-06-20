@@ -305,10 +305,6 @@ def get_user_input(
 
 
 def script_manager() -> None:
-    if not os.getenv("INITIAL_WEMOD_LAUCHER_START"):
-        os.environ["INITIAL_WEMOD_LAUCHER_START"] = "Reported"
-    else:
-        return
     script_name = "wemod-laucher"
     script_version = "1.107"
     last_name = load_conf_setting("ScriptName")
