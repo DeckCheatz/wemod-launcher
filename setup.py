@@ -250,8 +250,6 @@ def self_update(path: Optional[str]) -> Optional[str]:
             subprocess.run(["chmod", "-R", "ug+x", "."], text=True)
             if path == None:
                 path = sys.executable
-            if os.getenv("INITIAL_WEMOD_LAUCHER_START") != None:
-                del os.environ["INITIAL_WEMOD_LAUCHER_START"]
             log("Update finished")
     except Exception as e:
         log(f"Failed to update, the following error appeared:\n\t{e}")
