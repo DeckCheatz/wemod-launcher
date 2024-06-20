@@ -33,7 +33,7 @@ def check_dependencies(requirements_file: str) -> bool:
             except ImportError:
                 from coreutils import log
 
-                log(f"{package} is missing")
+                log(f"Package '{package}' is missing")
                 ret = False
     return ret
 
