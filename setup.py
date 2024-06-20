@@ -222,8 +222,14 @@ def venv_manager() -> Optional[str]:
 
 
 def self_update(path: Optional[str]) -> Optional[str]:
-    original_cwd = os.getcwd()
+    upd = os.getenv("SELF_UPDATE")
+    if not eupd:
+        upd = load_conf_setting("SelfUpdate")
 
+    if upd.lower() == "false":
+        return path
+
+    original_cwd = os.getcwd()
     try:
         os.chdir(SCRIPT_PATH)
 
@@ -242,7 +248,7 @@ def self_update(path: Optional[str]) -> Optional[str]:
             subprocess.run(["chmod", "-R", "ug+x", "."], text=True)
             if path == None:
                 path = sys.executable
-            if "INITIAL_WEMOD_LAUCHER_START" in os.environ:
+            if os.getenv("INITIAL_WEMOD_LAUCHER_START") != None:
                 del os.environ["INITIAL_WEMOD_LAUCHER_START"]
             log("Update finished")
     except Exception as e:
