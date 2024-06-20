@@ -61,9 +61,6 @@ def find_closest_compatible_release(
         if tag_name and tag_name.startswith("PfxVer"):
             release_version_parts = parse_version(tag_name)
             if release_version_parts and current_version_parts:
-                print(
-                    f"main {release_version_parts[0]} -- scan {current_version_parts[0]}"
-                )
                 if (
                     release_version_parts[0] == current_version_parts[0]
                     and release_version_parts[1] == current_version_parts[1]
