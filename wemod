@@ -124,7 +124,11 @@ def syncwemod(
             "xdg-open '" + os.path.join(STEAM_COMPAT_FOLDER, "prefixes") + "'"
         )
         log("Done creating Prefix zip")
-        exit_with_message("Prefix Packaged","The prefix was zipped succesfully, exiting",timeout=5)
+        exit_with_message(
+            "Prefix Packaged",
+            "The prefix was zipped succesfully, exiting",
+            timeout=5,
+        )
 
     if folder == None:
         folder = BASE_STEAM_COMPAT
@@ -382,7 +386,11 @@ def download_prefix(proton_dir: str) -> None:
         log(
             f"User was unhappy with the version download choice of {closest_version[0]}.{closest_version[1]} for {current_version_parts[0]}.{current_version_parts[1]}, exiting"
         )
-        exit_with_message("Closing",f"Closing since the download of version {closest_version[0]}.{closest_version[1]} was denied",timeout=5)
+        exit_with_message(
+            "Closing",
+            f"Closing since the download of version {closest_version[0]}.{closest_version[1]} was denied",
+            timeout=5,
+        )
 
     # Download or use cached prefix
     prefix_path = cache(
