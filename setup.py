@@ -3,6 +3,7 @@
 import os
 import sys
 import stat
+import shutil
 import subprocess
 
 from coreutils import (
@@ -105,7 +106,6 @@ def unpack_wemod(
     try:
         import zipfile
         import tempfile
-        import shutil
 
         archive = zipfile.ZipFile(setup_file, mode="r")
         names = archive.filelist
@@ -223,7 +223,6 @@ def venv_manager() -> Optional[str]:
 
 
 def setup_main() -> None:
-    import shutil
     import tempfile
     import FreeSimpleGUI as sg
 
