@@ -50,6 +50,7 @@ Check the [Wiki Changelog](https://github.com/DaniAsh551/wemod-launcher/wiki/Cha
    If it says it `likely works` go to 12.
 11. Select download
 12. Select Yes/Ok until no more windows appear
+    All rundll32.exe errors can safely be ignored (click on `no` here)
 13. WeMod will start with the game
 14. Login and click play in WeMod for chosen game   
 15. Set Mods and Switch to game or close the WeMod window,  
