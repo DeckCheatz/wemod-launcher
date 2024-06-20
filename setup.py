@@ -223,7 +223,7 @@ def venv_manager() -> Optional[str]:
 
 def self_update(path: Optional[str]) -> Optional[str]:
     upd = os.getenv("SELF_UPDATE")
-    if not eupd:
+    if not upd:
         upd = load_conf_setting("SelfUpdate")
 
     if upd and upd.lower() == "false":
