@@ -31,8 +31,11 @@ Check the [Wiki Changelog](https://github.com/DaniAsh551/wemod-launcher/wiki/Cha
 
 ## Quick Guide
 <div><img src="https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=20&quality=lossless" alt="Alert"/>&nbsp;<b> This guide only includes the most relevant info and might not be enough to run WeMod,</b>
-<div> &nbsp; &nbsp; &nbsp; &nbsp; if so check out the <a href="https://github.com/DaniAsh551/wemod-launcher/wiki/Full-Guide">Full Guide</a> <b>OR</b> the <a href="https://youtu.be/5UlVCZvIl1E">video tutorial by Marvin1099</a>
-  
+<div> &nbsp; &nbsp; &nbsp; &nbsp; if so check out the <a href="https://github.com/DaniAsh551/wemod-launcher/wiki/Full-Guide">Full Guide</a> <b>OR</b> the <a href="https://youtu.be/5UlVCZvIl1E">video tutorial by Marvin1099</a><br><br>
+
+- **Optional:** If you have access to another PC and wish to control the Steam Deck remotely,  
+consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest)** for easier setup (the `.flatpak` is easiest).  
+
 1. First `Python venv` and `TK` need to be installed.
 2. Also Search for and install `ProtonUp-QT` in the store.
 3. Download the latest `GE-Proton` in `ProtonUp-QT`  
