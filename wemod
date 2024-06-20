@@ -2,6 +2,7 @@
 
 import os
 import sys
+import shutil
 import subprocess
 
 # Import core utils without download dependencies
@@ -73,8 +74,6 @@ SCRIPT_PATH = os.path.dirname(SCRIPT_FILE)
 def syncwemod(
     folder: Optional[str] = None,
 ) -> None:
-    import shutil
-
     response = None
     package_prefix = os.getenv(
         "PACKAGEPREFIX"
