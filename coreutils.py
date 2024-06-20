@@ -178,7 +178,12 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
         # Exit if pip.pyz still not present after download
         if not os.path.isfile(pip_pyz):
             log("CRITICAL: Failed to download pip. Exiting!")
-            exit_with_message("Pip missing","CRITICAL: Failed to download pip, exiting",1,timeout=5)
+            exit_with_message(
+                "Pip missing",
+                "CRITICAL: Failed to download pip, exiting",
+                1,
+                timeout=5,
+            )
     else:
         log("pip not installed. Using local pip.pyz")
 
@@ -305,7 +310,7 @@ def script_manager() -> None:
     else:
         return
     script_name = "wemod-laucher"
-    script_version = "1.101"
+    script_version = "1.102"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 
