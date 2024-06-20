@@ -2,6 +2,7 @@
 
 import os
 import sys
+import shutil
 
 from typing import (
     Callable,
@@ -402,8 +403,6 @@ def copy_folder_with_progress(
         window.refresh()
 
     def copy_files() -> None:
-        import shutil
-
         files = traverse_folders(source)
         copy = []
         for f in files:
