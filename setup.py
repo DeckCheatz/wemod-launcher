@@ -228,13 +228,13 @@ def self_update(path: Optional[str]) -> Optional[str]:
         os.chdir(SCRIPT_PATH)
 
         subprocess.run(["git", "fetch"], text=True)
-        status_output, status_error = subprocess.run(
+        progress = subprocess.run(
             ["git", "status"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
         )
-        if "Your branch is up to date" in status_output:
+        if "Your branch is up to date" in progress.stdout:
             log("No updates available")
         else:
             subprocess.run(["git", "reset", "--hard", "origin"], text=True)
@@ -242,10 +242,8 @@ def self_update(path: Optional[str]) -> Optional[str]:
             subprocess.run(["chmod", "-R", "ug+x", "."], text=True)
             if path == None:
                 path = sys.executable
-            try:
+            if "INITIAL_WEMOD_LAUCHER_START" in os.environ:
                 del os.environ["INITIAL_WEMOD_LAUCHER_START"]
-            except Exception as e:
-                pass
             log("Update finished")
     except Exception as e:
         log(f"Failed to update, the following error appeared:\n\t{e}")
