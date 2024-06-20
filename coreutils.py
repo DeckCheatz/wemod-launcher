@@ -141,7 +141,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
         process.wait()
         # Check if pip command was successful
         if process.returncode == 0:
-            log("pip finished")
+            log("Pip finished")
             return process.returncode
         elif b"externally-managed-environment" in stderr:
             log("Externally managed environment detected.")
