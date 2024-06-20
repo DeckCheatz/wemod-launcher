@@ -87,7 +87,7 @@ def download_wemod(temp_dir: str) -> str:
         if event == "-DL COMPLETE-":
             break
         elif event == None:
-            sys.exit(0)
+            exit_with_message("Window Closed","The window was closed, exiting",timeout=5)
         else:
             if len(status) < 2:
                 continue
@@ -314,13 +314,7 @@ def setup_main() -> None:
 
         if not unpacked:
             log("Failed to unpack WeMod.")
-            sg.popup("Failed to unpack WeMod.", "Failed to unpack WeMod.")
-            sys.exit(1)
-
-            if not unpacked:
-                log("Failed to unpack WeMod.")
-                sg.popup("Failed to unpack WeMod.", "Failed to unpack WeMod.")
-                sys.exit(1)
+            exit_with_message("Failed Unpack","Failed to unpack WeMod, exiting",1,timeout=10)
 
 
 def run_wemod() -> None:
