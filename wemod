@@ -673,7 +673,7 @@ if __name__ == "__main__":
     if python_venv:
         command = [python_venv, SCRIPT_FILE] + sys.argv[1:]
         log(
-            f"Re-running script within virtual environment or to update with the command:\n\t{command}\n\n"
+            f"Re-running script within virtual environment or to update with the command:\n\t{command}\n\nThe rerun was started"
         )
         # Execute the script within the virtual environment
         process = subprocess.run(command, capture_output=True, text=True)
