@@ -56,14 +56,8 @@ Check the [Wiki Changelog](https://github.com/DaniAsh551/wemod-launcher/wiki/Cha
     it will keep running in the background
 </div>
 
-To update the wemod-launcher run the following
-```
-cd home/$USER/wemod-launcher
-git reset --hard origin
-git pull
-sudo chmod -R ug+x .
-```
-
+The wemod-launcher will automatically update if you installed it using step 5.  
+**But:** This will only work if you have [launcher version 1.092 or older](https://github.com/DaniAsh551/wemod-launcher/wiki/The-Self-Update).
 
 **Optionally:** Check out tutorials on how to use specific [WeMod Laucher features](https://github.com/DaniAsh551/wemod-launcher/wiki/Launcher-Tutorials)  
 **Like:** Check how to [Use External Launchers](https://github.com/DaniAsh551/wemod-launcher/wiki/Using-External-Launchers) (Use The WeMod Launcher outside of Steam)  
