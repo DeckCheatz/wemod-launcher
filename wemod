@@ -572,7 +572,10 @@ def run(skip_init: bool = False) -> str:
 
     if not os.path.isfile(GAME_EXE):
         log(f"Error, the game executable at '{GAME_EXE}' is missing")
-        exit_with_message("Game Missing", f"The game executable at '{GAME_EXE}' is missing.\nMake sure the game runs without WeMod.\nIf not, use 'Verify Files' in Steam or ensure the game is installed correctly.")
+        exit_with_message(
+            "Game Missing",
+            f"The game executable at '{GAME_EXE}' is missing.\nMake sure the game runs without WeMod.\nIf not, use 'Verify Files' in Steam or ensure the game is installed correctly.",
+        )
 
     # Make gamepath be relative to workdir (workdir is the root game dir)
     REL_EXE = os.path.relpath(GAME_EXE, WORK_DIR)
