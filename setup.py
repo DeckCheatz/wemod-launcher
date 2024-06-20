@@ -247,7 +247,6 @@ def self_update(path: Optional[str]) -> Optional[str]:
             log("Update finished")
     except Exception as e:
         log(f"Failed to update, the following error appeared:\n\t{e}")
-        
 
     os.chdir(original_cwd)
     return path
