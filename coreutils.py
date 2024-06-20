@@ -111,6 +111,7 @@ def exit_with_message(
     timeout: Optional[int] = 20,
 ) -> None:
     show_message(exit_message, title, timeout, show_log_if_gui_missing=True)
+    log("\n\n\n")
     sys.exit(exit_code)
 
 
@@ -177,7 +178,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
         # Exit if pip.pyz still not present after download
         if not os.path.isfile(pip_pyz):
             log("CRITICAL: Failed to download pip. Exiting!")
-            sys.exit(1)
+            exit_with_message("Pip missing","CRITICAL: Failed to download pip, exiting",1,timeout=5)
     else:
         log("pip not installed. Using local pip.pyz")
 
