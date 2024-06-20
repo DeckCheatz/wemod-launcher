@@ -229,6 +229,7 @@ def self_update(path: Optional[str]) -> Optional[str]:
         upd = load_conf_setting("SelfUpdate")
 
     if upd and upd.lower() == "false":
+        log("Self update skiped")
         return path
 
     original_cwd = os.getcwd()
