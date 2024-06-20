@@ -226,7 +226,7 @@ def self_update(path: Optional[str]) -> Optional[str]:
     if not eupd:
         upd = load_conf_setting("SelfUpdate")
 
-    if upd.lower() == "false":
+    if upd and upd.lower() == "false":
         return path
 
     original_cwd = os.getcwd()
