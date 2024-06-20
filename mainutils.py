@@ -189,7 +189,9 @@ def popup_execute(
         if event == "-PROCESS COMPLETE-":
             break
         elif event is None:
-            exit_with_message("Window Closed","The window was closed, exiting",timeout=5)
+            exit_with_message(
+                "Window Closed", "The window was closed, exiting", timeout=5
+            )
         else:
             if len(text_str[0]) < 1:
                 continue
@@ -255,7 +257,9 @@ def popup_download(title: str, link: str, file_name: str) -> str:
         if event == "-DL COMPLETE-":
             break
         elif event is None:
-            exit_with_message("Window Closed","The window was closed, exiting",timeout=5)
+            exit_with_message(
+                "Window Closed", "The window was closed, exiting", timeout=5
+            )
         else:
             if len(status) < 2:
                 continue
@@ -336,7 +340,9 @@ def deref(path: str) -> None:
         if event == "-DEREF DONE-":
             break
         elif event is None:
-            exit_with_message("Window Closed","The window was closed, exiting",timeout=5)
+            exit_with_message(
+                "Window Closed", "The window was closed, exiting", timeout=5
+            )
 
     window.close()
 
@@ -471,7 +477,9 @@ def copy_folder_with_progress(
         if event == "-COPY DONE-":
             break
         elif event is None:
-            exit_with_message("Window Closed","The window was closed, exiting",timeout=5)
+            exit_with_message(
+                "Window Closed", "The window was closed, exiting", timeout=5
+            )
 
     window.close()
 
@@ -518,6 +526,8 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
         if event == "-UNPACK DONE-":
             break
         elif event is None:
-            exit_with_message("Window Closed","The window was closed, exiting",timeout=5)
+            exit_with_message(
+                "Window Closed", "The window was closed, exiting", timeout=5
+            )
 
     window.close()
