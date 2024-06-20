@@ -240,10 +240,12 @@ def self_update(path: Optional[str]) -> Optional[str]:
             subprocess.run(["git", "reset", "--hard", "origin"], text=True)
             subprocess.run(["git", "pull"], text=True)
             subprocess.run(["chmod", "-R", "ug+x", "."], text=True)
-            if "INITIAL_WEMOD_LAUCHER_START" in os.environ:
-                del os.environ["INITIAL_WEMOD_LAUCHER_START"]
             if path == None:
                 path = sys.executable
+            try:
+                del os.environ["INITIAL_WEMOD_LAUCHER_START"]
+            except Exception as e:
+                pass
             log("Update finished")
     except Exception as e:
         log(f"Failed to update, the following error appeared:\n\t{e}")
