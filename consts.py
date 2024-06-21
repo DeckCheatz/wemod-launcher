@@ -9,6 +9,7 @@ from corenodep import (
 
 from coreutils import (
     exit_with_message,
+    log,
 )
 
 SCRIPT_IMP_FILE = os.path.realpath(__file__)
@@ -39,12 +40,14 @@ def get_compat() -> str:
                     )
             else:
                 if not wine:
+                    log("Error, The WINE environment variable needs to be set if using extenal runners, exiting")
                     exit_with_message(
                         "Not wine not found",
                         "Error, wine not found,\nthe WINE environment variable needs to be set if using extenal runners, exiting",
                     )
                 os.environ["STEAM_COMPAT_TOOL_PATHS"] = os.path.dirname(wine)
         else:
+            log("The STEAM_COMPAT_DATA_PATH and the WINEPREFIX / WINE_PREFIX_PATH environment variables were not set.\nMost likely this is not running under wine, exiting")
             exit_with_message(
                 "Not running wine",
                 "Error, not running with wine,\nto run with wine you could select Proton in the compatibility settings, exiting",
