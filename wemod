@@ -5,6 +5,10 @@ import sys
 import shutil
 import subprocess
 
+
+from typing import Optional
+
+
 # Import core utils without download dependencies
 from corenodep import (
     split_list_by_delimiter,
@@ -27,15 +31,6 @@ from coreutils import (
 )
 
 
-# Import utils that need constants
-from constutils import (
-    enshure_wine,
-    scanfolderforversions,
-    winetricks,
-    wine,
-)
-
-
 # Import main utils
 from mainutils import (
     find_closest_compatible_release,
@@ -54,9 +49,39 @@ from setup import (
     setup_main,
 )
 
-from typing import (
-    Optional,
+
+# Fist main block of two
+if __name__ == "__main__": 
+    # Print version and update config
+    script_manager() 
+    # Make venv if needed andreturn path
+    python_venv = venv_manager()
+    # Update the script 
+    python_venv = self_update(python_venv)
+
+    # On venv path restart the script
+    if python_venv:
+        command = [python_venv, SCRIPT_FILE] + sys.argv[1:]
+        log(
+            f"Re-running script within virtual environment or to update with the command:\n\t{command}\n\nThe rerun was started"
+        )
+        # Execute the script within the virtual environment
+        process = subprocess.run(command, capture_output=True, text=True)
+        print(str(process.stdout))
+        print(str(process.stderr))
+        
+        # exit after it was run in a venv succesfully
+        sys.exit(process.returncode)  
+
+
+# Import utils that need constants
+from constutils import (
+    enshure_wine,
+    scanfolderforversions,
+    winetricks,
+    wine,
 )
+
 
 # Import consts
 from consts import (
@@ -666,23 +691,8 @@ def run(skip_init: bool = False) -> str:
     return "EXIT"
 
 
+# Second main block
 if __name__ == "__main__":
-    script_manager()
-    python_venv = venv_manager()
-    python_venv = self_update(python_venv)
-    if python_venv:
-        command = [python_venv, SCRIPT_FILE] + sys.argv[1:]
-        log(
-            f"Re-running script within virtual environment or to update with the command:\n\t{command}\n\nThe rerun was started"
-        )
-        # Execute the script within the virtual environment
-        process = subprocess.run(command, capture_output=True, text=True)
-        print(str(process.stdout))
-        print(str(process.stderr))
-        sys.exit(
-            process.returncode
-        )  # exit after it was run in a venv succesfully
-
     # Main execution block
     RESP = ""
     logy = "No"
