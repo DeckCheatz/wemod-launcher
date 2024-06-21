@@ -112,8 +112,16 @@ def exit_with_message(
     ask_for_log: bool = False,
 ) -> None:
     if ask_for_log:
-        exit_message += "\nDo you want to open the log for more info on the exit error?"
-    ret = show_message(exit_message, title, timeout, show_log_if_gui_missing=True,yesno=ask_for_log)
+        exit_message += (
+            "\nDo you want to open the log for more info on the exit error?"
+        )
+    ret = show_message(
+        exit_message,
+        title,
+        timeout,
+        show_log_if_gui_missing=True,
+        yesno=ask_for_log,
+    )
     log("\n\n\n")
     if ask_for_log and ret and ret == "Yes":
         log(open_log=True)
@@ -312,7 +320,7 @@ def get_user_input(
 
 def script_manager() -> None:
     script_name = "wemod-laucher"
-    script_version = "1.116"
+    script_version = "1.117"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 
