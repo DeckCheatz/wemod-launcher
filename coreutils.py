@@ -197,6 +197,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
                 "CRITICAL: Failed to download pip, exiting",
                 1,
                 timeout=5,
+                ask_for_log=True,
             )
     else:
         log("pip not installed. Using local pip.pyz")
