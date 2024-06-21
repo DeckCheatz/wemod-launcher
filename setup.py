@@ -196,6 +196,7 @@ def venv_manager() -> Optional[str]:
                         exit_with_message(
                             "Error on package venv",
                             "Failed to create virtual environment. Error.",
+                            ask_for_log=True,
                         )
                 else:
                     log(
@@ -204,6 +205,7 @@ def venv_manager() -> Optional[str]:
                     exit_with_message(
                         "Missing python-venv",
                         "The python package 'venv' is not installed and could not be downloaded. Error.",
+                        ask_for_log=True,
                     )
             # At this point we have a venv
             if venv_path and not os.path.isabs(venv_path):
@@ -219,6 +221,7 @@ def venv_manager() -> Optional[str]:
                 exit_with_message(
                     "Dependencies install error",
                     "Failed to install dependencies. Error.",
+                    ask_for_log=True,
                 )
             return venv_python
 
@@ -320,6 +323,7 @@ def setup_main() -> None:
                 "Failed to unpack WeMod, exiting",
                 1,
                 timeout=10,
+                ask_for_log=True,
             )
 
 
