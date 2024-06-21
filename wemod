@@ -50,6 +50,10 @@ from setup import (
 )
 
 
+SCRIPT_FILE = os.path.realpath(__file__)
+SCRIPT_PATH = os.path.dirname(SCRIPT_FILE)
+
+
 # Fist main block of two
 if __name__ == "__main__":
     # Print version and update config
@@ -91,9 +95,6 @@ from consts import (
     WINEPREFIX,
     INIT_FILE,
 )
-
-SCRIPT_FILE = os.path.realpath(__file__)
-SCRIPT_PATH = os.path.dirname(SCRIPT_FILE)
 
 
 # Symlink wemod data to make all wemod prefixes use the same wemod data
