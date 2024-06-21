@@ -51,12 +51,12 @@ from setup import (
 
 
 # Fist main block of two
-if __name__ == "__main__": 
+if __name__ == "__main__":
     # Print version and update config
-    script_manager() 
+    script_manager()
     # Make venv if needed andreturn path
     python_venv = venv_manager()
-    # Update the script 
+    # Update the script
     python_venv = self_update(python_venv)
 
     # On venv path restart the script
@@ -69,9 +69,9 @@ if __name__ == "__main__":
         process = subprocess.run(command, capture_output=True, text=True)
         print(str(process.stdout))
         print(str(process.stderr))
-        
+
         # exit after it was run in a venv succesfully
-        sys.exit(process.returncode)  
+        sys.exit(process.returncode)
 
 
 # Import utils that need constants
