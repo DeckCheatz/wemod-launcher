@@ -221,6 +221,7 @@ def init(proton: str) -> None:
             "Missing proton version",
             f"Error, the GE-Proton version file could not be read, its at:\n'{prefix_version_file}'.\nTry to delete the game prefix at:\n'{BASE_STEAM_COMPAT}'",
             timeout=30,
+            ask_for_log=True,
         )
 
     # If wemod is not installed try to copy a working prefix to the current one
@@ -339,6 +340,7 @@ def download_prefix(proton_dir: str) -> None:
         exit_with_message(
             "First Launch",
             "First Launch Detected: Please run the game once without wemod first. Error.",
+            ask_for_log=True,
         )
 
     repo_user = load_conf_setting("RepoUser")
@@ -406,6 +408,7 @@ def download_prefix(proton_dir: str) -> None:
         exit_with_message(
             "No downloads available",
             f"Error, Nothing to download on repo '{repo_concat}',\nTo fix this you can try to delete the wemod.conf",
+            ask_for_log=True,
         )
     if response == "No":
         log(
@@ -502,6 +505,7 @@ def build_prefix(proton_dir: str) -> None:
                 "dotnet48 installation exited with code '{}'".format(
                     dotnet48_result
                 ),
+                ask_for_log=True,
             )
 
     wine("winecfg -v win10", path)  # Set Windows version to Windows 10
@@ -517,6 +521,7 @@ def build_prefix(proton_dir: str) -> None:
                 resp
             ),
             resp,
+            ask_for_log=True,
         )
 
 
@@ -608,6 +613,7 @@ def run(skip_init: bool = False) -> str:
         exit_with_message(
             "Game Missing",
             f"The game executable at '{GAME_EXE}' is missing.\nMake sure the game runs without WeMod.\nIf not, use 'Verify Files' in Steam or ensure the game is installed correctly.",
+            ask_for_log=True,
         )
 
     # Make gamepath be relative to workdir (workdir is the root game dir)
