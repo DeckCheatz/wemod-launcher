@@ -109,9 +109,15 @@ def exit_with_message(
     exit_message: str,
     exit_code: int = 1,
     timeout: Optional[int] = 20,
+    ask_for_log: bool = False,
 ) -> None:
-    show_message(exit_message, title, timeout, show_log_if_gui_missing=True)
+    if ask_for_log:
+        exit_message += "\nDo you want to open the log for more info on the exit error?"
+    ret = show_message(exit_message, title, timeout, show_log_if_gui_missing=True,yesno=ask_for_log)
     log("\n\n\n")
+    if ask_for_log and ret and ret = "Yes":
+        log(open_log=True)
+
     sys.exit(exit_code)
 
 
