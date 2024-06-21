@@ -78,6 +78,7 @@ def enshure_wine() -> str:
         exit_with_message(
             "Missing Prefix",
             "Error, wineprefix is missing,\nmake shure you run the game without the wemod-laucher once",
+            ask_for_log=True,
         )
 
 
@@ -257,7 +258,7 @@ def winetricks(command: str, proton_bin: str) -> int:
         if exit_code != 0:
             message = f"failed to set exec permission on '{winetricks_sh}'"
             log(message)
-            exit_with_message("ERROR", message)
+            exit_with_message("ERROR", message, ask_for_log=True)
 
     # Prepare the command with the correct environment
     command = f"export PATH='{proton_bin}' && export WINEPREFIX='{WINEPREFIX}' && {winetricks_sh} {command}"
