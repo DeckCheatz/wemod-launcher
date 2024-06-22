@@ -119,7 +119,7 @@ def exit_with_message(
         exit_message,
         title,
         timeout,
-        show_log_if_gui_missing=True,
+        show_log_if_gui_missing=(not ask_for_log),
         yesno=ask_for_log,
     )
     log("\n\n\n")
