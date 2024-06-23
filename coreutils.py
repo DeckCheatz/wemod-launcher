@@ -219,6 +219,16 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
     return process.returncode
 
 
+def monitor_file(ttfile, tout):
+    import time
+    for _ in range(tout):
+        time.sleep(1)
+        if not os.path.exists(ttfile):
+            return
+    if os.path.exists(ttfile):
+        os.remove(ttfile)
+
+
 # Function to handle caching of files
 def cache(file_path: str, default: Callable[[str], None]) -> str:
     CACHE = os.path.join(SCRIPT_PATH, ".cache")
