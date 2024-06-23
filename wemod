@@ -3,6 +3,7 @@
 import os
 import sys
 import shutil
+import threading
 import subprocess
 
 
@@ -22,12 +23,13 @@ from corenodep import (
 
 # Import core utils
 from coreutils import (
-    log,
-    cache,
-    show_message,
     exit_with_message,
-    popup_options,
     script_manager,
+    popup_options,
+    show_message,
+    monitor_file,
+    cache,
+    log,
 )
 
 
@@ -316,8 +318,8 @@ def init(proton: str) -> None:
     # User choice for prefix setup
     prefix_op = popup_options(
         "Prefix Setup",
-        "Would you like to build/modify (only works on some systems) your prefix\nor download (faster and works on all systems) an already setup one?",
-        ["build", "download"],
+        "Would you like to download (faster and works on all systems) an already setup one \nor build/modify (only works on some systems) your prefix?",
+        ["download","build"],
     )
 
     # Determine proton directory
@@ -550,10 +552,8 @@ def run(skip_init: bool = False) -> str:
         log(
             f"The normal args list is {len(ARGS)} long and the full contents are:\n\t{ARGS}"
         )
-
         # Take the start of the command
         REAPER_CMD = ARGS[:fnr]
-
         # Take the full proton tool path
         PROTON = ARGS[fnr]
 
@@ -565,42 +565,35 @@ def run(skip_init: bool = False) -> str:
 
         # Get the game exe
         GAME_EXE = os.path.realpath(ARGS[(fnr + 2)])
-
         # Add more args at the end
         LAUNCH_OPTIONS = ARGS[(fnr + 3) :]
     else:
         # Subdivide the list into multiple lists based on delimiter
         AARGS = split_list_by_delimiter(ARGS, "--")
-
         # Log the args for future improvment
         log(
             f"The subsplit args list is {len(AARGS)} long and the full contents are:\n\t{AARGS}"
         )
-
         # Take the steam command part and merge it back into one list split by delimiter
         REAPER_CMD = join_lists_with_delimiter(AARGS[:-1], "--")
-
         # Add removed -- back at the end
         REAPER_CMD += ["--"]
-
         # Take the end that runs the game
         PROTON_CMD = AARGS[-1]
-
         # Take the proton path
         PROTON = PROTON_CMD[0]
 
-        fnr = 2
+        fnr = 0
         # If there is a file then it's a custom runner so don't use a verb
-        if ARGS[(fnr + 1)].find(".") >= 0:
+        if PROTON[(fnr + 1)].find(".") >= 0:
             fnr -= 1
             verb = []
             tout = 60
 
         # Get the game exe
-        GAME_EXE = os.path.realpath(PROTON_CMD[fnr])
-
+        GAME_EXE = os.path.realpath(PROTON_CMD[fnr + 2])
         # Add more args at the end
-        LAUNCH_OPTIONS = PROTON_CMD[(fnr + 1) :]
+        LAUNCH_OPTIONS = PROTON_CMD[(fnr + 3) :]
 
     # Initialize environment if not skipped
     if not skip_init:
@@ -638,23 +631,20 @@ def run(skip_init: bool = False) -> str:
         + LAUNCH_OPTIONS
     )
 
-    ttfile = os.path.join(SCRIPT_PATH, "temp.time")
+    ttfile = os.path.join(SCRIPT_PATH, ".cache", "early.tmp")
+
+    os.makedirs(os.path.dirname(ttfile),exist_ok=True)
+
     ttime = open(ttfile, "w")
     ttime.write("")
     ttime.close()
-    command = (
-        f"for i in $(seq 1 {tout}); do "
-        + "sleep 1; "
-        + f"if [ ! -f '{ttfile}' ]; then "
-        + "break; fi; "
-        + "done; "
-        + f"if [ -f '{ttfile}' ]; then "
-        + f"rm '{ttfile}'; fi"
-    )
+
     log(
-        f"Creating a game time tracking file, the bash command run is:\n\t{command}"
+        f"Creating a game time tracking file, the file is:\n\t{ttfile}"
     )
-    ttime = subprocess.Popen(command, shell=True)
+
+    ttime_thread = threading.Thread(target=monitor_file, args=(ttfile, tout))
+    ttime_thread.start()
 
     # Log the final command
     log(f"Executing:\n\t{FINAL}\n")
