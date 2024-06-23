@@ -221,6 +221,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
 
 def monitor_file(ttfile, tout):
     import time
+
     for _ in range(tout):
         time.sleep(1)
         if not os.path.exists(ttfile):
@@ -331,7 +332,7 @@ def get_user_input(
 
 def script_manager() -> None:
     script_name = "wemod-laucher"
-    script_version = "1.122"
+    script_version = "1.123"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 
