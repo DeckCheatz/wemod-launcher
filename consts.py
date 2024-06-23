@@ -42,7 +42,7 @@ def get_compat() -> str:
                         tools.strip(os.pathsep) + ":" + os.path.dirname(wine)
                     )
             # if tools are empty
-            elif not tools of len(tools.strip(os.pathsep)) == 0:
+            elif not tools or len(tools.strip(os.pathsep)) == 0:
                 if not wine:
                     log(
                         "Error, The WINE environment variable needs to be set if using extenal runners, exiting"
