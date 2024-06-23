@@ -319,7 +319,7 @@ def init(proton: str) -> None:
     prefix_op = popup_options(
         "Prefix Setup",
         "Would you like to download (faster and works on all systems) an already setup one \nor build/modify (only works on some systems) your prefix?",
-        ["download","build"],
+        ["download", "build"],
     )
 
     # Determine proton directory
@@ -633,15 +633,13 @@ def run(skip_init: bool = False) -> str:
 
     ttfile = os.path.join(SCRIPT_PATH, ".cache", "early.tmp")
 
-    os.makedirs(os.path.dirname(ttfile),exist_ok=True)
+    os.makedirs(os.path.dirname(ttfile), exist_ok=True)
 
     ttime = open(ttfile, "w")
     ttime.write("")
     ttime.close()
 
-    log(
-        f"Creating a game time tracking file, the file is:\n\t{ttfile}"
-    )
+    log(f"Creating a game time tracking file, the file is:\n\t{ttfile}")
 
     ttime_thread = threading.Thread(target=monitor_file, args=(ttfile, tout))
     ttime_thread.start()
