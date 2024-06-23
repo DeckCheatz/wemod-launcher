@@ -4,7 +4,7 @@
 SET mypath=%~dp0
 SET wemodname=WeMod.exe
 SET wemodpath=%mypath:~0,-1%\wemod_bin\%wemodname%
-SET temptime=%mypath:~0,-1%\temp.time
+SET temptime=%mypath:~0,-1%\.cache\early.tmp
 
 echo Hello from WeMod Launcher.
 echo.
