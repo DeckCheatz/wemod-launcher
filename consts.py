@@ -25,6 +25,7 @@ def get_compat() -> str:
         os.environ["WINEPREFIX"] = os.getenv("WINE_PREFIX_PATH")
     ecompat = os.getenv("STEAM_COMPAT_DATA_PATH")
     nogame = False
+    # STEAM_COMPAT_DATA_PATH not set
     if not ecompat:
         if os.getenv("WINEPREFIX") or wcompat:
             ecompat = wcompat
@@ -33,12 +34,15 @@ def get_compat() -> str:
             nogame = True
             wine = os.getenv("WINE")
             tools = os.getenv("STEAM_COMPAT_TOOL_PATHS")
-            if tools and len(tools.strip(os.pathsep)) > 0:
+            # if tools set and wine not in compat tools
+            if tools and len(tools.strip(os.pathsep)) > 0 and os.path.dirname(wine) not in tools.split(os.pathsep):
                 if wine:
+                    # add wine compat tool
                     os.environ["STEAM_COMPAT_TOOL_PATHS"] = (
                         tools.strip(os.pathsep) + ":" + os.path.dirname(wine)
                     )
-            else:
+            # if tools are empty
+            elif not tools of len(tools.strip(os.pathsep)) == 0:
                 if not wine:
                     log(
                         "Error, The WINE environment variable needs to be set if using extenal runners, exiting"
@@ -47,6 +51,7 @@ def get_compat() -> str:
                         "Not wine not found",
                         "Error, wine not found,\nthe WINE environment variable needs to be set if using extenal runners, exiting",
                     )
+                # set wine compat tool
                 os.environ["STEAM_COMPAT_TOOL_PATHS"] = os.path.dirname(wine)
         else:
             log(
