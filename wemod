@@ -344,7 +344,7 @@ def init(proton: str) -> None:
     # User choice for prefix setup
     prefix_op = popup_options(
         "Prefix Setup",
-        "Would you like to download (faster and works on all systems) an already setup one \nor build/modify (only works on some systems) your prefix?",
+        "Would you like to download (RECOMMENDED, faster and works on all systems) an already setup one \nor build/modify (only works on some systems) your prefix?",
         [["download", "build"]],
     )
 
