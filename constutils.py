@@ -231,7 +231,9 @@ def scanfolderforversions(
             True,
         )
         if prresp == "Yes":
-            seveninit = os.path.join(prefix_path_seven, "pfx", ".wemod_installer")
+            seveninit = os.path.join(
+                prefix_path_seven, "pfx", ".wemod_installer"
+            )
             initcont = read_file(seveninit)
             with open(seveninit, "w") as init:
                 init.write("")
@@ -239,7 +241,7 @@ def scanfolderforversions(
             copy_folder_with_progress(
                 prefix_path_seven, prefixesfile, True, [None], [None]
             )
-            
+
             if not initcont:
                 initcont = ""
             with open(seveninit, "w") as init:
