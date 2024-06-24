@@ -252,12 +252,17 @@ def cache(file_path: str, default: Callable[[str], None]) -> str:
 
 # Function to display options
 def popup_options(
-    title: str, message: str, options: List[List[str]], timeout: Optional[int] = 30
+    title: str,
+    message: str,
+    options: List[List[str]],
+    timeout: Optional[int] = 30,
 ) -> Optional[str]:
     import FreeSimpleGUI as sg
 
     # Define the layout based on provided options
-    buttons_layout = [[sg.Button(option) for option in row] for row in options]
+    buttons_layout = [
+        [sg.Button(option) for option in row] for row in options
+    ]
     layout = [[sg.Text(message)]] + buttons_layout
 
     close = True
@@ -276,10 +281,14 @@ def popup_options(
     while True:
         event, values = window.read()
 
-        if event in sum(options, []):  # Flatten the list of lists to check for the event
+        if event in sum(
+            options, []
+        ):  # Flatten the list of lists to check for the event
             window.close()
             return event
-        elif event == sg.WIN_CLOSED or event is None:  # If window is closed manually or times out
+        elif (
+            event == sg.WIN_CLOSED or event is None
+        ):  # If window is closed manually or times out
             window.close()
             return None
     return None
@@ -330,7 +339,7 @@ def get_user_input(
 
 def script_manager() -> None:
     script_name = "wemod-laucher"
-    script_version = "1.125"
+    script_version = "1.126"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 
