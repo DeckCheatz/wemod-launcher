@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import shutil
 import subprocess
 
 from urllib import request
@@ -11,12 +12,14 @@ from consts import (
     BASE_STEAM_COMPAT,
     SCAN_FOLDER,
     WINEPREFIX,
+    INIT_FILE,
 )
 
 from coreutils import (
-    show_message,
     exit_with_message,
     get_user_input,
+    popup_options,
+    show_message,
 )
 
 from corenodep import (
@@ -276,3 +279,38 @@ def wine(command: str, proton_bin: str) -> int:
     # Execute the command and return the response
     resp = popup_execute("wine", command)
     return resp
+
+def troubleshooter() -> None:
+    trouble = os.getenv("TROUBLESHOOT")
+    if not trouble and os.path.isfile(INIT_FILE):
+        trouble = read_file(INIT_FILE)
+    if not trouble:
+        trouble = load_conf_setting("Troubleshoot")
+    if not trouble:
+        trouble = "true"
+    if trouble.lower() == "true":
+        runtro = True
+        while runtro:
+            ret = popup_options("Troubleshooter","Did WeMod work as expected,\nif not troubleshoot common problems with wemod.\nDeleteing the gameprefix helps often.\nDelete Wemod.exe helps if wemod updates their progamm\nTo use the Troubleshooter after it was disabled,\nyou can add TROUBLESHOOT=true in front of the launch command",[["Disable troubleshooter globaly", "Disable troubleshooter for this game"],["Enable troubleshooter globaly","Enable troubleshooter for this game"],["Delete Gameprefix","Delete Wemod.exe"],["Close wemod-laucher"]],120)
+            if ret == "Disable troubleshooter globaly":
+                save_conf_setting("Troubleshoot","false")
+            elif ret == "Disable troubleshooter for this game":
+                with open(INIT_FILE, "w") as init:
+                    init.write("false")
+            elif ret == "Enable troubleshooter globaly":
+                save_conf_setting("Troubleshoot","true")
+            elif ret == "Enable troubleshooter for this game":
+                with open(INIT_FILE, "w") as init:
+                    init.write("true")
+            elif ret == "Delete Wemod.exe":
+                try:
+                    os.remove(os.path.join(SCRIPT_PATH,"wemod_bin","WeMod.exe"))
+                except Exception as e:
+                    pass
+            elif ret == "Delete Gameprefix":
+                try:
+                    shutil.rmtree(STEAM_COMPAT_FOLDER)
+                except Exception as e:
+                    pass
+            elif not ret or ret == "Close wemod-laucher":
+                runtro = False
