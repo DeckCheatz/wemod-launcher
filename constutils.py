@@ -280,6 +280,7 @@ def wine(command: str, proton_bin: str) -> int:
     resp = popup_execute("wine", command)
     return resp
 
+
 def troubleshooter() -> None:
     trouble = os.getenv("TROUBLESHOOT")
     if not trouble and os.path.isfile(INIT_FILE):
@@ -291,20 +292,38 @@ def troubleshooter() -> None:
     if trouble.lower() == "true":
         runtro = True
         while runtro:
-            ret = popup_options("Troubleshooter","Did WeMod work as expected,\nif not troubleshoot common problems with wemod.\nDeleteing the gameprefix helps often.\nDelete Wemod.exe helps if wemod updates their progamm\nTo use the Troubleshooter after it was disabled,\nyou can add TROUBLESHOOT=true in front of the launch command",[["Disable troubleshooter globaly", "Disable troubleshooter for this game"],["Enable troubleshooter globaly","Enable troubleshooter for this game"],["Delete Gameprefix","Delete Wemod.exe"],["Close wemod-laucher"]],120)
+            ret = popup_options(
+                "Troubleshooter",
+                "Did WeMod work as expected,\nif not troubleshoot common problems with wemod.\nDeleteing the gameprefix helps often.\nDelete Wemod.exe helps if wemod updates their progamm\nTo use the Troubleshooter after it was disabled,\nyou can add TROUBLESHOOT=true in front of the launch command",
+                [
+                    [
+                        "Disable troubleshooter globaly",
+                        "Disable troubleshooter for this game",
+                    ],
+                    [
+                        "Enable troubleshooter globaly",
+                        "Enable troubleshooter for this game",
+                    ],
+                    ["Delete Gameprefix", "Delete Wemod.exe"],
+                    ["Close wemod-laucher"],
+                ],
+                120,
+            )
             if ret == "Disable troubleshooter globaly":
-                save_conf_setting("Troubleshoot","false")
+                save_conf_setting("Troubleshoot", "false")
             elif ret == "Disable troubleshooter for this game":
                 with open(INIT_FILE, "w") as init:
                     init.write("false")
             elif ret == "Enable troubleshooter globaly":
-                save_conf_setting("Troubleshoot","true")
+                save_conf_setting("Troubleshoot", "true")
             elif ret == "Enable troubleshooter for this game":
                 with open(INIT_FILE, "w") as init:
                     init.write("true")
             elif ret == "Delete Wemod.exe":
                 try:
-                    os.remove(os.path.join(SCRIPT_PATH,"wemod_bin","WeMod.exe"))
+                    os.remove(
+                        os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
+                    )
                 except Exception as e:
                     pass
             elif ret == "Delete Gameprefix":
