@@ -82,8 +82,9 @@ if __name__ == "__main__":
 
 # Import utils that need constants
 from constutils import (
-    enshure_wine,
     scanfolderforversions,
+    troubleshooter,
+    enshure_wine,
     winetricks,
     wine,
 )
@@ -129,6 +130,13 @@ def syncwemod(
         current_proton_version = read_file(
             os.path.join(BASE_STEAM_COMPAT, "version")
         )
+        if not current_proton_version:
+            log(f"Version is not set for {BASE_STEAM_COMPAT}, Error")
+            exit_with_message(
+                "Prefix Version unknown",
+                "The prefix version is unknown, please make shure the prefix works with WeMod before trying to zip it",
+                timeout=20,
+            )
         cut_proton_version = parse_version(current_proton_version)
         destfile = os.path.join(
             STEAM_COMPAT_FOLDER,
@@ -139,14 +147,32 @@ def syncwemod(
             + str(cut_proton_version[1])
             + ".zip",
         )
+
+        if not os.path.isfile(INIT_FILE):
+            log(f"WeMod is not installed in {BASE_STEAM_COMPAT}, Error")
+            exit_with_message(
+                "WeMod not installed",
+                "WeMod is not installed in the active prefix, exiting",
+                timeout=20,
+            )
+
         os.makedirs(os.path.join(os.path.dirname(destfile)), exist_ok=True)
+
         if os.path.isfile(destfile):
             os.remove(destfile)
+
         log(f"Zipping folder '{BASE_STEAM_COMPAT}' into '{destfile}'")
+
+        initcont = read_file(INIT_FILE)
+        with open(INIT_FILE, "w") as init:
+            init.write("")
 
         copy_folder_with_progress(
             BASE_STEAM_COMPAT, destfile, True, [None], [None]
         )
+
+        with open(INIT_FILE, "w") as init:
+            init.write(initcont)
 
         os.system(
             "xdg-open '" + os.path.join(STEAM_COMPAT_FOLDER, "prefixes") + "'"
@@ -319,7 +345,7 @@ def init(proton: str) -> None:
     prefix_op = popup_options(
         "Prefix Setup",
         "Would you like to download (faster and works on all systems) an already setup one \nor build/modify (only works on some systems) your prefix?",
-        ["download", "build"],
+        [["download", "build"]],
     )
 
     # Determine proton directory
@@ -471,7 +497,7 @@ def build_prefix(proton_dir: str) -> None:
     dotnet48_method = popup_options(
         "dotnet48",
         "Would you like to install dotnet48 with winetricks (default, for GE-Proton8 or above)\nor with wemod-launcher (ONLY USE FOR GE-Proton7)\nWARNING: The wemod-launcher option isn't working well, you can try using it anyway (ONLY ON GE-Proton7)",
-        ["winetricks", "wemod-launcher"],
+        [["winetricks", "wemod-launcher"]],
     )
 
     # Add dependencies to the list
@@ -681,6 +707,8 @@ def run(skip_init: bool = False) -> str:
 
     if os.path.exists(ttfile):
         os.remove(ttfile)
+
+    troubleshooter()
 
     log(f"Exit command with:\n\t'{resp}'")
     return "EXIT"
