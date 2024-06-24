@@ -7,13 +7,15 @@ import subprocess
 from urllib import request
 
 from typing import (
-    Optional,
-    List,
-    Union,
     Callable,
+    Optional,
+    Union,
+    List,
+    Any,
 )
 
 from corenodep import (
+    join_lists_with_delimiter,
     load_conf_setting,
     save_conf_setting,
 )
@@ -250,13 +252,13 @@ def cache(file_path: str, default: Callable[[str], None]) -> str:
 
 # Function to display options
 def popup_options(
-    title: str, message: str, options: list[str], timeout: Optional[int] = 30
+    title: str, message: str, options: List[List[str]], timeout: Optional[int] = 30
 ) -> Optional[str]:
     import FreeSimpleGUI as sg
 
     # Define the layout based on provided options
-    buttons = [sg.Button(option) for option in options]
-    layout = [[sg.Text(message)], buttons]
+    buttons_layout = [[sg.Button(option) for option in row] for row in options]
+    layout = [[sg.Text(message)]] + buttons_layout
 
     close = True
     if timeout == None:
@@ -274,14 +276,10 @@ def popup_options(
     while True:
         event, values = window.read()
 
-        if (
-            event in options
-        ):  # If a recognized button is clicked, return that option
+        if event in sum(options, []):  # Flatten the list of lists to check for the event
             window.close()
             return event
-        elif (
-            event == sg.WIN_CLOSED or event is None
-        ):  # If window is closed manually or times out
+        elif event == sg.WIN_CLOSED or event is None:  # If window is closed manually or times out
             window.close()
             return None
     return None
