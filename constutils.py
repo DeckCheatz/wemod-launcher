@@ -225,15 +225,26 @@ def scanfolderforversions(
         )
         # ask the user to upload the prefix if they have one
         prresp = show_message(
-            "In your scanfolder the online missing prefix version with Proton 7 was found,\nplease be so kind and click yes to zip the prefix\nafter that upload it to something like https://www.sendgb.com/\nand lastly paste the link in a wemod issue",
+            f"In your scanfolder the online missing prefix version with GE-Proton 7 (.{protonconfminor}) was found,\nplease be so kind and click yes to zip the prefix\nafter that upload it to something like https://www.sendgb.com/\nand lastly paste the link in a wemod issue",
             "Proton7 found",
             60,
             True,
         )
         if prresp == "Yes":
+            seveninit = os.path.join(prefix_path_seven, "pfx", ".wemod_installer")
+            initcont = read_file(seveninit)
+            with open(seveninit, "w") as init:
+                init.write("")
+
             copy_folder_with_progress(
                 prefix_path_seven, prefixesfile, True, [None], [None]
             )
+            
+            if not initcont:
+                initcont = ""
+            with open(seveninit, "w") as init:
+                init.write(initcont)
+
             os.system(f"xdg-open '{prefixesfolder}'")
         elif prresp == "No":
             save_conf_setting("ProtonMinorSeven", "99")
