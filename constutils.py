@@ -54,7 +54,7 @@ def enshure_wine() -> str:
     if os.path.isdir(WinePfx):
         try:
             os.symlink(
-                BASE_STEAM_COMPAT, os.path.join(BASE_STEAM_COMPAT, "pfx")
+                BASE_STEAM_COMPAT, WINEPREFIX
             )
         except Exception as e:
             pass
@@ -231,16 +231,29 @@ def scanfolderforversions(
             True,
         )
         if prresp == "Yes":
-            seveninit = os.path.join(
-                prefix_path_seven, "pfx", ".wemod_installer"
-            )
+            sevenpfx = os.path.join(prefix_path_seven, "pfx")
+            seveninit = os.path.join(sevenpfx, ".wemod_installer")
+
             initcont = read_file(seveninit)
             with open(seveninit, "w") as init:
                 init.write("")
 
+            waslink = False
+            if os.path.islink(WINEPREFIX):
+                os.remove(WINEPREFIX)
+                waslink = True
+
             copy_folder_with_progress(
                 prefix_path_seven, prefixesfile, True, [None], [None]
             )
+
+            if waslink:
+                try:
+                    os.symlink(
+                        prefix_path_seven, sevenpfx
+                    )
+                except Exception as e:
+                    pass
 
             if not initcont:
                 initcont = ""
