@@ -178,9 +178,7 @@ def syncwemod(
 
         if waslink:
             try:
-                os.symlink(
-                    BASE_STEAM_COMPAT, WINEPREFIX
-                )
+                os.symlink(BASE_STEAM_COMPAT, WINEPREFIX)
             except Exception as e:
                 pass
 
