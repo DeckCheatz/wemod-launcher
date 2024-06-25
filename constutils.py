@@ -53,9 +53,7 @@ def enshure_wine() -> str:
     ProtonPfx = os.path.join(WINEPREFIX, "drive_c")
     if os.path.isdir(WinePfx):
         try:
-            os.symlink(
-                BASE_STEAM_COMPAT, WINEPREFIX
-            )
+            os.symlink(BASE_STEAM_COMPAT, WINEPREFIX)
         except Exception as e:
             pass
     if os.path.isdir(ProtonPfx):
@@ -249,9 +247,7 @@ def scanfolderforversions(
 
             if waslink:
                 try:
-                    os.symlink(
-                        prefix_path_seven, sevenpfx
-                    )
+                    os.symlink(prefix_path_seven, sevenpfx)
                 except Exception as e:
                     pass
 
