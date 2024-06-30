@@ -263,7 +263,9 @@ def init(proton: str, iswine: bool = False) -> None:
                 text=True,
             )
         except Exception as e:
-            log(f"Problem grabing the external wine version, using file, returned was:\n\t{e}")
+            log(
+                f"Problem grabing the external wine version, using file, returned was:\n\t{e}"
+            )
             prefix_version_file = enshure_wine()
         else:
             prefix_version_file = enshure_wine(str(wver.stdout))
