@@ -679,7 +679,9 @@ def run(skip_init: bool = False) -> str:
 
     log(f"Creating a game time tracking file, the file is:\n\t{ttfile}")
 
-    ttime_thread = threading.Thread(target=monitor_file, args=(ttfile, tout, returnfile))
+    ttime_thread = threading.Thread(
+        target=monitor_file, args=(ttfile, tout, returnfile)
+    )
     ttime_thread.start()
 
     # Log the final command
