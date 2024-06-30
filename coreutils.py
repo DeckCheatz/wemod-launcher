@@ -18,6 +18,7 @@ from corenodep import (
     join_lists_with_delimiter,
     load_conf_setting,
     save_conf_setting,
+    read_file,
 )
 
 SCRIPT_IMP_FILE = os.path.realpath(__file__)
@@ -221,15 +222,40 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
     return process.returncode
 
 
-def monitor_file(ttfile, tout):
+def monitor_file(ttfile: str, tout: int, responsefile: str, bout: Optional[int] = 60):
     import time
+
+    cout = os.getenv("WAIT_ON_GAMECLOSE")
+    if not cout:
+        cout = load_conf_setting("WaitOnGameclose")
+    if cout:
+        if cout.lower() == "none" or cout.lower() == "false":
+            bout = None
+        else:
+            try:
+                bout = int(cout)
+            except Exception as e:
+                pass
 
     for _ in range(tout):
         time.sleep(1)
         if not os.path.exists(ttfile):
+            time.sleep(1)
+            bat_respond(responsefile, bout)
             return
     if os.path.exists(ttfile):
         os.remove(ttfile)
+    time.sleep(1)
+    bat_respond(responsefile, bout)
+
+def bat_respond(responsefile: str, bout: Optional[int]):
+    if os.path.isfile(responsefile):
+        returnmessage = read_file(responsefile)
+        if bout != None:
+            batresp = show_message(returnmessage + f",\ndo you want to close wemod (yes) or wait longer (no)?\nWemod will close in {bout} seconds", "BAT Warning", bout, True)
+        if bout == None or batresp == "No":
+            show_message(returnmessage + ",\nclick ok if you are ready to close wemod", "BAT Warning", None, False)
+        os.remove(responsefile)
 
 
 # Function to handle caching of files
