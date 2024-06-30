@@ -222,7 +222,9 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
     return process.returncode
 
 
-def monitor_file(ttfile: str, tout: int, responsefile: str, bout: Optional[int] = 60):
+def monitor_file(
+    ttfile: str, tout: int, responsefile: str, bout: Optional[int] = 60
+):
     import time
 
     cout = os.getenv("WAIT_ON_GAMECLOSE")
@@ -248,13 +250,25 @@ def monitor_file(ttfile: str, tout: int, responsefile: str, bout: Optional[int] 
     time.sleep(1)
     bat_respond(responsefile, bout)
 
+
 def bat_respond(responsefile: str, bout: Optional[int]):
     if os.path.isfile(responsefile):
         returnmessage = read_file(responsefile)
         if bout != None:
-            batresp = show_message(returnmessage + f",\ndo you want to close wemod (yes) or wait longer (no)?\nWemod will close in {bout} seconds", "BAT Warning", bout, True)
+            batresp = show_message(
+                returnmessage
+                + f",\ndo you want to close wemod (yes) or wait longer (no)?\nWemod will close in {bout} seconds",
+                "BAT Warning",
+                bout,
+                True,
+            )
         if bout == None or batresp == "No":
-            show_message(returnmessage + ",\nclick ok if you are ready to close wemod", "BAT Warning", None, False)
+            show_message(
+                returnmessage + ",\nclick ok if you are ready to close wemod",
+                "BAT Warning",
+                None,
+                False,
+            )
         os.remove(responsefile)
 
 
@@ -365,7 +379,7 @@ def get_user_input(
 
 def script_manager() -> None:
     script_name = "wemod-laucher"
-    script_version = "1.132"
+    script_version = "1.133"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 
