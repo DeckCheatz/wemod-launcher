@@ -48,7 +48,7 @@ SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
 
 
 # Enshure that wine is isntalled
-def enshure_wine() -> str:
+def enshure_wine(verstr: Optional[str] = None) -> str:
     WinePfx = os.path.join(BASE_STEAM_COMPAT, "drive_c")
     ProtonPfx = os.path.join(WINEPREFIX, "drive_c")
     if os.path.isdir(WinePfx):
@@ -58,7 +58,10 @@ def enshure_wine() -> str:
             pass
     if os.path.isdir(ProtonPfx):
         ProtonVersion = os.path.join(BASE_STEAM_COMPAT, "version")
-        if not os.path.isfile(ProtonVersion):
+        if verstr:
+            with open(ProtonVersion, "w") as pver:
+                pver.write(verstr)
+        elif not os.path.isfile(ProtonVersion):
             got = None
             while not got:
                 resp, tout = get_user_input(
