@@ -246,14 +246,28 @@ def syncwemod(
 
 
 # Initialize the environment
-def init(proton: str) -> None:
+def init(proton: str, iswine: bool = False) -> None:
     # Create wineprefix directory if it doesn't exist
     if not os.path.isdir(WINEPREFIX):
         os.makedirs(BASE_STEAM_COMPAT, exist_ok=True)
 
-    prefix_version_file = enshure_wine()
-
     # Grab active proton version
+    if not iswine:
+        os.environ["WINEPREFIX"] = BASE_STEAM_COMPAT
+
+        wver = subprocess.run(
+            [proton, "--version"],
+            bufsize=1,
+            capture_output=True,
+            text=True,
+        )
+        except Exception as e:
+            log(f"Problem grabing the external wine version, using file, returned was:\n\t{e}")
+            prefix_version_file = enshure_wine()
+        else:
+            prefix_version_file = enshure_wine(str(wver.stdout))
+    else:
+        prefix_version_file = enshure_wine()
     current_proton_version = read_file(prefix_version_file)
     current_version_parts = parse_version(current_proton_version)
     if current_version_parts == None:
@@ -634,7 +648,7 @@ def run(skip_init: bool = False) -> str:
 
     # Initialize environment if not skipped
     if not skip_init:
-        init(PROTON)
+        init(PROTON, bool(verb))
 
     # Get working dir
     WORK_DIR = os.path.realpath(os.getcwd())
