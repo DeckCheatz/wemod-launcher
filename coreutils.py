@@ -257,14 +257,14 @@ def bat_respond(responsefile: str, bout: Optional[int]):
         if bout != None:
             batresp = show_message(
                 returnmessage
-                + f",\ndo you want to close wemod (yes) or wait longer (no)?\nWemod will close in {bout} seconds",
+                + f",\ndo you want to close WeMod (yes) or wait longer (no)?\nWemod will close in {bout} seconds",
                 "BAT Warning",
                 bout,
                 True,
             )
         if bout == None or batresp == "No":
             show_message(
-                returnmessage + ",\nclick ok if you are ready to close wemod",
+                returnmessage + ",\nclick ok if you are ready to close WeMod",
                 "BAT Warning",
                 None,
                 False,
