@@ -5,6 +5,7 @@ SET mypath=%~dp0
 SET wemodname=WeMod.exe
 SET wemodpath=%mypath:~0,-1%\wemod_bin\%wemodname%
 SET temptime=%mypath:~0,-1%\.cache\early.tmp
+SET returnfile=%mypath:~0,-1%\.cache\return.tmp
 
 echo Hello from WeMod Launcher.
 echo.
@@ -60,9 +61,15 @@ start /wait "" %*
 
 if defined wemodPID (
     if exist %temptime% (
+        del %temptime%
+        echo Game closed to fast, Game detection may have failed > %returnfile%
         echo.
-        echo Game closed to fast, Game detection may have failed, Press any key to exit
-        pause
+        echo Game closed to fast, Game detection may have failed, sending problem to python script and waiting for awnser
+        :WaitUser
+        @ping localhost -n 1 > NUL 2>&1
+        if exist %returnfile% (
+            goto WaitUser
+        )
     )
     C:/windows/system32/taskkill.exe /PID %wemodPID% /F 2>NUL
     C:/windows/system32/taskkill.exe /PID %wemodPID% /F 2>NUL
