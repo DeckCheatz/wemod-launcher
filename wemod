@@ -255,12 +255,13 @@ def init(proton: str, iswine: bool = False) -> None:
     if not iswine:
         os.environ["WINEPREFIX"] = BASE_STEAM_COMPAT
 
-        wver = subprocess.run(
-            [proton, "--version"],
-            bufsize=1,
-            capture_output=True,
-            text=True,
-        )
+        try:
+            wver = subprocess.run(
+                [proton, "--version"],
+                bufsize=1,
+                capture_output=True,
+                text=True,
+            )
         except Exception as e:
             log(f"Problem grabing the external wine version, using file, returned was:\n\t{e}")
             prefix_version_file = enshure_wine()
