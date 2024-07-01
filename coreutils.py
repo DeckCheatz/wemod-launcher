@@ -159,7 +159,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
         process.wait()
         # Check if pip command was successful
         if process.returncode == 0:
-            log("Pip finished")
+            log(f"Pip finished and returned:\n\t{stdout}\n\t{stderr}")
             return process.returncode
         elif b"externally-managed-environment" in stderr:
             log("Externally managed environment detected.")
@@ -175,7 +175,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
     stdout, stderr = process.communicate()
     # Check if -m pip command was successful
     if process.wait() == 0:
-        log("pip finished")
+        log(f"Pip finished and returned:\n\t{stdout}\n\t{stderr}")
         return process.returncode
     elif b"externally-managed-environment" in stderr:
         log("Externally managed environment detected.")
@@ -189,7 +189,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
 
     # Check and download pip.pyz if not present
     if not os.path.isfile(pip_pyz):
-        log("pip not found. Downloading...")
+        log("Pip not found. Downloading...")
         request.urlretrieve("https://bootstrap.pypa.io/pip/pip.pyz", pip_pyz)
 
         # Exit if pip.pyz still not present after download
@@ -203,7 +203,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
                 ask_for_log=True,
             )
     else:
-        log("pip not installed. Using local pip.pyz")
+        log("Pip not installed. Using local pip.pyz")
 
     # Execute the pip command using pip.pyz
     process = subprocess.Popen(
@@ -214,7 +214,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
     )
     stdout, stderr = process.communicate()
     if process.wait() == 0:
-        log("pip finished")
+        log(f"Pip finished and returned:\n\t{stdout}\n\t{stderr}")
     elif b"externally-managed-environment" in stderr:
         log("Externally managed environment detected.")
         return 99
