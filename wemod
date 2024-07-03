@@ -125,8 +125,9 @@ if __name__ == "__main__":
             time.sleep(0.5)
             flcmd = []
             with open(flatpacrunfile, "r") as frf:
-                for line in frf.read().split("\n"):
+                for line in frf:
                     flcmd.append(line)
+            log(f"Running:\n\t{flcmd}")
             try:
                 process = subprocess.run(flcmd, capture_output=True, text=True)
             except Exception as e:
