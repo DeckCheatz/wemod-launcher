@@ -794,7 +794,7 @@ def run(skip_init: bool = False) -> str:
 
         with open(flatpacrunfile, "w") as frf:
             for line in FINAL:
-                frf.write(line)
+                frf.write(line + "\n")
 
         time.sleep(2)
         save_conf_setting("FlatpacRunning", "true")
