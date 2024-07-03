@@ -177,7 +177,7 @@ def venv_manager() -> List[Optional[str]]:
     if not check_dependencies(requirements_txt):
         pip_install = f"install -r '{requirements_txt}'"
         return_code = pip(pip_install)
-        if check_dependencies(requirements_txt):
+        if return_code == 0:
             return []
         # if dependencies cant just be installed
         else:
