@@ -269,12 +269,13 @@ def check_flatpac(flatpac_cmd):
             "flatpak-spawn",
             "--host",
             "env",
-        ]  # STEAM_COMPAT_DATA_PATH= STEAM_COMPAT_TOOL_PATHS=
+        ]
 
         envlist = [
-            "WINEPREFIX",
             "STEAM_COMPAT_TOOL_PATHS",
+            "STEAM_COMPAT_DATA_PATH",
             "WINE_PREFIX_PATH",
+            "WINEPREFIX",
             "WINE",
             "SCANFOLDER",
             "TROUBLESHOOT",
