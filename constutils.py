@@ -307,14 +307,13 @@ def wine(command: str, proton_bin: str) -> int:
 
 
 def troubleshooter() -> None:
+    log("Checking if troubleshooter is wanted")
     trouble = os.getenv("TROUBLESHOOT")
     if not trouble and os.path.isfile(INIT_FILE):
         trouble = read_file(INIT_FILE)
     if not trouble:
         trouble = load_conf_setting("Troubleshoot")
-    if not trouble:
-        trouble = "true"
-    if trouble.lower() == "true":
+    if trouble == None or (trouble and trouble.lower() == "true"):
         runtro = True
         while runtro:
             ret = popup_options(
@@ -358,3 +357,5 @@ def troubleshooter() -> None:
                     pass
             elif not ret or ret == "Close wemod-laucher":
                 runtro = False
+    else:
+        log("Troubleshooter was skipped")
