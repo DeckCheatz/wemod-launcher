@@ -307,7 +307,6 @@ def wine(command: str, proton_bin: str) -> int:
 
 
 def troubleshooter() -> None:
-    log("Checking if troubleshooter is wanted")
     trouble = os.getenv("TROUBLESHOOT")
     if not trouble and os.path.isfile(INIT_FILE):
         trouble = read_file(INIT_FILE)
@@ -316,6 +315,7 @@ def troubleshooter() -> None:
     if trouble == None or (trouble and trouble.lower() == "true"):
         runtro = True
         while runtro:
+            log("Starting troubleshooter")
             ret = popup_options(
                 "Troubleshooter",
                 "Did WeMod work as expected,\nif not troubleshoot common problems with wemod.\nDeleteing the gameprefix helps often.\nDelete Wemod.exe helps if wemod updates their progamm\nTo use the Troubleshooter after it was disabled,\nyou can add TROUBLESHOOT=true in front of the launch command",
@@ -333,6 +333,7 @@ def troubleshooter() -> None:
                 ],
                 120,
             )
+            log(f"Selected in the troubleshooter was '{ret}'")
             if ret == "Disable troubleshooter globaly":
                 save_conf_setting("Troubleshoot", "false")
             elif ret == "Disable troubleshooter for this game":
@@ -357,5 +358,3 @@ def troubleshooter() -> None:
                     pass
             elif not ret or ret == "Close wemod-laucher":
                 runtro = False
-    else:
-        log("Troubleshooter was skipped")
