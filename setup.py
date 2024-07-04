@@ -263,9 +263,9 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
     return path
 
 
-def check_flatpac(flatpac_cmd):
+def check_flatpak(flatpak_cmd):
     if "FLATPAK_ID" in os.environ or os.path.exists("/.flatpak-info"):
-        flatpac_start = [
+        flatpak_start = [
             "flatpak-spawn",
             "--host",
             "env",
@@ -287,19 +287,19 @@ def check_flatpac(flatpac_cmd):
         ]
         for env in envlist:
             if env in os.environ:
-                flatpac_start.append(f"{env}={os.environ[env]}")
+                flatpak_start.append(f"{env}={os.environ[env]}")
         infpr = os.getenv("WeModInfProtect", "1")
         infpr = str(int(infpr) + 1)
 
-        flatpac_start.append("FROM_FLATPAC=true")
-        flatpac_start.append(f"WeModInfProtect={infpr}")
+        flatpak_start.append("FROM_FLATPAC=true")
+        flatpak_start.append(f"WeModInfProtect={infpr}")
 
-        if bool(flatpac_cmd):  # if venv is set use it
-            flatpac_cmd = flatpac_start + flatpac_cmd
+        if bool(flatpak_cmd):  # if venv is set use it
+            flatpak_cmd = flatpak_start + flatpak_cmd
         else:  # if not use python executable
-            flatpac_cmd = flatpac_start + [sys.executable]
+            flatpak_cmd = flatpak_start + [sys.executable]
 
-    return flatpac_cmd
+    return flatpak_cmd
 
 
 def setup_main() -> None:

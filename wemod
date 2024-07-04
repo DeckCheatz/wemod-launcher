@@ -16,6 +16,7 @@ from corenodep import (
     split_list_by_delimiter,
     load_conf_setting,
     save_conf_setting,
+    flatpakrunner,
     parse_version,
     read_file,
     winpath,
@@ -46,7 +47,7 @@ from mainutils import (
 
 # Import from setup
 from setup import (
-    check_flatpac,
+    check_flatpak,
     venv_manager,
     self_update,
     setup_main,
@@ -65,11 +66,11 @@ if __name__ == "__main__":
     python_venv = venv_manager()
     # Update the script
     python_venv = self_update(python_venv)
-    # Detect if the script is running inside a flatpac
-    if_flatpac_list = check_flatpac(python_venv)
+    # Detect if the script is running inside a flatpak
+    if_flatpak_list = check_flatpak(python_venv)
 
     # On venv path restart the script
-    if bool(if_flatpac_list):
+    if bool(if_flatpak_list):
         # Use environment varible to protect the script from re-running forever
         inf_protect = os.getenv("WeModInfProtect", "1")
         if int(inf_protect) > 4:
@@ -79,10 +80,18 @@ if __name__ == "__main__":
             )
         os.environ["WeModInfProtect"] = str(int(inf_protect) + 1)
 
-        command = if_flatpac_list + [SCRIPT_FILE] + sys.argv[1:]
+        command = if_flatpak_list + [SCRIPT_FILE] + sys.argv[1:]
         log(
-            f"Re-running script within virtual environment \nor to update or to run outside of flatpac with the command:\n\t{command}\n\nThe rerun nr {inf_protect} was started"
+            f"Re-running script within virtual environment \nor to update or to run outside of flatpak with the command:\n\t{command}\n\nThe rerun nr {inf_protect} was started"
         )
+
+        # if we are in a flatpak we wait for a command to be passed back into the script in a thread
+        if len(if_flatpak_list) > 1:
+            flat_thread = threading.Thread(
+                target=flatpakrunner
+            )
+            flat_thread.start()
+
         # Execute the script within the virtual environment
         try:
             process = subprocess.run(command, capture_output=True, text=True)
@@ -93,64 +102,24 @@ if __name__ == "__main__":
             log("The rerun command starts with a unavailable progamm")
             exit_with_message(
                 "Command unavailable",
-                "The command to rerun the script failed becalse the command was unavailable\nYou are probably using flatpac,\nif that is the case install flatpak-xdg-utils\nand allow system and session bus in flatseal",
+                "The command to rerun the script failed becalse the command was unavailable\nYou are probably using flatpak,\nif that is the case install flatpak-xdg-utils\nand allow system and session bus in flatseal",
             )
         except FileNotFoundError:
             # If the command is not found, it is not available
             log("The rerun command starts with a missing progamm")
             exit_with_message(
                 "Command missing",
-                "The command to rerun the script failed becalse the command was missing\nYou are probably using flatpac,\nif that is the case install flatpak-xdg-utils\nand allow system and session bus in flatseal",
+                "The command to rerun the script failed becalse the command was missing\nYou are probably using flatpak,\nif that is the case install flatpak-xdg-utils\nand allow system and session bus in flatseal",
             )
         except Exception as e:
             log(f"Unknown rerun command error:\n\t{e}")
             exit_with_message(
                 "Unknown Command error",
-                f"The command to rerun the script failed becalse the command returned an unknown error:\n\t{e}\nYou are probably using flatpac,\nif that is the case install flatpak-xdg-utils\nand allow system and session bus in flatseal",
+                f"The command to rerun the script failed becalse the command returned an unknown error:\n\t{e}\nYou are probably using flatpak,\nif that is the case install flatpak-xdg-utils\nand allow system and session bus in flatseal",
             )
 
-        # if we are in a flatpac we wait for a command to be passed back into the script
-        if len(if_flatpac_list) > 1:
-            import time
-
-            cachedir = os.path.join(SCRIPT_PATH, ".cache")
-            os.makedirs(cachedir, exist_ok=True)
-
-            flatpacrunfile = os.path.join(cachedir, "insideflatpac.tmp")
-            errorfile = os.path.join(cachedir, "flatpacerror.tmp")
-            warnfile = os.path.join(cachedir, "flatpacwarn.tmp")
-
-            while not os.path.isfile(flatpacrunfile):
-                time.sleep(1)
-            time.sleep(0.5)
-            flcmd = []
-            with open(flatpacrunfile, "r") as frf:
-                for line in frf:
-                    flcmd.append(line)
-            log(f"Running:\n\t{flcmd}")
-            try:
-                process = subprocess.run(flcmd, capture_output=True, text=True)
-            except Exception as e:
-                with open(errorfile, "w") as fef:
-                    fef.write(str(e))
-            else:
-                print(str(process.stdout))
-                print(str(process.stderr))
-            try:
-                if not os.getenv("SteamCompatDataPath"):
-                    wserver = subprocess.run(
-                        ["wineserver", "--wait"],
-                        bufsize=1,
-                        capture_output=True,
-                        text=True,
-                    )
-                    print(str(wserver.stdout))
-                    print(str(wserver.stderr))
-            except Exception as e:
-                with open(warnfile, "w") as fwf:
-                    fef.write(str(e))
-            if os.path.isfile(flatpacrunfile):
-                os.remove(flatpacrunfile)
+        if len(if_flatpak_list) > 1:
+            flat_thread.join()
 
         # exit after it was run in a venv succesfully
         sys.exit(process.returncode)
@@ -777,35 +746,35 @@ def run(skip_init: bool = False) -> str:
     if fromflat:
         import time
 
-        log("Useing flatpac mode")
+        log("Useing flatpak mode")
 
         cachedir = os.path.join(SCRIPT_PATH, ".cache")
         os.makedirs(cachedir, exist_ok=True)
 
-        flatrunn = load_conf_setting("FlatpacRunning")
+        flatrunn = load_conf_setting("FlatpakRunning")
         if flatrunn:
-            log("Flatpac prosses still running")
-            save_conf_setting("FlatpacRunning", "new")
+            log("Flatpak prosses still running\nSending exit command to old instance")
+            save_conf_setting("FlatpakRunning", "new")
         else:
-            save_conf_setting("FlatpacRunning", "true")
+            save_conf_setting("FlatpakRunning", "true")
 
-        flatpacrunfile = os.path.join(cachedir, "insideflatpac.tmp")
-        errorfile = os.path.join(cachedir, "flatpacerror.tmp")
-        warnfile = os.path.join(cachedir, "flatpacwarn.tmp")
+        flatpakrunfile = os.path.join(cachedir, "insideflatpak.tmp")
+        errorfile = os.path.join(cachedir, "flatpakerror.tmp")
+        warnfile = os.path.join(cachedir, "flatpakwarn.tmp")
 
-        with open(flatpacrunfile, "w") as frf:
+        with open(flatpakrunfile, "w") as frf:
             for line in FINAL:
                 frf.write(line + "\n")
 
         time.sleep(2)
-        save_conf_setting("FlatpacRunning", "true")
-        while os.path.isfile(flatpacrunfile):
-            flatrunn = load_conf_setting("FlatpacRunning")
+        save_conf_setting("FlatpakRunning", "true")
+        while os.path.isfile(flatpakrunfile):
+            flatrunn = load_conf_setting("FlatpakRunning")
             if (flatrunn and flatrunn == "new") or not flatrunn:
                 log("New instance detected, closesing old instance")
                 sys.exit(0)
             time.sleep(1)
-        save_conf_setting("FlatpacRunning", None)
+        save_conf_setting("FlatpakRunning", None)
 
         if os.path.isfile(errorfile):
             with open(errorfile, "r") as fef:
@@ -825,7 +794,7 @@ def run(skip_init: bool = False) -> str:
                     )
 
     else:
-        save_conf_setting("FlatpacRunning", None)
+        save_conf_setting("FlatpakRunning", None)
 
         # Execute the final command
         process = subprocess.Popen(FINAL, stdout=subprocess.PIPE)
