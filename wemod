@@ -767,7 +767,7 @@ def run(skip_init: bool = False) -> str:
                 error = fef.read()
                 os.remove(errorfile)
                 if error:
-                    raise str(error)
+                    raise Exception(str(error))
 
         if os.path.isfile(warnfile):
             with open(warnfile, "r") as fwf:
@@ -775,8 +775,7 @@ def run(skip_init: bool = False) -> str:
                 os.remove(warnfile)
                 if warn:
                     log(
-                        "Problem loading the winesever waiter, the error is:\n\t"
-                        + str(warn)
+                        f"Problem loading the winesever waiter, the error is:\n\t{warn}"
                     )
 
     else:
