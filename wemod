@@ -739,13 +739,6 @@ def run(skip_init: bool = False) -> str:
         cachedir = os.path.join(SCRIPT_PATH, ".cache")
         os.makedirs(cachedir, exist_ok=True)
 
-        flatrunn = load_conf_setting("FlatpakRunning")
-        if flatrunn:
-            log("Flatpak prosses still running\nSending exit command to old instance")
-            save_conf_setting("FlatpakRunning", "new")
-        else:
-            save_conf_setting("FlatpakRunning", "true")
-
         flatpakrunfile = os.path.join(cachedir, "insideflatpak.tmp")
         errorfile = os.path.join(cachedir, "flatpakerror.tmp")
         warnfile = os.path.join(cachedir, "flatpakwarn.tmp")
