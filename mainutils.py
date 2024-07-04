@@ -484,6 +484,7 @@ def copy_folder_with_progress(
 
 
 def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
+    import stat
     import zipfile
     import FreeSimpleGUI as sg
 
@@ -503,11 +504,28 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             window.refresh()
 
             for i, file in enumerate(files):
+                try: # try to allow read and write on folder
+                    os.chmod(os.path.dirname(file), stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH)
+                except Exception as e:
+                    pass
+                try: # try to allow read and write on file
+                    os.chmod(os.path.dirname(file), stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH | stat.S_IWOTH)
+                except Exception as e:
+                    pass
                 try:
                     zip_ref.extract(file, dest_path)
                 except Exception as e:
                     log(f"Failed to extract {file} to {dest_path}: {e}")
                 update_progress(i + 1, total_files)
+
+    try: # try to allow read and write on parent of main folder
+        os.chmod(os.path.dirname(dest_path), stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH)
+    except Exception as e:
+        pass
+    try: # try to allow read and write on main folder
+        os.chmod(dest_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH)
+    except Exception as e:
+        pass
 
     sg.theme("systemdefault")
 
