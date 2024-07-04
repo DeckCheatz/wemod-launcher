@@ -80,10 +80,6 @@ if __name__ == "__main__":
             )
         os.environ["WeModInfProtect"] = str(int(inf_protect) + 1)
 
-        command = if_flatpak_list + [SCRIPT_FILE] + sys.argv[1:]
-        log(
-            f"Re-running script within virtual environment \nor to update or to run outside of flatpak with the command:\n\t{command}\n\nThe rerun nr {inf_protect} was started"
-        )
 
         # if we are in a flatpak we wait for a command to be passed back into the script in a thread
         if len(if_flatpak_list) > 1:
@@ -91,6 +87,12 @@ if __name__ == "__main__":
                 target=flatpakrunner
             )
             flat_thread.start()
+
+
+        command = if_flatpak_list + [SCRIPT_FILE] + sys.argv[1:]
+        log(
+            f"Re-running script within virtual environment \nor to update or to run outside of flatpak with the command:\n\t{command}\n\nThe rerun nr {inf_protect} was started"
+        )
 
         # Execute the script within the virtual environment
         try:
