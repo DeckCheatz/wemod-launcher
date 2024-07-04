@@ -528,3 +528,46 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             )
 
     window.close()
+
+
+def flatpakrunner():
+    import time
+
+    cachedir = os.path.join(SCRIPT_PATH, ".cache")
+    os.makedirs(cachedir, exist_ok=True)
+
+    flatpakrunfile = os.path.join(cachedir, "insideflatpak.tmp")
+    errorfile = os.path.join(cachedir, "flatpakerror.tmp")
+    warnfile = os.path.join(cachedir, "flatpakwarn.tmp")
+
+    while not os.path.isfile(flatpakrunfile):
+        time.sleep(1)
+    time.sleep(0.5)
+    flcmd = []
+    with open(flatpakrunfile, "r") as frf:
+        for line in frf:
+            flcmd.append(line)
+    log(f"Running:\n\t{flcmd}")
+    try:
+        process = subprocess.run(flcmd, capture_output=True, text=True)
+    except Exception as e:
+        with open(errorfile, "w") as fef:
+            fef.write(str(e))
+    else:
+        print(str(process.stdout))
+        print(str(process.stderr))
+    try:
+        if not os.getenv("SteamCompatDataPath"):
+            wserver = subprocess.run(
+                ["wineserver", "--wait"],
+                bufsize=1,
+                capture_output=True,
+                text=True,
+            )
+            print(str(wserver.stdout))
+            print(str(wserver.stderr))
+    except Exception as e:
+        with open(warnfile, "w") as fwf:
+            fef.write(str(e))
+    if os.path.isfile(flatpakrunfile):
+        os.remove(flatpakrunfile)
