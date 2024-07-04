@@ -558,7 +558,7 @@ def flatpakrunner():
         print(str(process.stdout))
         print(str(process.stderr))
     try:
-        if not os.getenv("SteamCompatDataPath"):
+        if os.getenv("SteamCompatDataPath") == None:
             wserver = subprocess.run(
                 ["wineserver", "--wait"],
                 bufsize=1,
@@ -569,6 +569,6 @@ def flatpakrunner():
             print(str(wserver.stderr))
     except Exception as e:
         with open(warnfile, "w") as fwf:
-            fef.write(str(e))
+            fwf.write(str(e))
     if os.path.isfile(flatpakrunfile):
         os.remove(flatpakrunfile)
