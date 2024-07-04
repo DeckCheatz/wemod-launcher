@@ -541,6 +541,7 @@ def flatpakrunner():
     errorfile = os.path.join(cachedir, "flatpakerror.tmp")
     warnfile = os.path.join(cachedir, "flatpakwarn.tmp")
 
+    log(f"Looking for runfile '{flatpakrunfile}'")
     while not os.path.isfile(flatpakrunfile):
         time.sleep(1)
     time.sleep(0.5)
