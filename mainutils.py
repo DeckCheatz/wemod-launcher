@@ -558,8 +558,8 @@ def flatpakrunner():
     flcmd = []
     with open(flatpakrunfile, "r") as frf:
         for line in frf:
-            flcmd.append(line)
-    log(f"Running:\n\t{flcmd}")
+            flcmd.append(line.rstrip())
+    log(f"Running inside flatpak:\n\t{flcmd}")
     try:
         process = subprocess.run(flcmd, capture_output=True, text=True)
     except Exception as e:
