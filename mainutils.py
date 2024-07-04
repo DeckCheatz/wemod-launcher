@@ -19,6 +19,8 @@ from corenodep import (
 
 from coreutils import (
     exit_with_message,
+    save_conf_setting,
+    load_conf_setting,
     cache,
     log,
 )
@@ -542,7 +544,13 @@ def flatpakrunner():
     warnfile = os.path.join(cachedir, "flatpakwarn.tmp")
 
     log(f"Looking for runfile '{flatpakrunfile}'")
+
+    save_conf_setting("FlatpakRunning", "new")
+
     time.sleep(2)
+    if load_conf_setting("FlatpakRunning") != "true" and os.path.isfile(flatpakrunfile):
+        os.remove(flatpakrunfile)
+
     while not os.path.isfile(flatpakrunfile):
         time.sleep(1)
         print("Looking")
