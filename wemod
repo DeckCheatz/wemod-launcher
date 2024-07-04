@@ -97,20 +97,6 @@ if __name__ == "__main__":
             process = subprocess.run(command, capture_output=True, text=True)
             print(str(process.stdout))
             print(str(process.stderr))
-        except subprocess.CalledProcessError:
-            # If the command returns a non-zero exit status, it's considered unavailable
-            log("The rerun command starts with a unavailable progamm")
-            exit_with_message(
-                "Command unavailable",
-                "The command to rerun the script failed becalse the command was unavailable\nYou are probably using flatpak,\nif that is the case install flatpak-xdg-utils\nand allow system and session bus in flatseal",
-            )
-        except FileNotFoundError:
-            # If the command is not found, it is not available
-            log("The rerun command starts with a missing progamm")
-            exit_with_message(
-                "Command missing",
-                "The command to rerun the script failed becalse the command was missing\nYou are probably using flatpak,\nif that is the case install flatpak-xdg-utils\nand allow system and session bus in flatseal",
-            )
         except Exception as e:
             log(f"Unknown rerun command error:\n\t{e}")
             exit_with_message(
