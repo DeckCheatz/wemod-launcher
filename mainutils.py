@@ -542,8 +542,10 @@ def flatpakrunner():
     warnfile = os.path.join(cachedir, "flatpakwarn.tmp")
 
     log(f"Looking for runfile '{flatpakrunfile}'")
+    time.sleep(2)
     while not os.path.isfile(flatpakrunfile):
         time.sleep(1)
+        print("Looking")
     time.sleep(0.5)
     flcmd = []
     with open(flatpakrunfile, "r") as frf:
