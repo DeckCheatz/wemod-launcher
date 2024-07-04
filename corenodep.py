@@ -158,7 +158,7 @@ def join_lists_with_delimiter(
     return result
 
 
-def flatpakmanager():
+def flatpakrunner():
     import time
 
     cachedir = os.path.join(SCRIPT_PATH, ".cache")
