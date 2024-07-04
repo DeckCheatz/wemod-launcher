@@ -531,6 +531,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
 
 
 def flatpakrunner():
+    import subprocess
     import time
 
     cachedir = os.path.join(SCRIPT_PATH, ".cache")
