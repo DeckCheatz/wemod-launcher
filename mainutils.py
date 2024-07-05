@@ -504,11 +504,11 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             window.refresh()
 
             for i, file in enumerate(files):
-                try: # try to create folder if missing
-                    os.makedirs(os.path.dirname(file),exist_ok=True)
+                try:  # try to create folder if missing
+                    os.makedirs(os.path.dirname(file), exist_ok=True)
                 except Exception as e:
                     pass
-                try: # try to delete old file
+                try:  # try to delete old file
                     if os.path.isfile(file):
                         os.remove(file)
                 except Exception as e:
@@ -519,8 +519,12 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
                     log(f"Failed to extract {file} to {dest_path}: {e}")
                 update_progress(i + 1, total_files)
 
-    try: # try to allow read and write on folder
-        subprocess.run(["chmod", "-R", "ug+rw", dest_path], capture_output=True, text=True)
+    try:  # try to allow read and write on folder
+        subprocess.run(
+            ["chmod", "-R", "ug+rw", dest_path],
+            capture_output=True,
+            text=True,
+        )
     except Exception as e:
         pass
 
@@ -563,7 +567,9 @@ def flatpakrunner():
     save_conf_setting("FlatpakRunning", "new")
 
     time.sleep(2)
-    if load_conf_setting("FlatpakRunning") != "true" and os.path.isfile(flatpakrunfile):
+    if load_conf_setting("FlatpakRunning") != "true" and os.path.isfile(
+        flatpakrunfile
+    ):
         os.remove(flatpakrunfile)
 
     while not os.path.isfile(flatpakrunfile):

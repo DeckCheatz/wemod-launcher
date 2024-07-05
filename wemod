@@ -80,14 +80,10 @@ if __name__ == "__main__":
             )
         os.environ["WeModInfProtect"] = str(int(inf_protect) + 1)
 
-
         # if we are in a flatpak we wait for a command to be passed back into the script in a thread
         if len(if_flatpak_list) > 1:
-            flat_thread = threading.Thread(
-                target=flatpakrunner
-            )
+            flat_thread = threading.Thread(target=flatpakrunner)
             flat_thread.start()
-
 
         command = if_flatpak_list + [SCRIPT_FILE] + sys.argv[1:]
         log(
@@ -272,7 +268,9 @@ def syncwemod(
         )  # And symlink the data from the wemod laucher
         log("Linked wemod data to gameprefix")
 
-    if not os.path.exists(os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")):
+    if not os.path.exists(
+        os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
+    ):
         setup_main()
 
 
@@ -525,7 +523,9 @@ def download_prefix(proton_dir: str) -> None:
         os.remove(fullfile)
 
     syncwemod()
-    if not os.path.isfile(os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")):
+    if not os.path.isfile(
+        os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
+    ):
         setup_main()
 
     log("Finished prefix download and unpacking")
@@ -706,7 +706,12 @@ def run(skip_init: bool = False) -> str:
 
     # Construct the final command
     FINAL = (
-        REAPER_CMD + [PROTON] + verb + BAT_COMMAND + [WIN_CMD] + LAUNCH_OPTIONS
+        REAPER_CMD
+        + [PROTON]
+        + verb
+        + BAT_COMMAND
+        + [WIN_CMD]
+        + LAUNCH_OPTIONS
     )
 
     ttfile = os.path.join(SCRIPT_PATH, ".cache", "early.tmp")
@@ -790,7 +795,9 @@ def run(skip_init: bool = False) -> str:
             try:
                 if os.path.isdir(os.path.join(WINEPREFIX, "drive_c")):
                     os.environ["WINEPREFIX"] = WINEPREFIX
-                elif os.path.isdir(os.path.join(BASE_STEAM_COMPAT, "drive_c")):
+                elif os.path.isdir(
+                    os.path.join(BASE_STEAM_COMPAT, "drive_c")
+                ):
                     os.environ["WINEPREFIX"] = BASE_STEAM_COMPAT
                 else:
                     os.environ["WINEPREFIX"] = WINEPREFIX
