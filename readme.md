@@ -46,7 +46,7 @@ consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest
 4. Restart Steam/SteamOS
 5. Run `git clone https://github.com/DaniAsh551/wemod-launcher.git` in the Konsole/Terminal
 6. Run `sudo chmod -R ug+x /home/$USER/wemod-launcher` in the Konsole/Terminal
-   **NOTE:** For use with the Steam Flatpak contiune [here](https://github.com/DaniAsh551/wemod-launcher/wiki/Flatpak-Update)
+   **NOTE:** For use with the Steam Flatpak (not recomended) contiune [here](https://github.com/DaniAsh551/wemod-launcher/wiki/Steam-Flatpak-Usage)
 7. In the WeMod chosen game, open the steam game settings  
    and in the `Compatibility` tab change the proton version to the downloaded one.
 8. Also add the command `/home/$USER/wemod-launcher/wemod %command%`,  
