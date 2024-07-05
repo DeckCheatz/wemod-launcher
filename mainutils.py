@@ -19,6 +19,8 @@ from corenodep import (
 
 from coreutils import (
     exit_with_message,
+    save_conf_setting,
+    load_conf_setting,
     cache,
     log,
 )
@@ -483,6 +485,7 @@ def copy_folder_with_progress(
 
 def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
     import zipfile
+    import subprocess
     import FreeSimpleGUI as sg
 
     def update_progress(unzipped: int, total: int) -> None:
@@ -501,11 +504,25 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             window.refresh()
 
             for i, file in enumerate(files):
+                try: # try to create folder if missing
+                    os.makedirs(os.path.dirname(file),exist_ok=True)
+                except Exception as e:
+                    pass
+                try: # try to delete old file
+                    if os.path.isfile(file):
+                        os.remove(file)
+                except Exception as e:
+                    pass
                 try:
                     zip_ref.extract(file, dest_path)
                 except Exception as e:
                     log(f"Failed to extract {file} to {dest_path}: {e}")
                 update_progress(i + 1, total_files)
+
+    try: # try to allow read and write on folder
+        subprocess.run(["chmod", "-R", "ug+rw", dest_path], capture_output=True, text=True)
+    except Exception as e:
+        pass
 
     sg.theme("systemdefault")
 
@@ -528,3 +545,56 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             )
 
     window.close()
+
+
+def flatpakrunner():
+    import subprocess
+    import time
+
+    cachedir = os.path.join(SCRIPT_PATH, ".cache")
+    os.makedirs(cachedir, exist_ok=True)
+
+    flatpakrunfile = os.path.join(cachedir, "insideflatpak.tmp")
+    errorfile = os.path.join(cachedir, "flatpakerror.tmp")
+    warnfile = os.path.join(cachedir, "flatpakwarn.tmp")
+
+    log(f"Looking for runfile '{flatpakrunfile}'")
+
+    save_conf_setting("FlatpakRunning", "new")
+
+    time.sleep(2)
+    if load_conf_setting("FlatpakRunning") != "true" and os.path.isfile(flatpakrunfile):
+        os.remove(flatpakrunfile)
+
+    while not os.path.isfile(flatpakrunfile):
+        time.sleep(1)
+        print("Looking")
+    time.sleep(0.5)
+    flcmd = []
+    with open(flatpakrunfile, "r") as frf:
+        for line in frf:
+            flcmd.append(line.rstrip("\n"))
+    log(f"Running inside flatpak:\n\t{flcmd}")
+    try:
+        process = subprocess.run(flcmd, capture_output=True, text=True)
+    except Exception as e:
+        with open(errorfile, "w") as fef:
+            fef.write(str(e))
+    else:
+        print(str(process.stdout))
+        print(str(process.stderr))
+    try:
+        if os.getenv("SteamCompatDataPath") == None:
+            wserver = subprocess.run(
+                ["wineserver", "--wait"],
+                bufsize=1,
+                capture_output=True,
+                text=True,
+            )
+            print(str(wserver.stdout))
+            print(str(wserver.stderr))
+    except Exception as e:
+        with open(warnfile, "w") as fwf:
+            fwf.write(str(e))
+    if os.path.isfile(flatpakrunfile):
+        os.remove(flatpakrunfile)

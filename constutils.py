@@ -312,11 +312,10 @@ def troubleshooter() -> None:
         trouble = read_file(INIT_FILE)
     if not trouble:
         trouble = load_conf_setting("Troubleshoot")
-    if not trouble:
-        trouble = "true"
-    if trouble.lower() == "true":
+    if trouble == None or (trouble and trouble.lower() == "true"):
         runtro = True
         while runtro:
+            log("Starting troubleshooter")
             ret = popup_options(
                 "Troubleshooter",
                 "Did WeMod work as expected,\nif not troubleshoot common problems with wemod.\nDeleteing the gameprefix helps often.\nDelete Wemod.exe helps if wemod updates their progamm\nTo use the Troubleshooter after it was disabled,\nyou can add TROUBLESHOOT=true in front of the launch command",
@@ -334,6 +333,7 @@ def troubleshooter() -> None:
                 ],
                 120,
             )
+            log(f"Selected in the troubleshooter was '{ret}'")
             if ret == "Disable troubleshooter globaly":
                 save_conf_setting("Troubleshoot", "false")
             elif ret == "Disable troubleshooter for this game":

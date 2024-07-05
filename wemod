@@ -12,8 +12,8 @@ from typing import Optional
 
 # Import core utils without download dependencies
 from corenodep import (
-    split_list_by_delimiter,
     join_lists_with_delimiter,
+    split_list_by_delimiter,
     load_conf_setting,
     save_conf_setting,
     parse_version,
@@ -38,6 +38,7 @@ from mainutils import (
     find_closest_compatible_release,
     unpack_zip_with_progress,
     get_github_releases,
+    flatpakrunner,
     popup_execute,
     popup_download,
     get_dotnet48,
@@ -46,6 +47,7 @@ from mainutils import (
 
 # Import from setup
 from setup import (
+    check_flatpak,
     venv_manager,
     self_update,
     setup_main,
@@ -64,17 +66,48 @@ if __name__ == "__main__":
     python_venv = venv_manager()
     # Update the script
     python_venv = self_update(python_venv)
+    # Detect if the script is running inside a flatpak
+    if_flatpak_list = check_flatpak(python_venv)
 
     # On venv path restart the script
-    if python_venv:
-        command = [python_venv, SCRIPT_FILE] + sys.argv[1:]
+    if bool(if_flatpak_list):
+        # Use environment varible to protect the script from re-running forever
+        inf_protect = os.getenv("WeModInfProtect", "1")
+        if int(inf_protect) > 4:
+            exit_with_message(
+                "Infinite rerun",
+                "Infinite script reruns were detected\nThe script was stoped\nCreate a issue on the wemod_laucher github\nand add this file to the issue",
+            )
+        os.environ["WeModInfProtect"] = str(int(inf_protect) + 1)
+
+
+        # if we are in a flatpak we wait for a command to be passed back into the script in a thread
+        if len(if_flatpak_list) > 1:
+            flat_thread = threading.Thread(
+                target=flatpakrunner
+            )
+            flat_thread.start()
+
+
+        command = if_flatpak_list + [SCRIPT_FILE] + sys.argv[1:]
         log(
-            f"Re-running script within virtual environment or to update with the command:\n\t{command}\n\nThe rerun was started"
+            f"Re-running script within virtual environment \nor to update or to run outside of flatpak with the command:\n\t{command}\n\nThe rerun nr {inf_protect} was started"
         )
+
         # Execute the script within the virtual environment
-        process = subprocess.run(command, capture_output=True, text=True)
-        print(str(process.stdout))
-        print(str(process.stderr))
+        try:
+            process = subprocess.run(command, capture_output=True, text=True)
+            print(str(process.stdout))
+            print(str(process.stderr))
+        except Exception as e:
+            log(f"Unknown rerun command error:\n\t{e}")
+            exit_with_message(
+                "Unknown Command error",
+                f"The command to rerun the script failed becalse the command returned an unknown error:\n\t{e}\nYou are probably using flatpak,\nif that is the case install flatpak-xdg-utils\nand allow system and session bus in flatseal",
+            )
+
+        if len(if_flatpak_list) > 1:
+            flat_thread.join()
 
         # exit after it was run in a venv succesfully
         sys.exit(process.returncode)
@@ -239,9 +272,7 @@ def syncwemod(
         )  # And symlink the data from the wemod laucher
         log("Linked wemod data to gameprefix")
 
-    if not os.path.exists(
-        os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
-    ):
+    if not os.path.exists(os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")):
         setup_main()
 
 
@@ -494,9 +525,7 @@ def download_prefix(proton_dir: str) -> None:
         os.remove(fullfile)
 
     syncwemod()
-    if not os.path.isfile(
-        os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
-    ):
+    if not os.path.isfile(os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")):
         setup_main()
 
     log("Finished prefix download and unpacking")
@@ -677,12 +706,7 @@ def run(skip_init: bool = False) -> str:
 
     # Construct the final command
     FINAL = (
-        REAPER_CMD
-        + [PROTON]
-        + verb
-        + BAT_COMMAND
-        + [WIN_CMD]
-        + LAUNCH_OPTIONS
+        REAPER_CMD + [PROTON] + verb + BAT_COMMAND + [WIN_CMD] + LAUNCH_OPTIONS
     )
 
     ttfile = os.path.join(SCRIPT_PATH, ".cache", "early.tmp")
@@ -705,36 +729,85 @@ def run(skip_init: bool = False) -> str:
     log(f"Executing:\n\t{FINAL}\n")
     print(f"Executing:\n\t{FINAL}\n")
 
-    # Execute the final command
-    process = subprocess.Popen(FINAL, stdout=subprocess.PIPE)
+    fromflat = os.getenv("FROM_FLATPAC")
 
-    for line in iter(process.stdout.readline, ""):
-        if line == None or line == b"":
-            break
-        log(line.decode("utf8"))
+    if fromflat:
+        import time
 
-    resp = process.wait()
+        log("Useing flatpak mode")
 
-    if len(verb) == 0:
-        try:
-            if os.path.isdir(os.path.join(WINEPREFIX, "drive_c")):
-                os.environ["WINEPREFIX"] = WINEPREFIX
-            elif os.path.isdir(os.path.join(BASE_STEAM_COMPAT, "drive_c")):
-                os.environ["WINEPREFIX"] = BASE_STEAM_COMPAT
+        cachedir = os.path.join(SCRIPT_PATH, ".cache")
+        os.makedirs(cachedir, exist_ok=True)
+
+        flatpakrunfile = os.path.join(cachedir, "insideflatpak.tmp")
+        errorfile = os.path.join(cachedir, "flatpakerror.tmp")
+        warnfile = os.path.join(cachedir, "flatpakwarn.tmp")
+
+        with open(flatpakrunfile, "w") as frf:
+            for line in FINAL:
+                frf.write(line + "\n")
+
+        time.sleep(2)
+        save_conf_setting("FlatpakRunning", "true")
+        while os.path.isfile(flatpakrunfile):
+            flatrunn = load_conf_setting("FlatpakRunning")
+            if (flatrunn and flatrunn == "new") or not flatrunn:
+                log("New instance detected, closesing old instance")
+                sys.exit(0)
+            time.sleep(1)
+        save_conf_setting("FlatpakRunning", None)
+
+        if os.path.isfile(errorfile):
+            with open(errorfile, "r") as fef:
+                error = fef.read()
+                os.remove(errorfile)
+                if error:
+                    raise Exception(str(error))
+
+        if os.path.isfile(warnfile):
+            with open(warnfile, "r") as fwf:
+                warn = fwf.read()
+                os.remove(warnfile)
+                if warn:
+                    log(
+                        f"Problem loading the winesever waiter, the error is:\n\t{warn}"
+                    )
+
+    else:
+        save_conf_setting("FlatpakRunning", None)
+
+        # Execute the final command
+        process = subprocess.Popen(FINAL, stdout=subprocess.PIPE)
+
+        for line in iter(process.stdout.readline, ""):
+            if line == None or line == b"":
+                break
+            log(line.decode("utf8"))
+
+        resp = process.wait()
+
+        if len(verb) == 0:
+            try:
+                if os.path.isdir(os.path.join(WINEPREFIX, "drive_c")):
+                    os.environ["WINEPREFIX"] = WINEPREFIX
+                elif os.path.isdir(os.path.join(BASE_STEAM_COMPAT, "drive_c")):
+                    os.environ["WINEPREFIX"] = BASE_STEAM_COMPAT
+                else:
+                    os.environ["WINEPREFIX"] = WINEPREFIX
+
+                wserver = subprocess.run(
+                    ["wineserver", "--wait"],
+                    bufsize=1,
+                    capture_output=True,
+                    text=True,
+                )
+            except Exception as e:
+                log(
+                    f"Problem loading the winesever waiter, the error is:\n\t{e}"
+                )
             else:
-                os.environ["WINEPREFIX"] = WINEPREFIX
-
-            wserver = subprocess.run(
-                ["wineserver", "--wait"],
-                bufsize=1,
-                capture_output=True,
-                text=True,
-            )
-        except Exception as e:
-            log(f"Problem loading the winesever waiter, the error is:\n\t{e}")
-        else:
-            print(str(wserver.stdout))
-            print(str(wserver.stderr))
+                print(str(wserver.stdout))
+                print(str(wserver.stderr))
 
     if os.path.exists(ttfile):
         os.remove(ttfile)

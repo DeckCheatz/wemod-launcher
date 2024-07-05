@@ -28,6 +28,7 @@ from mainutils import (
 
 from typing import (
     Optional,
+    List,
 )
 
 SCRIPT_IMP_FILE = os.path.realpath(__file__)
@@ -171,13 +172,13 @@ def mk_venv() -> Optional[str]:
         return venv_path
 
 
-def venv_manager() -> Optional[str]:
+def venv_manager() -> List[Optional[str]]:
     requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
     if not check_dependencies(requirements_txt):
         pip_install = f"install -r '{requirements_txt}'"
         return_code = pip(pip_install)
-        if check_dependencies(requirements_txt):
-            return None
+        if return_code == 0:
+            return []
         # if dependencies cant just be installed
         else:
             # go the venv route
@@ -223,10 +224,10 @@ def venv_manager() -> Optional[str]:
                     "Failed to install dependencies. Error.",
                     ask_for_log=True,
                 )
-            return venv_python
+            return [venv_python]
 
 
-def self_update(path: Optional[str]) -> Optional[str]:
+def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
     upd = os.getenv("SELF_UPDATE")
     if not upd:
         upd = load_conf_setting("SelfUpdate")
@@ -252,14 +253,53 @@ def self_update(path: Optional[str]) -> Optional[str]:
             subprocess.run(["git", "reset", "--hard", "origin"], text=True)
             subprocess.run(["git", "pull"], text=True)
             subprocess.run(["chmod", "-R", "ug+x", "."], text=True)
-            if path == None:
-                path = sys.executable
+            if not bool(path):
+                path = [sys.executable]
             log("Update finished")
     except Exception as e:
         log(f"Failed to update, the following error appeared:\n\t{e}")
 
     os.chdir(original_cwd)
     return path
+
+
+def check_flatpak(flatpak_cmd):
+    if "FLATPAK_ID" in os.environ or os.path.exists("/.flatpak-info"):
+        flatpak_start = [
+            "flatpak-spawn",
+            "--host",
+            "env",
+        ]
+
+        envlist = [
+            "STEAM_COMPAT_TOOL_PATHS",
+            "STEAM_COMPAT_DATA_PATH",
+            "WINE_PREFIX_PATH",
+            "WINEPREFIX",
+            "WINE",
+            "SCANFOLDER",
+            "TROUBLESHOOT",
+            "WEMOD_LOG",
+            "WAIT_ON_GAMECLOSE",
+            "SELF_UPDATE",
+            "FORCE_UPDATE_WEMOD",
+            "REPO_STRING",
+        ]
+        for env in envlist:
+            if env in os.environ:
+                flatpak_start.append(f"{env}={os.environ[env]}")
+        infpr = os.getenv("WeModInfProtect", "1")
+        infpr = str(int(infpr) + 1)
+
+        flatpak_start.append("FROM_FLATPAC=true")
+        flatpak_start.append(f"WeModInfProtect={infpr}")
+
+        if bool(flatpak_cmd):  # if venv is set use it
+            flatpak_cmd = flatpak_start + flatpak_cmd
+        else:  # if not use python executable
+            flatpak_cmd = flatpak_start + [sys.executable]
+
+    return flatpak_cmd
 
 
 def setup_main() -> None:
