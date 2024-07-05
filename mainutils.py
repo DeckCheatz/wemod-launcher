@@ -504,8 +504,13 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             window.refresh()
 
             for i, file in enumerate(files):
-                try: # try to allow read and write on folder
-                    subprocess.run(["chmod", "-R", "ug+rw", os.path.dirname(file)], capture_output=True, text=True)
+                try: # try to create folder if missing
+                    os.makedirs(os.path.dirname(file),exist_ok=True)
+                except Exception as e:
+                    pass
+                try: # try to delete old file
+                    if os.path.isfile(file):
+                        os.remove(file)
                 except Exception as e:
                     pass
                 try:
@@ -515,7 +520,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
                 update_progress(i + 1, total_files)
 
     try: # try to allow read and write on folder
-        subprocess.run(["chmod", "-R", "ug+rw", os.path.dirname(dest_path)], capture_output=True, text=True)
+        subprocess.run(["chmod", "-R", "ug+rw", dest_path], capture_output=True, text=True)
     except Exception as e:
         pass
 
