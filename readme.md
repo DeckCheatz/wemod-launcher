@@ -36,7 +36,9 @@ Check the [Wiki Changelog](https://github.com/DaniAsh551/wemod-launcher/wiki/Cha
 - **Optional:** If you have access to another PC and wish to control the Steam Deck remotely,  
 consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest)** for easier setup (the `.flatpak` is easiest).  
 
-1. First `Python venv` and `TK` need to be installed.
+1. First `Python venv` and `TK` need to be installed  
+   TK / Tkinker may have a other name in your repos  
+   Online search Tkinker Yordistrobase (eg. Ubuntu)
 2. Also Search for and install `ProtonUp-QT` in the store.
 3. Download the latest `GE-Proton` in `ProtonUp-QT`  
    **NOTE:** After some testing it seams `Proton` also works  
@@ -44,6 +46,7 @@ consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest
 4. Restart Steam/SteamOS
 5. Run `git clone https://github.com/DaniAsh551/wemod-launcher.git` in the Konsole/Terminal
 6. Run `sudo chmod -R ug+x /home/$USER/wemod-launcher` in the Konsole/Terminal
+   **NOTE:** For use with the Steam Flatpak contiune [here](https://github.com/DaniAsh551/wemod-launcher/wiki/Flatpak-Update)
 7. In the WeMod chosen game, open the steam game settings  
    and in the `Compatibility` tab change the proton version to the downloaded one.
 8. Also add the command `/home/$USER/wemod-launcher/wemod %command%`,  
