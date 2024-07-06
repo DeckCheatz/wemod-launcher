@@ -507,26 +507,17 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
                 try:  # try to create folder if missing
                     os.makedirs(os.path.dirname(file), exist_ok=True)
                 except Exception as e:
-                    pass
+                    log("failed to make dir '" + os.path.dirname(file) + "' with error:\n\t" + e)
                 try:  # try to delete old file
                     if os.path.isfile(file):
                         os.remove(file)
                 except Exception as e:
-                    pass
+                    log(f"failed to remove file '{file}' with error:\n\t{e}")
                 try:
                     zip_ref.extract(file, dest_path)
                 except Exception as e:
-                    log(f"Failed to extract {file} to {dest_path}: {e}")
+                    log(f"Failed to extract '{file}' to '{dest_path}' with error:\n\t{e}")
                 update_progress(i + 1, total_files)
-
-    try:  # try to allow read and write on folder
-        subprocess.run(
-            ["chmod", "-R", "ug+rw", dest_path],
-            capture_output=True,
-            text=True,
-        )
-    except Exception as e:
-        pass
 
     sg.theme("systemdefault")
 
@@ -536,6 +527,24 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
     layout = [[extra], [progress], [text]]
     window = sg.Window("Unpacking Prefix", layout, finalize=True)
     window.refresh()
+
+    try:  # try to allow read and write on parrent folder
+    subprocess.run(
+        ["chmod", "-R", "ug+rw", os.path.dirname(dest_path)],
+        capture_output=True,
+        text=True,
+    )
+    except Exception as e:
+        log("failed to allow rw on '" + os.path.dirname(dest_path) + "' with error:\n\t" + e)
+    try:  # try to allow read and write on folder
+        subprocess.run(
+            ["chmod", "-R", "ug+rw", dest_path],
+            capture_output=True,
+            text=True,
+        )
+    except Exception as e:
+        log(f"failed to allow rw on '{dest_path}' with error:\n\t {e}")
+
 
     window.perform_long_operation(unpack_files, "-UNPACK DONE-")
 
