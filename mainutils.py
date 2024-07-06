@@ -540,6 +540,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             ["chown", "-R", os.getlogin(), os.path.dirname(dest_path)],
             capture_output=True,
             text=True,
+            timeout=4,
         )
     except Exception as e:
         log(
@@ -555,6 +556,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             ["chmod", "-R", "ug+rw", os.path.dirname(dest_path)],
             capture_output=True,
             text=True,
+            timeout=4,
         )
     except Exception as e:
         log(
