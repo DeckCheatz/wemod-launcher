@@ -505,7 +505,9 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
 
             for i, file in enumerate(files):
                 try:  # try to create folder if missing
-                    if len(os.path.dirname(file)) > 0 and not os.path.isdir(os.path.dirname(file)):
+                    if len(os.path.dirname(file)) > 0 and not os.path.isdir(
+                        os.path.dirname(file)
+                    ):
                         os.makedirs(os.path.dirname(file), exist_ok=True)
                 except Exception as e:
                     log(
