@@ -504,6 +504,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             window.refresh()
 
             for i, file in enumerate(files):
+                log("creating " + os.path.dirname(file))
                 try:  # try to create folder if missing
                     os.makedirs(os.path.dirname(file), exist_ok=True)
                 except Exception as e:
@@ -513,11 +514,13 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
                         + "' with error:\n\t"
                         + e
                     )
+                log("deleting " + file)
                 try:  # try to delete old file
                     if os.path.isfile(file):
                         os.remove(file)
                 except Exception as e:
                     log(f"failed to remove file '{file}' with error:\n\t{e}")
+                log("extracting " + file)
                 try:
                     zip_ref.extract(file, dest_path)
                 except Exception as e:
