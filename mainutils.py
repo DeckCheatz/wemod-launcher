@@ -535,6 +535,19 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
     window = sg.Window("Unpacking Prefix", layout, finalize=True)
     window.refresh()
 
+    try:  # try own parrent folder
+        subprocess.run(
+            ["chown", "-R", os.getlogin(), os.path.dirname(dest_path)],
+            capture_output=True,
+            text=True,
+        )
+    except Exception as e:
+        log(
+            "failed to own folder '"
+            + os.path.dirname(dest_path)
+            + "' with error:\n\t"
+            + e
+        )
     try:  # try to allow read and write on parrent folder
         subprocess.run(
             ["chmod", "-R", "ug+rw", os.path.dirname(dest_path)],
@@ -548,14 +561,6 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             + "' with error:\n\t"
             + e
         )
-    try:  # try to allow read and write on folder
-        subprocess.run(
-            ["chmod", "-R", "ug+rw", dest_path],
-            capture_output=True,
-            text=True,
-        )
-    except Exception as e:
-        log(f"failed to allow rw on '{dest_path}' with error:\n\t {e}")
 
     window.perform_long_operation(unpack_files, "-UNPACK DONE-")
 
