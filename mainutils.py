@@ -543,7 +543,9 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
         )
     except Exception as e:
         log(
-            "failed to own folder '"
+            "failed to own folder as '"
+            + os.getlogin()
+            + "' for '"
             + os.path.dirname(dest_path)
             + "' with error:\n\t"
             + e
