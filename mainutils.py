@@ -529,11 +529,11 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
     window.refresh()
 
     try:  # try to allow read and write on parrent folder
-    subprocess.run(
-        ["chmod", "-R", "ug+rw", os.path.dirname(dest_path)],
-        capture_output=True,
-        text=True,
-    )
+        subprocess.run(
+            ["chmod", "-R", "ug+rw", os.path.dirname(dest_path)],
+            capture_output=True,
+            text=True,
+        )
     except Exception as e:
         log("failed to allow rw on '" + os.path.dirname(dest_path) + "' with error:\n\t" + e)
     try:  # try to allow read and write on folder
