@@ -505,9 +505,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
 
             for i, file in enumerate(files):
                 try:  # try to create folder if missing
-                    if len(os.path.dirname(file)) > 0 and not os.path.isdir(
-                        os.path.dirname(file)
-                    ):
+                    if len(os.path.dirname(file)) > 0 and not os.path.isdir(os.path.dirname(file)):
                         os.makedirs(os.path.dirname(file), exist_ok=True)
                 except Exception as e:
                     log(
@@ -517,7 +515,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
                         + e
                     )
                 try:  # try to delete old file
-                    if os.path.isfile(file):
+                    if os.path.isfile(file) or os.path.islink(file):
                         os.remove(file)
                 except Exception as e:
                     log(f"failed to remove file '{file}' with error:\n\t{e}")
@@ -527,6 +525,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
                     log(
                         f"Failed to extract '{file}' to '{dest_path}' with error:\n\t{e}"
                     )
+
                 update_progress(i + 1, total_files)
 
     sg.theme("systemdefault")
@@ -543,7 +542,6 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             ["chown", "-R", os.getlogin(), os.path.dirname(dest_path)],
             capture_output=True,
             text=True,
-            timeout=4,
         )
     except Exception as e:
         log(
@@ -559,7 +557,6 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             ["chmod", "-R", "ug+rw", os.path.dirname(dest_path)],
             capture_output=True,
             text=True,
-            timeout=4,
         )
     except Exception as e:
         log(
