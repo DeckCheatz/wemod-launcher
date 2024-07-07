@@ -244,7 +244,11 @@ def popup_download(title: str, link: str, file_name: str) -> str:
         status.append(dl)
         status.append(total)
 
-    file_path = os.path.join(cache, file_name)
+    file_path_end = os.path.join(cache, file_name)
+    file_path = os.path.join(cache, "." + file_name)
+    if os.path.isfile(file_path):
+        os.remove(file_path)
+
     download_func = lambda: download_progress(
         link, file_path, lambda dl, total: update_log(status, dl, total)
     )
@@ -254,6 +258,7 @@ def popup_download(title: str, link: str, file_name: str) -> str:
     while True:
         event, values = window.read(timeout=1000)
         if event == "-DL COMPLETE-":
+            os.rename(file_path, file_path_end)
             break
         elif event is None:
             exit_with_message(
@@ -268,7 +273,7 @@ def popup_download(title: str, link: str, file_name: str) -> str:
             progress.update(perc)
 
     window.close()
-    return file_path
+    return file_path_end
 
 
 # Function to get or download .NET Framework 4.8
@@ -504,28 +509,29 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             window.refresh()
 
             for i, file in enumerate(files):
+                full_file = os.path.join(dest_path, file)
                 try:  # try to create folder if missing
-                    if len(os.path.dirname(file)) > 0 and not os.path.isdir(
-                        os.path.dirname(file)
+                    if len(os.path.dirname(full_file)) > 0 and not os.path.isdir(
+                        os.path.dirname(full_file)
                     ):
-                        os.makedirs(os.path.dirname(file), exist_ok=True)
+                        os.makedirs(os.path.dirname(full_file), exist_ok=True)
                 except Exception as e:
                     log(
                         "failed to make dir '"
-                        + os.path.dirname(file)
+                        + os.path.dirname(full_file)
                         + "' with error:\n\t"
                         + e
                     )
                 try:  # try to delete old file
-                    if os.path.isfile(file) or os.path.islink(file):
-                        os.remove(file)
+                    if os.path.isfile(full_file) or os.path.islink(full_file):
+                        os.remove(full_file)
                 except Exception as e:
-                    log(f"failed to remove file '{file}' with error:\n\t{e}")
+                    log(f"failed to remove file '{full_file}' with error:\n\t{e}")
                 try:
                     zip_ref.extract(file, dest_path)
                 except Exception as e:
                     log(
-                        f"Failed to extract '{file}' to '{dest_path}' with error:\n\t{e}"
+                        f"Failed to extract '{file}' from the zip to '{dest_path}' with error:\n\t{e}"
                     )
 
                 update_progress(i + 1, total_files)
