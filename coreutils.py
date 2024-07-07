@@ -165,8 +165,12 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
             log("Externally managed environment detected.")
             return 99
         else:
-            show_message("The pip inside the virtual environment reported a error,\nthis may require the deletion of the virtual environment folder,\nby defalut the folder is named named wemod_venv\nand is located inside the wemod-laucher folder")
-            log(f"A pip error appered\nthis may require the deletion of the virtual environment folder,\nby defalut the folder is named named wemod_venv\nand is located inside the wemod-laucher folder,\nthe error is:\n\t{stdout}\n\t{stderr}")
+            show_message(
+                "The pip inside the virtual environment reported a error,\nthis may require the deletion of the virtual environment folder,\nby defalut the folder is named named wemod_venv\nand is located inside the wemod-laucher folder"
+            )
+            log(
+                f"A pip error appered\nthis may require the deletion of the virtual environment folder,\nby defalut the folder is named named wemod_venv\nand is located inside the wemod-laucher folder,\nthe error is:\n\t{stdout}\n\t{stderr}"
+            )
 
     # Try to use the built-in pip
     process = subprocess.Popen(
@@ -388,7 +392,7 @@ def get_user_input(
 
 def script_manager() -> None:
     script_name = "wemod-laucher"
-    script_version = "1.456"
+    script_version = "1.457"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 
