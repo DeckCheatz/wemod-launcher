@@ -2,7 +2,7 @@
 name: Feature request
 about: Suggest an idea for this project
 title: "[Feature] I would like to have the feature x in the wemod laucher"
-labels: ''
+labels: 'enhancement'
 assignees: ''
 
 ---
