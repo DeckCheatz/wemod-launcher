@@ -159,11 +159,14 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
         process.wait()
         # Check if pip command was successful
         if process.returncode == 0:
-            log(f"Pip finished and returned:\n\t{stdout}\n\t{stderr}")
+            log(f"Pip finished successfully")
             return process.returncode
         elif b"externally-managed-environment" in stderr:
             log("Externally managed environment detected.")
             return 99
+        else:
+            show_message("The pip inside the virtual environment reported a error,\nthis may require the deletion of the virtual environment folder,\nby defalut the folder is named named wemod_venv\nand is located inside the wemod-laucher folder")
+            log(f"A pip error appered\nthis may require the deletion of the virtual environment folder,\nby defalut the folder is named named wemod_venv\nand is located inside the wemod-laucher folder,\nthe error is:\n\t{stdout}\n\t{stderr}")
 
     # Try to use the built-in pip
     process = subprocess.Popen(
@@ -175,11 +178,13 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
     stdout, stderr = process.communicate()
     # Check if -m pip command was successful
     if process.wait() == 0:
-        log(f"Pip finished and returned:\n\t{stdout}\n\t{stderr}")
+        log(f"Pip finished successfully")
         return process.returncode
     elif b"externally-managed-environment" in stderr:
         log("Externally managed environment detected.")
         return 99
+    else:
+        log(f"Pip error appered:\n\t{stdout}\n\t{stderr}")
 
     # If -m pip failed, fallback to using pip.pyz
     if venv_path:
@@ -215,9 +220,13 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
     stdout, stderr = process.communicate()
     if process.wait() == 0:
         log(f"Pip finished and returned:\n\t{stdout}\n\t{stderr}")
+        return process.returncode
     elif b"externally-managed-environment" in stderr:
         log("Externally managed environment detected.")
         return 99
+    else:
+        log(f"Pip error appered:\n\t{stdout}\n\t{stderr}")
+
     # Return the exit code of the process
     return process.returncode
 

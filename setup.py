@@ -28,6 +28,7 @@ from mainutils import (
 
 from typing import (
     Optional,
+    Union,
     List,
 )
 
@@ -174,6 +175,12 @@ def mk_venv() -> Optional[str]:
 
 def venv_manager() -> List[Optional[str]]:
     requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
+    try:
+        if not bool(check_flatpak(None)):
+            import importlib
+            importlib.import_module("tkinker")
+    except ImportError:
+        exit_with_message("Tkinker missing","Critical error, tkinker is not installed,\nmake shure you have installed the correct tkinker package for your system,\nsearch the internet for 'install tkinker for YOURDISTRO',\nreplace YOURDISTRO with your actual distro")
     if not check_dependencies(requirements_txt):
         pip_install = f"install -r '{requirements_txt}'"
         return_code = pip(pip_install)
@@ -263,43 +270,48 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
     return path
 
 
-def check_flatpak(flatpak_cmd):
-    if "FLATPAK_ID" in os.environ or os.path.exists("/.flatpak-info"):
-        flatpak_start = [
-            "flatpak-spawn",
-            "--host",
-            "env",
-        ]
+def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
+    if flatpak_cmd == None:
+        if "FLATPAK_ID" in os.environ or os.path.exists("/.flatpak-info"):
+            return ["True"]
+        return []
+    else:
+        if "FLATPAK_ID" in os.environ or os.path.exists("/.flatpak-info"):
+            flatpak_start = [
+                "flatpak-spawn",
+                "--host",
+                "env",
+            ]
 
-        envlist = [
-            "STEAM_COMPAT_TOOL_PATHS",
-            "STEAM_COMPAT_DATA_PATH",
-            "WINE_PREFIX_PATH",
-            "WINEPREFIX",
-            "WINE",
-            "SCANFOLDER",
-            "TROUBLESHOOT",
-            "WEMOD_LOG",
-            "WAIT_ON_GAMECLOSE",
-            "SELF_UPDATE",
-            "FORCE_UPDATE_WEMOD",
-            "REPO_STRING",
-        ]
-        for env in envlist:
-            if env in os.environ:
-                flatpak_start.append(f"{env}={os.environ[env]}")
-        infpr = os.getenv("WeModInfProtect", "1")
-        infpr = str(int(infpr) + 1)
+            envlist = [
+                "STEAM_COMPAT_TOOL_PATHS",
+                "STEAM_COMPAT_DATA_PATH",
+                "WINE_PREFIX_PATH",
+                "WINEPREFIX",
+                "WINE",
+                "SCANFOLDER",
+                "TROUBLESHOOT",
+                "WEMOD_LOG",
+                "WAIT_ON_GAMECLOSE",
+                "SELF_UPDATE",
+                "FORCE_UPDATE_WEMOD",
+                "REPO_STRING",
+            ]
+            for env in envlist:
+                if env in os.environ:
+                    flatpak_start.append(f"{env}={os.environ[env]}")
+            infpr = os.getenv("WeModInfProtect", "1")
+            infpr = str(int(infpr) + 1)
 
-        flatpak_start.append("FROM_FLATPAC=true")
-        flatpak_start.append(f"WeModInfProtect={infpr}")
+            flatpak_start.append("FROM_FLATPAC=true")
+            flatpak_start.append(f"WeModInfProtect={infpr}")
 
-        if bool(flatpak_cmd):  # if venv is set use it
-            flatpak_cmd = flatpak_start + flatpak_cmd
-        else:  # if not use python executable
-            flatpak_cmd = flatpak_start + [sys.executable]
+            if bool(flatpak_cmd):  # if venv is set use it
+                flatpak_cmd = flatpak_start + flatpak_cmd
+            else:  # if not use python executable
+                flatpak_cmd = flatpak_start + [sys.executable]
 
-    return flatpak_cmd
+        return flatpak_cmd
 
 
 def setup_main() -> None:
