@@ -1,0 +1,40 @@
+name: Feature request
+description: Suggest an idea for this project
+title: '[Feature] I would like to have the feature X in the WeMod launcher'
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem-description
+    attributes:
+      label: Problem Description
+      description: A clear and concise description of the problem your feature request addresses.
+      placeholder: Describe the problem you encounter or the need you have.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution-description
+    attributes:
+      label: Desired Solution
+      description: A clear and concise description of the solution you want to see.
+      placeholder: Describe the feature or functionality you would like implemented.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternative-solutions
+    attributes:
+      label: Alternative Solutions
+      description: Any alternative solutions or features you've considered.
+      placeholder: Describe any alternatives you have thought about.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any additional context or information about your feature request.
+      placeholder: Add any other relevant information or screenshots here.
+    validations:
+      required: false
