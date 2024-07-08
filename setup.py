@@ -178,12 +178,11 @@ def venv_manager() -> List[Optional[str]]:
     try:
         if not bool(check_flatpak(None)):
             import importlib
-
-            importlib.import_module("tkinker")
+            importlib.import_module("tkinter")
     except ImportError:
         exit_with_message(
             "Tkinker missing",
-            "Critical error, tkinker is not installed,\nmake shure you have installed the correct tkinker package for your system,\nsearch the internet for 'install tkinker for YOURDISTRO',\nreplace YOURDISTRO with your actual distro",
+            "Critical error, tkinker is not installed,\nmake shure you have installed the correct tkinter package for your system,\nsearch the internet for 'install tkinter for YOURDISTRO',\nreplace YOURDISTRO with your actual distro",
         )
     if not check_dependencies(requirements_txt):
         pip_install = f"install -r '{requirements_txt}'"
