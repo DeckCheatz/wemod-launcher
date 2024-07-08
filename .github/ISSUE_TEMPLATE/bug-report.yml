@@ -39,7 +39,7 @@ body:
     attributes:
       label: Logs
       description: Any logfile or teminal error output
-      placeholder: drag wemod.log on here if missing use the teminal output of the steam command
+      placeholder: Drag wemod.log on here, if missing use the teminal output of the steam command.
     validations:
       required: true
       
