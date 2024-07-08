@@ -37,8 +37,8 @@ Check the [Wiki Changelog](https://github.com/DaniAsh551/wemod-launcher/wiki/Cha
 consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest)** for easier setup (the `.flatpak` is easiest).  
 
 1. First `Python venv` and `TK` need to be installed  
-   TK / Tkinker may have a other name in your repos  
-   Online search Tkinker Yordistrobase (eg. Ubuntu)
+   TK / Tkinter may have a other name in your repos  
+   Search the internet for `install Tkinter for YOURDISTRO` (eg. Ubuntu)
 2. Also Search for and install `ProtonUp-QT` in the store.
 3. Download the latest `GE-Proton` in `ProtonUp-QT`  
    **NOTE:** After some testing it seams `Proton` also works  
