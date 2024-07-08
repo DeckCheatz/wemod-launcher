@@ -314,47 +314,50 @@ def troubleshooter() -> None:
         trouble = load_conf_setting("Troubleshoot")
     if trouble == None or (trouble and trouble.lower() == "true"):
         runtro = True
-        while runtro:
-            log("Starting troubleshooter")
-            ret = popup_options(
-                "Troubleshooter",
-                "Did WeMod work as expected,\nif not troubleshoot common problems with wemod.\nDeleteing the gameprefix helps often.\nDelete Wemod.exe helps if wemod updates their progamm\nTo use the Troubleshooter after it was disabled,\nyou can add TROUBLESHOOT=true in front of the launch command",
+    else:
+        log("Troubleshooter was disabled, continuing")
+    while runtro:
+        log("Starting troubleshooter")
+        ret = popup_options(
+            "Troubleshooter",
+            "Did WeMod work as expected,\nif not troubleshoot common problems with wemod.\nDeleteing the gameprefix helps often.\nDelete Wemod.exe helps if wemod updates their progamm\nTo use the Troubleshooter after it was disabled,\nyou can add TROUBLESHOOT=true in front of the launch command",
+            [
                 [
-                    [
-                        "Disable troubleshooter globaly",
-                        "Disable troubleshooter for this game",
-                    ],
-                    [
-                        "Enable troubleshooter globaly",
-                        "Enable troubleshooter for this game",
-                    ],
-                    ["Delete Gameprefix", "Delete Wemod.exe"],
-                    ["Close wemod-laucher"],
+                    "Disable troubleshooter globaly",
+                    "Disable troubleshooter for this game",
                 ],
-                120,
-            )
-            log(f"Selected in the troubleshooter was '{ret}'")
-            if ret == "Disable troubleshooter globaly":
-                save_conf_setting("Troubleshoot", "false")
-            elif ret == "Disable troubleshooter for this game":
-                with open(INIT_FILE, "w") as init:
-                    init.write("false")
-            elif ret == "Enable troubleshooter globaly":
-                save_conf_setting("Troubleshoot", "true")
-            elif ret == "Enable troubleshooter for this game":
-                with open(INIT_FILE, "w") as init:
-                    init.write("true")
-            elif ret == "Delete Wemod.exe":
-                try:
-                    os.remove(
-                        os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
-                    )
-                except Exception as e:
-                    pass
-            elif ret == "Delete Gameprefix":
-                try:
-                    shutil.rmtree(STEAM_COMPAT_FOLDER)
-                except Exception as e:
-                    pass
-            elif not ret or ret == "Close wemod-laucher":
-                runtro = False
+                [
+                    "Enable troubleshooter globaly",
+                    "Enable troubleshooter for this game",
+                ],
+                ["Delete Gameprefix", "Delete Wemod.exe"],
+                ["Close wemod-laucher"],
+            ],
+            120,
+        )
+        log(f"Selected in the troubleshooter was '{ret}'")
+        if ret == "Disable troubleshooter globaly":
+            save_conf_setting("Troubleshoot", "false")
+        elif ret == "Disable troubleshooter for this game":
+            with open(INIT_FILE, "w") as init:
+                init.write("false")
+        elif ret == "Enable troubleshooter globaly":
+            save_conf_setting("Troubleshoot", "true")
+        elif ret == "Enable troubleshooter for this game":
+            with open(INIT_FILE, "w") as init:
+                init.write("true")
+        elif ret == "Delete Wemod.exe":
+            try:
+                os.remove(
+                    os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
+                )
+            except Exception as e:
+                pass
+        elif ret == "Delete Gameprefix":
+            try:
+                shutil.rmtree(STEAM_COMPAT_FOLDER)
+            except Exception as e:
+                pass
+        elif not ret or ret == "Close wemod-laucher":
+            runtro = False
+            log("Closing troubleshooter as requested")
