@@ -255,9 +255,17 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
         subprocess.run(["git", "fetch"], text=True)
 
         # Get local and remote commit hashes
-        local_hash = subprocess.run(["git", "rev-parse", "@"], stdout=subprocess.PIPE, text=True).stdout.strip()
-        remote_hash = subprocess.run(["git", "rev-parse", "@{u}"], stdout=subprocess.PIPE, text=True).stdout.strip()
-        base_hash = subprocess.run(["git", "merge-base", "@", "@{u}"], stdout=subprocess.PIPE, text=True).stdout.strip()
+        local_hash = subprocess.run(
+            ["git", "rev-parse", "@"], stdout=subprocess.PIPE, text=True
+        ).stdout.strip()
+        remote_hash = subprocess.run(
+            ["git", "rev-parse", "@{u}"], stdout=subprocess.PIPE, text=True
+        ).stdout.strip()
+        base_hash = subprocess.run(
+            ["git", "merge-base", "@", "@{u}"],
+            stdout=subprocess.PIPE,
+            text=True,
+        ).stdout.strip()
 
         if local_hash == remote_hash:
             log("No updates available")
@@ -266,7 +274,9 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
 
             # Check if there are local changes that differ from remote
             if local_hash != base_hash:
-                log("Warning: Local changes detected, updating from remote anyway.")
+                log(
+                    "Warning: Local changes detected, updating from remote anyway."
+                )
 
             subprocess.run(["git", "reset", "--hard", "origin"], text=True)
             subprocess.run(["git", "pull"], text=True)
