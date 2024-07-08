@@ -33,6 +33,17 @@ body:
     validations:
       required: true
 
+
+  - type: textarea
+    id: any-logs
+    attributes:
+      label: Logs
+      description: Any logfile or teminal error output
+      placeholder: drag wemod.log on here if missing use the teminal output of the steam command
+    validations:
+      required: true
+      
+
   - type: textarea
     id: screenshots
     attributes:
