@@ -547,31 +547,33 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
     window = sg.Window("Unpacking Prefix", layout, finalize=True)
     window.refresh()
 
-    try:  # try own parrent folder
+    try:  # try own dest folder
         subprocess.run(
-            ["chown", "-R", os.getlogin(), os.path.dirname(dest_path)],
+            ["chown", "-R", os.getlogin(), dest_path],
             capture_output=True,
             text=True,
+            timeout=4,
         )
     except Exception as e:
         log(
             "failed to own folder as '"
             + os.getlogin()
             + "' for '"
-            + os.path.dirname(dest_path)
+            + dest_path
             + "' with error:\n\t"
             + e
         )
-    try:  # try to allow read and write on parrent folder
+    try:  # try to allow read and write on dest folder
         subprocess.run(
-            ["chmod", "-R", "ug+rw", os.path.dirname(dest_path)],
+            ["chmod", "-R", "ug+rw", dest_path],
             capture_output=True,
             text=True,
+            timeout=4,
         )
     except Exception as e:
         log(
             "failed to allow rw on '"
-            + os.path.dirname(dest_path)
+            + dest_path
             + "' with error:\n\t"
             + e
         )
