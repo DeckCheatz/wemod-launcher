@@ -244,33 +244,45 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
         upd = load_conf_setting("SelfUpdate")
 
     if upd and upd.lower() == "false":
-        log("Self update skiped")
+        log("Self update skipped")
         return path
 
     original_cwd = os.getcwd()
     try:
         os.chdir(SCRIPT_PATH)
 
+        # Fetch latest changes
         subprocess.run(["git", "fetch"], text=True)
-        progress = subprocess.run(
-            ["git", "status"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-        if "Your branch is up to date" in progress.stdout:
+
+        # Get local and remote commit hashes
+        local_hash = subprocess.run(["git", "rev-parse", "@"], stdout=subprocess.PIPE, text=True).stdout.strip()
+        remote_hash = subprocess.run(["git", "rev-parse", "@{u}"], stdout=subprocess.PIPE, text=True).stdout.strip()
+        base_hash = subprocess.run(["git", "merge-base", "@", "@{u}"], stdout=subprocess.PIPE, text=True).stdout.strip()
+
+        if local_hash == remote_hash:
             log("No updates available")
         else:
+            log("Updating...")
+
+            # Check if there are local changes that differ from remote
+            if local_hash != base_hash:
+                log("Warning: Local changes detected, updating from remote anyway.")
+
             subprocess.run(["git", "reset", "--hard", "origin"], text=True)
             subprocess.run(["git", "pull"], text=True)
+
+            # Set executable permissions (replace with specific file names if needed)
             subprocess.run(["chmod", "-R", "ug+x", "."], text=True)
-            if not bool(path):
+
+            # Optionally update the path to include the executable if not already set
+            if not path:
                 path = [sys.executable]
             log("Update finished")
     except Exception as e:
         log(f"Failed to update, the following error appeared:\n\t{e}")
+    finally:
+        os.chdir(original_cwd)
 
-    os.chdir(original_cwd)
     return path
 
 
