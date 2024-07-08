@@ -823,7 +823,7 @@ def run(skip_init: bool = False) -> str:
 
     troubleshooter()
 
-    log(f"Exit command with:\n\t'{resp}'")
+    log(f"Exit command with {resp}")
     return "EXIT"
 
 
