@@ -178,6 +178,7 @@ def venv_manager() -> List[Optional[str]]:
     try:
         if not bool(check_flatpak(None)):
             import importlib
+
             importlib.import_module("tkinter")
     except ImportError:
         exit_with_message(
