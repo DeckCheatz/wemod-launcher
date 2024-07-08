@@ -348,9 +348,7 @@ def troubleshooter() -> None:
                 init.write("true")
         elif ret == "Delete Wemod.exe":
             try:
-                os.remove(
-                    os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
-                )
+                os.remove(os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe"))
             except Exception as e:
                 pass
         elif ret == "Delete Gameprefix":
