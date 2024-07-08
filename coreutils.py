@@ -148,7 +148,26 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
         python_executable = sys.executable
 
     # Try to use pip directly if possible
-    if pos_pip:
+    if pos_pip == None:
+        pos_pip = "pip"
+        process = subprocess.Popen(
+            f"'{pos_pip}' {command}",
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        stdout, stderr = process.communicate()
+        process.wait()
+        # Check if pip command was successful
+        if process.returncode == 0:
+            log(f"Pip finished successfully")
+            return process.returncode
+        elif b"externally-managed-environment" in stderr:
+            log("Externally managed environment detected.")
+            return 99
+        else:
+            log(f"Pip error appered:\n\t{stdout}\n\t{stderr}")
+    else:
         process = subprocess.Popen(
             f"'{pos_pip}' {command}",
             shell=True,
