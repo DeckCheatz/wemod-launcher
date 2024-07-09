@@ -305,7 +305,9 @@ def bat_respond(responsefile: str, bout: Optional[int]):
 
 
 # Function to handle caching of files
-def cache(file_path: str, default: Callable[[str], None], simple:bool = False) -> str:
+def cache(
+    file_path: str, default: Callable[[str], None], simple: bool = False
+) -> str:
     CACHE = os.path.join(SCRIPT_PATH, ".cache")
     if not os.path.isdir(CACHE):
         log("Cache dir not found. Creating...")
@@ -414,7 +416,7 @@ def get_user_input(
 
 def script_manager() -> None:
     script_name = "wemod-laucher"
-    script_version = "1.472"
+    script_version = "1.473"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 
