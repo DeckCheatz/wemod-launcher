@@ -51,6 +51,7 @@ body:
     attributes:
       label: Screenshots
       description: If applicable, add screenshots to help explain your problem.
+      placeholder: drag screenshots in here if applicable
     validations:
       required: false
 
