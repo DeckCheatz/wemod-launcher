@@ -63,6 +63,7 @@ def enshure_wine(verstr: Optional[str] = None) -> str:
                 pver.write(verstr)
         elif not os.path.isfile(ProtonVersion):
             got = None
+            resp = None
             while not got:
                 resp, tout = get_user_input(
                     "Imput wine version", "Version file", "WineGE8.26", 40
@@ -75,8 +76,9 @@ def enshure_wine(verstr: Optional[str] = None) -> str:
                         20,
                         False,
                     )
-            with open(ProtonVersion, "w") as pver:
-                pver.write(resp)
+            if resp != None:
+                with open(ProtonVersion, "w") as pver:
+                    pver.write(resp)
         return ProtonVersion
     else:
         exit_with_message(
