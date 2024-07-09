@@ -1,5 +1,5 @@
 # WeMod Launcher (Wemod for Linux)
-**The WeMod Launcher is currently on version 1.473.**
+**The WeMod Launcher is currently on version 1.474.**
 
 ## DISCLAIMER
 This project is *NOT* affiliated with, funded by, or paid by WeMod.  
