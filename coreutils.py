@@ -305,7 +305,7 @@ def bat_respond(responsefile: str, bout: Optional[int]):
 
 
 # Function to handle caching of files
-def cache(file_path: str, default: Callable[[str], None]) -> str:
+def cache(file_path: str, default: Callable[[str], None], simple:bool = False) -> str:
     CACHE = os.path.join(SCRIPT_PATH, ".cache")
     if not os.path.isdir(CACHE):
         log("Cache dir not found. Creating...")
@@ -318,7 +318,10 @@ def cache(file_path: str, default: Callable[[str], None]) -> str:
 
     log(f"Cached file not found: '{FILE}'")
 
-    default(FILE)
+    if simple:
+        default(file_path)
+    else:
+        default(FILE)
     return FILE
 
 
