@@ -510,6 +510,7 @@ def download_prefix(proton_dir: str) -> None:
     prefix_path = cache(
         file_name,
         lambda name: popup_download("Dowloading Prefix...", url, name),
+        simple=True,
     )
 
     # Unpack the downloaded prefix
@@ -518,9 +519,8 @@ def download_prefix(proton_dir: str) -> None:
     unpack_zip_with_progress(prefix_path, BASE_STEAM_COMPAT)
 
     # Delete cache file since the prefix copyer has been added there is no need to keep this file around
-    fullfile = os.path.join(SCRIPT_PATH, ".cache", file_name)
-    if os.path.isfile(fullfile):
-        os.remove(fullfile)
+    if os.path.isfile(prefix_path):
+        os.remove(prefix_path)
 
     syncwemod()
     if not os.path.isfile(
