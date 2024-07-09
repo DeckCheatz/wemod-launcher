@@ -39,7 +39,9 @@ body:
     attributes:
       label: Logs
       description: Any logfile or teminal error output
-      placeholder: Drag wemod.log on here, if missing use the teminal output of the steam command.
+      placeholder: |
+        Drag wemod.log on here, 
+        if missing use the teminal output of the 'steam' command.
     validations:
       required: true
       
@@ -59,7 +61,7 @@ body:
       description: Plese provide more information about your system
       placeholder: |
          * OS: [e.g. Ubuntu 20.04, Arch 2022.02.01]
-         * Script version [e.g. 1.545]
+         * Wine Version: [eg. GE-Proton9.5]
     validations:
       required: true
 
