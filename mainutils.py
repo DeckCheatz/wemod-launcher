@@ -571,7 +571,12 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             timeout=10,
         )
     except Exception as e:
-        log("failed to allow rw on '" + dest_path + "' with error:\n\t" + str(e))
+        log(
+            "failed to allow rw on '"
+            + dest_path
+            + "' with error:\n\t"
+            + str(e)
+        )
 
     window.perform_long_operation(unpack_files, "-UNPACK DONE-")
 
