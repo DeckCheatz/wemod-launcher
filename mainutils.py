@@ -552,7 +552,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             ["chown", "-R", os.getlogin(), dest_path],
             capture_output=True,
             text=True,
-            timeout=4,
+            timeout=10,
         )
     except Exception as e:
         log(
@@ -561,17 +561,17 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             + "' for '"
             + dest_path
             + "' with error:\n\t"
-            + e
+            + str(e)
         )
     try:  # try to allow read and write on dest folder
         subprocess.run(
             ["chmod", "-R", "ug+rw", dest_path],
             capture_output=True,
             text=True,
-            timeout=4,
+            timeout=10,
         )
     except Exception as e:
-        log("failed to allow rw on '" + dest_path + "' with error:\n\t" + e)
+        log("failed to allow rw on '" + dest_path + "' with error:\n\t" + str(e))
 
     window.perform_long_operation(unpack_files, "-UNPACK DONE-")
 
