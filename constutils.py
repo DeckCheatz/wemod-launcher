@@ -312,6 +312,7 @@ def troubleshooter() -> None:
         trouble = read_file(INIT_FILE)
     if not trouble:
         trouble = load_conf_setting("Troubleshoot")
+    runtro = False
     if trouble == None or (trouble and trouble.lower() == "true"):
         runtro = True
     else:
