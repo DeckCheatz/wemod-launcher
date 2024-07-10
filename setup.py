@@ -173,18 +173,19 @@ def mk_venv() -> Optional[str]:
         return venv_path
 
 
-def venv_manager() -> List[Optional[str]]:
-    requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
+def tk_check() -> None:
     try:
         if not bool(check_flatpak(None)):
-            import importlib
-
-            importlib.import_module("tkinter")
+            import tkinter
     except ImportError:
         exit_with_message(
-            "Tkinker missing",
-            "Critical error, tkinker is not installed,\nmake shure you have installed the correct tkinter package for your system,\nsearch the internet for 'install tkinter for YOURDISTRO',\nreplace YOURDISTRO with your actual distro",
+            "Tkinter missing",
+            "Critical error, tkinter is not installed,\nmake shure you have installed the correct tkinter package for your system,\nsearch the internet for 'install tkinter for YOURDISTRO',\nreplace YOURDISTRO with your actual distro",
         )
+
+def venv_manager() -> List[Optional[str]]:
+    requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
+    tk_check()
     if not check_dependencies(requirements_txt):
         pip_install = f"install -r '{requirements_txt}'"
         return_code = pip(pip_install)
