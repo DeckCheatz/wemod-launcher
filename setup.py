@@ -183,6 +183,7 @@ def tk_check() -> None:
             "Critical error, tkinter is not installed,\nmake shure you have installed the correct tkinter package for your system,\nsearch the internet for 'install tkinter for YOURDISTRO',\nreplace YOURDISTRO with your actual distro",
         )
 
+
 def venv_manager() -> List[Optional[str]]:
     requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
     tk_check()
