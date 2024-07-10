@@ -1,0 +1,52 @@
+name: Question
+description: Ask a question about the project
+title: '[Question] How do I use the wemod-laucher for x'
+labels: ["question"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: Your question about the project.
+      placeholder: Describe your question in detail.
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment-details
+    attributes:
+      label: Environment Details
+      description: Provide details about your environment.
+      placeholder: |
+        - Wine Version: [e.g. GE-Proton9.5]
+        - Script Version: [e.g. 1.477]
+        - OS: [e.g. Ubuntu, Arch 2024.xx.xx]
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any additional context or information that might help answer your question.
+      placeholder: Provide any other relevant details here.
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs (if applicable)
+      description: Optional log section for additional context.
+      placeholder: Paste log output here if relevant to your question.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional Information
+      description: Any other information or things related to your question.
+      placeholder: Add any other relevant information or related things here.
+    validations:
+      required: false
