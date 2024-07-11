@@ -331,7 +331,7 @@ def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
             infpr = os.getenv("WeModInfProtect", "1")
             infpr = str(int(infpr) + 1)
 
-            flatpak_start.append("FROM_FLATPAC=true")
+            flatpak_start.append("FROM_FLATPAK=true")
             flatpak_start.append(f"WeModInfProtect={infpr}")
 
             if bool(flatpak_cmd):  # if venv is set use it
