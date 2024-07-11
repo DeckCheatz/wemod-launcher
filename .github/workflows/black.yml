@@ -4,10 +4,12 @@ on:
     branches:
       - main
       - dev
+    paths: ["*.py", "wemod"]
   pull_request:
     branches:
       - main
       - dev
+    paths: ["*.py", "wemod"]
 
 jobs:
   lint-and-format:
