@@ -308,7 +308,6 @@ def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
             flatpak_start = [
                 "flatpak-spawn",
                 "--host",
-                "env",
             ]
 
             envlist = [
@@ -327,12 +326,13 @@ def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
             ]
             for env in envlist:
                 if env in os.environ:
-                    flatpak_start.append(f"{env}={os.environ[env]}")
+                    flatpak_start.append(f"--env={env}={os.environ[env]}")
             infpr = os.getenv("WeModInfProtect", "1")
             infpr = str(int(infpr) + 1)
 
             flatpak_start.append("FROM_FLATPAC=true")
             flatpak_start.append(f"WeModInfProtect={infpr}")
+            flatpak_start.append("--")  # Isolate command from command args
 
             if bool(flatpak_cmd):  # if venv is set use it
                 flatpak_cmd = flatpak_start + flatpak_cmd
