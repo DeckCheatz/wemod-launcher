@@ -2,18 +2,22 @@ from typing import Optional
 from xdg.BaseDirectory import save_data_path
 from path import Path
 import logging
-from os import environ
+from os import environ, getenv
 
 
 class LoggingHandler(object):
     def __init__(
         self,
-        module_name: str = __name__,
-        level: Optional[int] = None,
-        log_file: str = save_data_path("wemod_launcher"),
+        module_name: str,
+        level: int = 20,
+        log_dir: Optional[str] = save_data_path("wemod_launcher"),
     ):
+        if not module_name:
+            print("Module name is required!")
+            print("This IS a bug, contact upstream devs.")
+        module_name = "wemod_launcher_{}".format(module_name.replace(".", "_"))
         try:
-            if environ["WEMOD_LAUNCHER_DEV_MODE"] is True:
+            if getenv("WEMOD_LAUNCHER_DEV_MODE", "False").lower() in ('true', '1', 't') == True and level is None:
                 level = logging.DEBUG
             elif "WEMOD_LAUNCHER_LOG_LEVEL" in environ and level is None:
                 env_log_level = environ["WEMOD_LAUNCHER_LOG_LEVEL"]
@@ -30,17 +34,26 @@ class LoggingHandler(object):
                         level = logging.CRITICAL
                     case _:
                         level = logging.INFO
+            else:
+                level = logging.INFO
         except KeyError:
             pass 
 
-        self.logger = logging.getLogger(f"wemod_launcher: {module_name}")
-        self.logger.setLevel(level or logging.INFO)
-        self.logger.addHandler(logging.StreamHandler())
-        self.logger.addHandler(
-            logging.FileHandler(
-                Path(log_file).joinpath(f"wemod_launcher.log")
-            )
-        )
+        log_dir = Path(log_dir)
+        if not log_dir.exists():
+            log_dir.mkdir()
+
+        self.__logger = logging.getLogger(module_name)
+
+        file_handler = logging.FileHandler(
+                log_dir / "wemod_launcher.log")
+        file_handler.setLevel(level if level else logging.INFO)
+
+        stdout_handler = logging.StreamHandler()
+        stdout_handler.setLevel(level if level else logging.INFO)
+
+        self.__logger.addHandler(file_handler)
+        self.__logger.addHandler(stdout_handler)
 
     def get_logger(self) -> logging.Logger:
-        return self.logger
+        return self.__logger
