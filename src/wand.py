@@ -11,7 +11,7 @@ import subprocess
 from typing import Optional
 
 # Import core utils without download dependencies
-from corenodep import (
+from core_nodeps import (
     join_lists_with_delimiter,
     split_list_by_delimiter,
     load_conf_setting,
@@ -44,8 +44,8 @@ from mainutils import (
     deref,
 )
 
-# Import from setup
-from setup import (
+# Import from prepare
+from prepare import (
     check_flatpak,
     venv_manager,
     self_update,
@@ -341,7 +341,7 @@ def init(proton: str, iswine: bool = False) -> None:
                 f"Found '{cut_version[0]}.{cut_version[1]}' on '{current_version_parts[0]}.{current_version_parts[1]}'"
             )
 
-        from mainutils import copy_folder_with_progress
+        from main_utils import copy_folder_with_progress
 
         response = "No"
         if (
