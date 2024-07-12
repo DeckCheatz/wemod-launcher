@@ -15,6 +15,8 @@ pyxdg = "0.28"
 strictyaml = "1.7.3"
 setuptools = "*"
 
+[tool.poetry.scripts]
+wemod-launcher = "wemod_launcher.cli:main"
 
 [build-system]
 requires = ["poetry-core"]
