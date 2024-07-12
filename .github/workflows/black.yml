@@ -99,6 +99,10 @@ jobs:
           echo "PYTHON_FILES_CHANGED=${{ needs.lint-and-format.outputs.python_files_changed }}"
           echo "BLACK_OUTCOME=${{ needs.lint-and-format.steps.run_black.outcome }}"
           echo "On=${{ github.ref }}"
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+          
       - name: Merge dev into main
         if: github.ref == 'refs/heads/dev' && (needs.lint-and-format.outputs.python_files_changed == 'false' || needs.lint-and-format.steps.run_black.outcome == 'success')
         uses: peter-evans/create-pull-request@v3
