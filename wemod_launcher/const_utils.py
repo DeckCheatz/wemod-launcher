@@ -125,8 +125,8 @@ def ensure_wine(verstr: Optional[str] = None) -> str:
         )
 
 
-# Scan the steam compat folder for WeMod installed prefixes
-def scanfolderforversions(
+# Scan the steam compat folder for wemod installed prefixes
+def scan_compat_for_versions(
     current_version_parts: List[Union[int, None]] = [None, None]
 ) -> List[Union[Optional[List[int]], Optional[str]]]:
     # At default, we don't know of any available version
