@@ -8,13 +8,13 @@ on:
     branches:
       - main
       - dev
-
+  
 jobs:
   lint-and-format:
     runs-on: ubuntu-latest
 
     outputs:
-      python_files_changed: ${{ steps.check_files.outputs.PYTHON_FILES_CHANGED }}
+      python_files_changed: ${{ steps.check_files.outputs.python_files_changed }}
       black_outcome: ${{ steps.run_black.outcome }}
 
     steps:
@@ -95,18 +95,22 @@ jobs:
   merge:
     runs-on: ubuntu-latest
     needs: lint-and-format
+    env:
+      PYTHON_FILES_CHANGED: ${{ needs.lint-and-format.outputs.python_files_changed }}
+      BLACK_OUTCOME: ${{ needs.lint-and-format.steps.run_black.outcome }}
+    
     steps:
       - name: Print PYTHON_FILES_CHANGED value
         run: | 
-          echo "PYTHON_FILES_CHANGED=${{ needs.lint-and-format.outputs.python_files_changed }}"
-          echo "BLACK_OUTCOME=${{ needs.lint-and-format.steps.run_black.outcome }}"
+          echo "PYTHON_FILES_CHANGED=${{ env.PYTHON_FILES_CHANGED }}"
+          echo "BLACK_OUTCOME=${{ env.BLACK_OUTCOME }}"
           echo "On=${{ github.ref }}"
 
       - name: Checkout code
         uses: actions/checkout@v2
           
       - name: Merge dev into main
-        if: github.ref == 'refs/heads/dev' && (needs.lint-and-format.outputs.python_files_changed == 'false' || needs.lint-and-format.steps.run_black.outcome == 'success')
+        if: github.ref == 'refs/heads/dev' && (env.PYTHON_FILES_CHANGED == 'false' || env.BLACK_OUTCOME == 'success')
         uses: peter-evans/create-pull-request@v3
         id: create_pr_dev_to_main
         with:
@@ -120,7 +124,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
       - name: Merge main into dev
-        if: github.ref == 'refs/heads/main' && (needs.lint-and-format.outputs.python_files_changed == 'false' || needs.lint-and-format.steps.run_black.outcome == 'success')
+        if: github.ref == 'refs/heads/main' && (env.PYTHON_FILES_CHANGED == 'false' || env.BLACK_OUTCOME == 'success')
         uses: peter-evans/create-pull-request@v3
         id: create_pr_main_to_dev
         with:
