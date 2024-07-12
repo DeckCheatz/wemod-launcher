@@ -2,19 +2,24 @@ from typing import Optional
 from xdg.BaseDirectory import save_data_path
 from path import Path
 import logging
-from os import environ
+from os import environ, getenv
 
 
 class LoggingHandler(object):
     def __init__(
         self,
-        module_name: str = __name__,
+        module_name: str,
         level: Optional[int] = None,
-        log_file: str = save_data_path("wemod_launcher"),
+        log_dir: Optional[str] = save_data_path("wemod_launcher"),
     ):
+        if not module_name:
+            print("Module name is required!")
+            print("This IS a bug, contact upstream devs.")
+        module_name = "wemod_launcher_{}".format(module_name.replace(".", "_"))
         try:
-            if environ["WEMOD_LAUNCHER_DEV_MODE"] is True:
+            if environ["WEMOD_LAUNCHER_DEV_MODE"].lower() in ('true', '1', 't') and level is None:
                 level = logging.DEBUG
+                print(level)
             elif "WEMOD_LAUNCHER_LOG_LEVEL" in environ and level is None:
                 env_log_level = environ["WEMOD_LAUNCHER_LOG_LEVEL"]
                 match env_log_level:
@@ -30,17 +35,36 @@ class LoggingHandler(object):
                         level = logging.CRITICAL
                     case _:
                         level = logging.INFO
+            else:
+                level = logging.INFO
+            print("Log level: ", level)
         except KeyError:
+            level = logging.INFO
             pass 
 
-        self.logger = logging.getLogger(f"wemod_launcher: {module_name}")
-        self.logger.setLevel(level or logging.INFO)
-        self.logger.addHandler(logging.StreamHandler())
-        self.logger.addHandler(
-            logging.FileHandler(
-                Path(log_file).joinpath(f"wemod_launcher.log")
-            )
-        )
+        log_dir = Path(log_dir)
+        if not log_dir.exists():
+            log_dir.mkdir()
+
+        logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s] %(name)s: %(message)s")
+        root_logger = logging.getLogger(module_name)
+
+        file_handler = logging.FileHandler(
+                str(log_dir / "wemod_launcher.log"))
+        file_handler.setLevel(level)
+        file_handler.setFormatter(logFormatter)
+
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(level)
+        console_handler.setFormatter(logFormatter)
+
+        root_logger.setLevel(level)
+        root_logger.addHandler(file_handler)
+        root_logger.addHandler(console_handler)
+
+        self.__logger = root_logger
+        root_logger.debug(f"Logger for module ({module_name}) initialized with log level ({level})")
+        
 
     def get_logger(self) -> logging.Logger:
-        return self.logger
+        return self.__logger
