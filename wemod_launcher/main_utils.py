@@ -15,11 +15,11 @@ from typing import (
 )
 
 
-from core_nodeps import (
+from .core_nodeps import (
     parse_version,
 )
 
-from core_utils import (
+from .core_utils import (
     exit_with_message,
     save_conf_setting,
     load_conf_setting,
@@ -237,7 +237,7 @@ def popup_download(title: str, link: str, file_name: str) -> str:
 
     status = [0, 0]
 
-    cache = os.path.join(SCRIPT_PATH, ".cache")
+    cache = "/tmp/wemod-launcher/.cache"
     if not os.path.isdir(cache):
         os.makedirs(cache)
 
@@ -620,7 +620,7 @@ def flatpakrunner():
     import subprocess
     import time
 
-    cachedir = os.path.join(SCRIPT_PATH, ".cache")
+    cachedir = "/tmp/wemod-launcher/.cache"
     os.makedirs(cachedir, exist_ok=True)
 
     flatpakrunfile = os.path.join(cachedir, "insideflatpak.tmp")
