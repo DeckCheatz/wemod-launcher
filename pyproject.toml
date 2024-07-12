@@ -13,6 +13,7 @@ requests = "2.32.3"
 path-py = "12.5.0"
 pyxdg = "0.28"
 strictyaml = "1.7.3"
+setuptools = "*"
 
 
 [build-system]
