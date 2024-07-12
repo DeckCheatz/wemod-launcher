@@ -20,10 +20,9 @@ jobs:
       - name: Check if Python files or wemod file changed
         id: check_files
         run: |
-          if git diff --name-only HEAD^ HEAD | grep -E '\.py$|wemod' > /dev/null 2>&1; then
+          echo "PYTHON_FILES_CHANGED=false" >> $GITHUB_ENV
+          if git diff --name-only HEAD^ HEAD | grep -E '\.py$|wemod'; then
             echo "PYTHON_FILES_CHANGED=true" >> $GITHUB_ENV
-          else
-            echo "PYTHON_FILES_CHANGED=false" >> $GITHUB_ENV
           fi
 
       - name: Set up Python
