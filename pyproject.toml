@@ -10,10 +10,8 @@ readme = "README.md"
 python = "^3.12"
 freesimplegui = "5.1.0"
 requests = "2.32.3"
-path-py = "12.5.0"
 pyxdg = "0.28"
-strictyaml = "1.7.3"
-setuptools = "*"
+setuptools = "*" # Fails without this.
 
 [tool.poetry.scripts]
 wemod-launcher = "wemod_launcher.cli:main"
