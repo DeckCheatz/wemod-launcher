@@ -18,14 +18,14 @@ from consts import (
     INIT_FILE,
 )
 
-from coreutils import (
+from core_utils import (
     exit_with_message,
     get_user_input,
     popup_options,
     show_message,
 )
 
-from corenodep import (
+from core_nodeps import (
     load_conf_setting,
     save_conf_setting,
     parse_version,
@@ -38,11 +38,11 @@ from typing import (
     Optional,
 )
 
-from coreutils import (
+from core_utils import (
     log,
 )
 
-from mainutils import (
+from main_utils import (
     popup_execute,
 )
 
@@ -255,7 +255,7 @@ def scanfolderforversions(
                         prefix_path_seven = folder_path
 
     if prefix_path_seven:
-        from mainutils import copy_folder_with_progress
+        from main_utils import copy_folder_with_progress
 
         prefixesfolder = os.path.join(SCAN_FOLDER, "prefix")
         os.makedirs(prefixesfolder, exists_ok=True)
