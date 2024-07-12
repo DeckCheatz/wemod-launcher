@@ -734,7 +734,7 @@ def run(skip_init: bool = False) -> str:
     log(f"Executing:\n\t{FINAL}\n")
     print(f"Executing:\n\t{FINAL}\n")
 
-    fromflat = os.getenv("FROM_FLATPAC")
+    fromflat = os.getenv("FROM_FLATPAK")
 
     if fromflat:
         import time
