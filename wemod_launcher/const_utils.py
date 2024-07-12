@@ -48,7 +48,7 @@ SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
 
 
 # Enshure that wine is isntalled
-def enshure_wine(verstr: Optional[str] = None) -> str:
+def ensure_wine(verstr: Optional[str] = None) -> str:
     WinePfx = os.path.join(BASE_STEAM_COMPAT, "drive_c")
     ProtonPfx = os.path.join(WINEPREFIX, "drive_c")
     if os.path.isdir(WinePfx):
@@ -89,7 +89,7 @@ def enshure_wine(verstr: Optional[str] = None) -> str:
 
 
 # Scan the steam compat folder for wemod installed prefixes
-def scanfolderforversions(
+def scan_compat_for_versions(
     current_version_parts: List[Union[int, None]] = [None, None]
 ) -> List[Union[Optional[List[int]], Optional[str]]]:
     # At default, we don't know of any available version

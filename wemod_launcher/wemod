@@ -108,9 +108,9 @@ if __name__ == "__main__":
 
 # Import utils that need constants
 from const_utils import (
-    scanfolderforversions,
+    scan_compat_for_versions,
     troubleshooter,
-    enshure_wine,
+    ensure_wine,
     winetricks,
     wine,
 )
@@ -292,11 +292,11 @@ def init(proton: str, iswine: bool = False) -> None:
             log(
                 f"Problem grabing the external wine version, using file, returned was:\n\t{e}"
             )
-            prefix_version_file = enshure_wine()
+            prefix_version_file = ensure_wine()
         else:
-            prefix_version_file = enshure_wine(str(wver.stdout))
+            prefix_version_file = ensure_wine(str(wver.stdout))
     else:
-        prefix_version_file = enshure_wine()
+        prefix_version_file = ensure_wine()
     current_proton_version = read_file(prefix_version_file)
     current_version_parts = parse_version(current_proton_version)
     if current_version_parts == None:
@@ -315,7 +315,7 @@ def init(proton: str, iswine: bool = False) -> None:
         )
 
         # Get closest version that has wemod installed
-        closest_version, closest_prefix_folder = scanfolderforversions(
+        closest_version, closest_prefix_folder = scan_compat_for_versions(
             current_version_parts
         )
         cut_version = parse_version(closest_version)
