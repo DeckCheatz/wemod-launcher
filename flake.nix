@@ -21,12 +21,6 @@
           wemod-launcher = mkPoetryApplication {
             projectDir = self;
             preferWheels = true;
-#            overrides = poetry2nix.defaultPoetryOverrides.extend
-#              (final: prev: {
-#                freesimplegui = prev.freesimplegui.overridePythonAttrs (old: {
-#                  buildInputs = old.buildInputs ++ [ prev.setuptools ];
-#                });
-#              });
           };
           default = self.packages.${system}.wemod-launcher;
         };
