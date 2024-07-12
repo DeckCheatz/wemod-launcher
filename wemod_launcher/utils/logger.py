@@ -1,6 +1,6 @@
 from typing import Optional
 from xdg.BaseDirectory import save_data_path
-from path import Path
+from pathlib import Path
 import logging
 from os import environ, getenv
 
