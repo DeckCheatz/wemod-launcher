@@ -13,11 +13,11 @@ from typing import (
 )
 
 
-from corenodep import (
+from core_nodeps import (
     parse_version,
 )
 
-from coreutils import (
+from core_utils import (
     exit_with_message,
     save_conf_setting,
     load_conf_setting,

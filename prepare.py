@@ -6,23 +6,23 @@ import stat
 import shutil
 import subprocess
 
-from coreutils import (
+from core_utils import (
     log,
     pip,
     exit_with_message,
 )
 
-from corenodep import (
+from core_nodeps import (
     load_conf_setting,
     save_conf_setting,
     check_dependencies,
 )
 
-from coreutils import (
+from core_utils import (
     show_message,
 )
 
-from mainutils import (
+from main_utils import (
     download_progress,
 )
 

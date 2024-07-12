@@ -2,12 +2,12 @@
 
 import os
 
-from corenodep import (
+from core_nodeps import (
     load_conf_setting,
     winpath,
 )
 
-from coreutils import (
+from core_utils import (
     exit_with_message,
     log,
 )

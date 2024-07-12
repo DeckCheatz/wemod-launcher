@@ -14,7 +14,7 @@ from typing import (
     Any,
 )
 
-from corenodep import (
+from core_nodeps import (
     join_lists_with_delimiter,
     load_conf_setting,
     save_conf_setting,
