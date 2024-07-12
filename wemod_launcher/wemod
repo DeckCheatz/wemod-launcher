@@ -113,7 +113,7 @@ if __name__ == "__main__":
 
 # Import utils that need constants
 from const_utils import (
-    scanfolderforversions,
+    scan_compat_for_versions,
     troubleshooter,
     ensure_wine,
     winetricks,
@@ -334,8 +334,8 @@ def init(proton: str, iswine: bool = False) -> None:
             f"Looking for compatible wine prefixes in '{STEAM_COMPAT_FOLDER}' with Proton version '{current_version_parts[0]}.{current_version_parts[1]}'"
         )
 
-        # Get closest version that has WeMod installed
-        closest_version, closest_prefix_folder = scanfolderforversions(
+        # Get closest version that has wemod installed
+        closest_version, closest_prefix_folder = scan_compat_for_versions(
             current_version_parts
         )
         cut_version = parse_version(closest_version)
