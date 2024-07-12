@@ -245,7 +245,8 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
     if not upd:
         upd = load_conf_setting("SelfUpdate")
 
-    if upd and upd.lower() == "false":
+    infinite = os.getenv("WeModInfProtect", "1")
+    if (upd and upd.lower() == "false") or infinite > 2:
         log("Self update skipped")
         return path
 
