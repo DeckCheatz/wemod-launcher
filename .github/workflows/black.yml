@@ -98,7 +98,7 @@ jobs:
         run: | 
           echo "PYTHON_FILES_CHANGED=${{ needs.lint-and-format.outputs.python_files_changed }}"
           echo "BLACK_OUTCOME=${{ needs.lint-and-format.steps.run_black.outcome }}"
-          echo "On={{ github.ref }}"
+          echo "On=${{ github.ref }}"
       - name: Merge dev into main
         if: github.ref == 'refs/heads/dev' && (needs.lint-and-format.outputs.python_files_changed == 'false' || needs.lint-and-format.steps.run_black.outcome == 'success')
         uses: peter-evans/create-pull-request@v3
@@ -110,6 +110,8 @@ jobs:
           base: "dev"
           title: "Auto merge/sync branch 'dev' into 'main'"
           body: "This PR was created automatically to merge changes from dev into main."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
       - name: Merge main into dev
         if: github.ref == 'refs/heads/main' && (needs.lint-and-format.outputs.python_files_changed == 'false' || needs.lint-and-format.steps.run_black.outcome == 'success')
@@ -122,3 +124,5 @@ jobs:
           base: "main"
           title: "Auto pull/sync back changes from 'main' into 'dev'"
           body: "This PR was created automatically to pull back changes from main into dev."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
