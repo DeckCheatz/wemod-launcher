@@ -15,7 +15,7 @@ from typing import (
     Any,
 )
 
-from core_nodeps import (
+from .core_nodeps import (
     join_lists_with_delimiter,
     load_conf_setting,
     save_conf_setting,
@@ -336,7 +336,7 @@ def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
 def cache(
     file_path: str, default: Callable[[str], None], simple: bool = False
 ) -> str:
-    CACHE = os.path.join(SCRIPT_PATH, ".cache")
+    CACHE = "/tmp/wemod-launcher/.cache"
     if not os.path.isdir(CACHE):
         log("Cache dir not found. Creating...")
         os.mkdir(CACHE)
