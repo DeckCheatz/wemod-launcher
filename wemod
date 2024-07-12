@@ -11,7 +11,7 @@ import subprocess
 from typing import Optional
 
 # Import core utils without download dependencies
-from corenodep import (
+from core_nodeps import (
     join_lists_with_delimiter,
     split_list_by_delimiter,
     load_conf_setting,
@@ -22,7 +22,7 @@ from corenodep import (
 )
 
 # Import core utils
-from coreutils import (
+from core_utils import (
     exit_with_message,
     script_manager,
     popup_options,
@@ -33,7 +33,7 @@ from coreutils import (
 )
 
 # Import main utils
-from mainutils import (
+from main_utils import (
     find_closest_compatible_release,
     unpack_zip_with_progress,
     get_github_releases,
@@ -44,8 +44,8 @@ from mainutils import (
     deref,
 )
 
-# Import from setup
-from setup import (
+# Import from prepare
+from prepare import (
     check_flatpak,
     venv_manager,
     self_update,
@@ -112,7 +112,7 @@ if __name__ == "__main__":
 
 
 # Import utils that need constants
-from constutils import (
+from const_utils import (
     scanfolderforversions,
     troubleshooter,
     ensure_wine,
@@ -153,7 +153,7 @@ def syncwemod(
                         save_conf_setting("PackagePrefix", package_prefix)
                         package_prefix = "true"
     if package_prefix and folder == None and package_prefix.lower() == "true":
-        from mainutils import copy_folder_with_progress
+        from main_utils import copy_folder_with_progress
 
         log(
             "Prefix packaging was requested with PACKAGEPREFIX=true in front of the command"
@@ -345,7 +345,7 @@ def init(proton: str, iswine: bool = False) -> None:
                 f"Found '{cut_version[0]}.{cut_version[1]}' on '{current_version_parts[0]}.{current_version_parts[1]}'"
             )
 
-        from mainutils import copy_folder_with_progress
+        from main_utils import copy_folder_with_progress
 
         response = "No"
         if (
