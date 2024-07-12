@@ -26,7 +26,6 @@ class Configuration(object):
         self.__cfg_path = cfg_file
 
         self.__config = load(open(str(cfg_file), 'rb'))
-        print(self.__config)
         self.__log.debug("Configuration initialized.")
 
     def get_key(self, keys: list[str]) -> typing.Any:
