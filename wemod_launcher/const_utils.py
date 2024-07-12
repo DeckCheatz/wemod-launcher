@@ -7,7 +7,7 @@ import subprocess
 from urllib import request
 
 # Import consts
-from consts import (
+from .consts import (
     STEAM_COMPAT_FOLDER,
     BASE_STEAM_COMPAT,
     SCAN_FOLDER,
@@ -15,14 +15,14 @@ from consts import (
     INIT_FILE,
 )
 
-from core_utils import (
+from .core_utils import (
     exit_with_message,
     get_user_input,
     popup_options,
     show_message,
 )
 
-from core_nodeps import (
+from .core_nodeps import (
     load_conf_setting,
     save_conf_setting,
     parse_version,
@@ -35,11 +35,11 @@ from typing import (
     Optional,
 )
 
-from core_utils import (
+from .core_utils import (
     log,
 )
 
-from main_utils import (
+from .main_utils import (
     popup_execute,
 )
 
@@ -218,7 +218,7 @@ def scan_compat_for_versions(
                         prefix_path_seven = folder_path
 
     if prefix_path_seven:
-        from main_utils import copy_folder_with_progress
+        from .main_utils import copy_folder_with_progress
 
         prefixesfolder = os.path.join(SCAN_FOLDER, "prefix")
         os.makedirs(prefixesfolder, exists_ok=True)

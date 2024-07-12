@@ -2,36 +2,48 @@
 
 import os
 from pathlib import Path
-from utils.configuration import Configuration
+from .utils.configuration import Configuration
+
 cfg: Configuration = Configuration()
 
-from core_nodeps import (
+from .core_nodeps import (
     load_conf_setting,
     winpath,
 )
 
-from core_utils import (
+from .core_utils import (
     exit_with_message,
     log,
 )
+
 
 # Function to grab the Steam Compat Data path
 def get_compat() -> str:
     ccompat = load_conf_setting("SteamCompatDataPath")
     wcompat = load_conf_setting("WinePrefixPath")
     if not wcompat and os.getenv("WINE_PREFIX_PATH"):
-        os.environ["WINEPREFIX"] = os.getenv("WINE_PREFIX_PATH", "") # TODO: Either use try/except here, or a sane default.
-    ecompat = os.getenv("STEAM_COMPAT_DATA_PATH", "") # TODO: Either use try/except here, or a sane default.
+        os.environ["WINEPREFIX"] = os.getenv(
+            "WINE_PREFIX_PATH", ""
+        )  # TODO: Either use try/except here, or a sane default.
+    ecompat = os.getenv(
+        "STEAM_COMPAT_DATA_PATH", ""
+    )  # TODO: Either use try/except here, or a sane default.
     nogame = False
     # STEAM_COMPAT_DATA_PATH not set
     if not ecompat:
         if os.getenv("WINEPREFIX") or wcompat:
             ecompat = wcompat
             if not ecompat:
-                ecompat = os.getenv("WINEPREFIX", "") # TODO: Either use try/except here, or a sane default.
+                ecompat = os.getenv(
+                    "WINEPREFIX", ""
+                )  # TODO: Either use try/except here, or a sane default.
             nogame = True
-            wine = os.getenv("WINE", "") # TODO: Either use try/except here, or a sane default.
-            tools = os.getenv("STEAM_COMPAT_TOOL_PATHS", "") # TODO: Either use try/except here, or a sane default.
+            wine = os.getenv(
+                "WINE", ""
+            )  # TODO: Either use try/except here, or a sane default.
+            tools = os.getenv(
+                "STEAM_COMPAT_TOOL_PATHS", ""
+            )  # TODO: Either use try/except here, or a sane default.
             # if tools set and wine not in compat tools
             if (
                 tools
@@ -75,7 +87,7 @@ def get_compat() -> str:
 def get_scan_folder() -> str:
     scan_folder: str
     try:
-       scan_folder = os.getenv("SCANFOLDER") or ""
+        scan_folder = os.getenv("SCANFOLDER") or ""
     except KeyError:
         scan_folder = ""
         pass
@@ -88,6 +100,7 @@ def get_scan_folder() -> str:
 
     return scan_folder
 
+
 SCRIPT_IMP_FILE = os.path.realpath(__file__)
 SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
 BAT_COMMAND = ["start", winpath(os.path.join(SCRIPT_PATH, "wemod.bat"))]
@@ -97,4 +110,3 @@ SCAN_FOLDER = get_scan_folder()
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
 INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
-
