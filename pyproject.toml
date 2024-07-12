@@ -2,7 +2,7 @@
 name = "wemod-launcher"
 version = "2.000"
 description = "Tool made to launch the popular Game Trainer / Cheat tool WeMod along with your game (made for steam-runtime version in Linux)."
-authors = ["Dom Rodriguez <shymega@shymega.org.uk>"]
+authors = ["Dom Rodriguez <shymega@shymega.org.uk>"] # TODO: Fix licensing.
 license = "MIT"
 readme = "README.md"
 
