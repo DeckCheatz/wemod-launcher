@@ -13,6 +13,10 @@ jobs:
   lint-and-format:
     runs-on: ubuntu-latest
 
+    outputs:
+      python_files_changed: ${{ steps.check_files.outputs.PYTHON_FILES_CHANGED }}
+      black_outcome: ${{ steps.run_black.outcome }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
