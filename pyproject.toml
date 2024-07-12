@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "wemod-launcher"
+version = "2.000"
+description = "Tool made to launch the popular Game Trainer / Cheat tool WeMod along with your game (made for steam-runtime version in Linux)."
+authors = ["Dom Rodriguez <shymega@shymega.org.uk>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+freesimplegui = "5.1.0"
+requests = "2.32.3"
+path-py = "12.5.0"
+pyxdg = "0.28"
+strictyaml = "1.7.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
