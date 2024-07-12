@@ -10,7 +10,7 @@ class LoggingHandler(object):
         self,
         module_name: str,
         level: Optional[int] = None,
-        log_dir: Optional[str] = save_data_path("wemod_launcher"),
+        log_dir: Optional[str] = save_data_path("wemod-launcher"),
     ):
         if not module_name:
             print("Module name is required!")
@@ -50,7 +50,7 @@ class LoggingHandler(object):
         root_logger = logging.getLogger(module_name)
 
         file_handler = logging.FileHandler(
-                str(log_dir / "wemod_launcher.log"))
+                str(log_dir / "wemod-launcher.log"))
         file_handler.setLevel(level)
         file_handler.setFormatter(logFormatter)
 

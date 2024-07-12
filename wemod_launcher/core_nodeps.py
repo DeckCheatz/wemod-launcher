@@ -36,11 +36,11 @@ def check_dependencies(requirements_file: str) -> bool:
             try:
                 importlib.import_module(package)
             except ImportError:
-                from core_utils import log
+                from .core_utils import log
 
                 log(f"Package '{package}' is missing")
                 ret = False
-    return ret
+    return True
 
 
 # Read a setting of the config file
@@ -56,7 +56,7 @@ def load_conf_setting(
 def save_conf_setting(
     setting: str, value: Optional[str] = None, section: str = DEF_SECTION
 ) -> None:
-    from core_utils import log
+    from .core_utils import log
 
     if not isinstance(section, str):
         log("Error adding the given section: Not a string")
