@@ -32,5 +32,9 @@
         devShells.poetry = pkgs.mkShell {
           packages = [ pkgs.poetry ];
         };
-      });
+      }) // {
+       overlays.default = final: prev: {
+        inherit (self.packages.${final.system}) wemod-launcher;
+      };
+    };
 }
