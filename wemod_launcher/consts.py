@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
 import os
+from pathlib import Path
+from utils.configuration import Configuration
+cfg: Configuration = Configuration()
 
 from core_nodeps import (
     load_conf_setting,
@@ -12,28 +15,23 @@ from core_utils import (
     log,
 )
 
-SCRIPT_IMP_FILE = os.path.realpath(__file__)
-SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
-BAT_COMMAND = ["start", winpath(os.path.join(SCRIPT_PATH, "wemod.bat"))]
-
-
-# Function to grab the Steam Compat Data Path
+# Function to grab the Steam Compat Data path
 def get_compat() -> str:
     ccompat = load_conf_setting("SteamCompatDataPath")
     wcompat = load_conf_setting("WinePrefixPath")
     if not wcompat and os.getenv("WINE_PREFIX_PATH"):
-        os.environ["WINEPREFIX"] = os.getenv("WINE_PREFIX_PATH")
-    ecompat = os.getenv("STEAM_COMPAT_DATA_PATH")
+        os.environ["WINEPREFIX"] = os.getenv("WINE_PREFIX_PATH", "") # TODO: Either use try/except here, or a sane default.
+    ecompat = os.getenv("STEAM_COMPAT_DATA_PATH", "") # TODO: Either use try/except here, or a sane default.
     nogame = False
     # STEAM_COMPAT_DATA_PATH not set
     if not ecompat:
         if os.getenv("WINEPREFIX") or wcompat:
             ecompat = wcompat
             if not ecompat:
-                ecompat = os.getenv("WINEPREFIX")
+                ecompat = os.getenv("WINEPREFIX", "") # TODO: Either use try/except here, or a sane default.
             nogame = True
-            wine = os.getenv("WINE")
-            tools = os.getenv("STEAM_COMPAT_TOOL_PATHS")
+            wine = os.getenv("WINE", "") # TODO: Either use try/except here, or a sane default.
+            tools = os.getenv("STEAM_COMPAT_TOOL_PATHS", "") # TODO: Either use try/except here, or a sane default.
             # if tools set and wine not in compat tools
             if (
                 tools
@@ -74,21 +72,29 @@ def get_compat() -> str:
     return ecompat
 
 
-BASE_STEAM_COMPAT = get_compat()
+def get_scan_folder() -> str:
+    scan_folder: str
+    try:
+       scan_folder = os.getenv("SCANFOLDER") or ""
+    except KeyError:
+        scan_folder = ""
+        pass
+
+    if not Path(scan_folder).exists():
+        scan_folder = load_conf_setting("ScanFolder") or ""
+
+    if not Path(scan_folder).exists():
+        scan_folder = STEAM_COMPAT_FOLDER
+
+    return scan_folder
+
+SCRIPT_IMP_FILE = os.path.realpath(__file__)
+SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
+BAT_COMMAND = ["start", winpath(os.path.join(SCRIPT_PATH, "wemod.bat"))]
+BASE_STEAM_COMPAT = get_scan_folder()
 STEAM_COMPAT_FOLDER = os.path.dirname(BASE_STEAM_COMPAT)
-
-
-def get_scan_folder():
-    wscanfolder = os.getenv("SCANFOLDER")
-    cscanfolder = load_conf_setting("ScanFolder")
-    if not wscanfolder:
-        wscanfolder = cscanfolder
-    if not wscanfolder:
-        wscanfolder = STEAM_COMPAT_FOLDER
-    return wscanfolder
-
-
 SCAN_FOLDER = get_scan_folder()
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
 INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
+
