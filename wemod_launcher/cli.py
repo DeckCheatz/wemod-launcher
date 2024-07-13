@@ -11,6 +11,4 @@ consts = Consts()
 def main():
     log.info("Welcome to WeMod Launcher!")
 
-    print(consts.STEAM_COMPAT_DATA_DIR)
-
     WelcomeScreenGfx().run()
