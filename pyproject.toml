@@ -7,14 +7,16 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = ">=3.11,<3.13"
 freesimplegui = "5.1.0"
 requests = "2.32.3"
 pyxdg = "0.28"
 setuptools = "*" # FIXME: Fails without this, needs lock.
+pyinstaller = "^6.9.0"
 
 [tool.poetry.scripts]
 wemod-launcher = "wemod_launcher.cli:main"
+package-exe = "wemod_launcher.pyinstaller:install"
 
 [build-system]
 requires = ["poetry-core"]
