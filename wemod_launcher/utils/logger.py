@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 from xdg.BaseDirectory import save_data_path
 from pathlib import Path
 import logging
@@ -16,7 +15,6 @@ class LoggingHandler(object):
         if not module_name or module_name.strip() == "":
             print("Module name is required!")
             print("This IS a bug, contact upstream devs.")
-        module_name = module_name.replace(".", "_")
         try:
             if (
                 getenv("WEMOD_LAUNCHER_DEV_MODE", "false").lower()
