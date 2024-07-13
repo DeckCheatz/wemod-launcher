@@ -3,18 +3,15 @@ import requests
 
 
 class WelcomeScreenGfx(object):
-    WEMOD_LOGO: str = (
+    WEMOD_LOGO_URL: str = (
         "https://www.wemod.com/static/images/device-icons/favicon-192-ce0bc030f3.png"
     )
 
     def __init__(self):
-        pass
-
-    def __prepare(self):
-        self.WEMOD_LOGO_RAW = requests.get(self.WEMOD_LOGO, stream=False)
+        ## TODO: Cache this image.
+        self.WEMOD_LOGO_RAW = requests.get(self.WEMOD_LOGO_URL, stream=False)
 
     def run(self):
-        self.__prepare()
         sg.theme("systemdefault")
 
         return (
