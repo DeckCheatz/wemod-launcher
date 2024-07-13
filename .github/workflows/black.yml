@@ -32,10 +32,10 @@ jobs:
       - name: Check if Python files or wemod file changed
         id: check_files
         run: |
-          if echo "${{ steps.changed_files.outputs.added_modified }}" | grep -E '\.py$|wemod' > /dev/null; then
-            echo "PYTHON_FILES_CHANGED=true" >> $GITHUB_ENV
+          if echo "${{ steps.changed_files.outputs.added_modified }}" | grep -E '\.py$|wemod' > /dev/null; then 
+            echo "PYTHON_FILES_CHANGED=true" >> "$GITHUB_ENV"
           else
-            echo "PYTHON_FILES_CHANGED=false" >> $GITHUB_ENV
+            echo "PYTHON_FILES_CHANGED=false" >> "$GITHUB_ENV"
           fi
 
       - name: Set up Python
