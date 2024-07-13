@@ -1,6 +1,11 @@
 { pkgs, ... }:
 {
-  packages = [ pkgs.pyright pkgs.poetry ];
+  packages = [
+    pkgs.pyright
+    pkgs.poetry
+    pkgs.git
+  ];
+
   languages = {
     nix.enable = true;
     python = {
