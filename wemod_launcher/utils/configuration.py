@@ -25,7 +25,7 @@ class Configuration(object):
 
         self.__cfg_path = cfg_file
 
-        self.__config = load(open(str(cfg_file), 'rb'))
+        self.__config = load(open(str(cfg_file), "rb"))
         self.__log.debug("Configuration initialized.")
 
     def get_key(self, keys: list[str]) -> typing.Any:
@@ -36,6 +36,10 @@ class Configuration(object):
 
             return config
         except KeyError:
-            self.__log.warning("Unable to get configuration entry, returning empty variable")
+            self.__log.warning(
+                "Unable to get configuration entry, returning empty variable"
+            )
             self.__log.warning(f"Key: {keys}, config path: {self.__cfg_path}")
-            raise KeyError("Unable to find corresponding key in configuration.")
+            raise KeyError(
+                "Unable to find corresponding key in configuration."
+            )
