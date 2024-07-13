@@ -14,5 +14,4 @@ def install():
         "--collect-all tkinter",
         PATH_TO_MAIN,
     ]
-    print(" ".join(args))
     subprocess.run("poetry run pyinstaller " + " ".join(args), shell=True)
