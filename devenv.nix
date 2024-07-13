@@ -1,10 +1,6 @@
 { pkgs, ... }:
 {
-  packages = [
-    pkgs.poetry # Environment
-    pkgs.watchman # Pyre
-  ];
-
+  packages = [ pkgs.pyright pkgs.poetry ];
   languages = {
     nix.enable = true;
     python = {
@@ -15,6 +11,7 @@
         activate.enable = true;
         install = {
           enable = true;
+          allExtras = true;
           compile = true;
           quiet = true;
         };
