@@ -1,5 +1,5 @@
 {
-  description = "Application packaged using poetry2nix";
+  description = "wemod_launcher Flake";
 
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
