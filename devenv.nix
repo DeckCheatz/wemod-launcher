@@ -43,4 +43,10 @@
     #    markdownlint.enable = true;
     statix.enable = true;
   };
+
+  enterShell = ''
+    export TK_LIBRARY="${pkgs.tk.outPath}/lib/${pkgs.tk.libPrefix}"
+    export TCL_LIBRARY="${pkgs.tcl.outPath}/lib/${pkgs.tcl.libPrefix}"
+  '';
+
 }
