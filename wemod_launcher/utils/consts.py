@@ -13,4 +13,5 @@ class Consts:
             "STEAM_COMPAT_DATA_PATH",
             CFG.get_key(["steam", "compat_data_dir"]),
         )
+        or Path.home() / ".steam/steam/steamapps/compatdata"
     ).expanduser()
