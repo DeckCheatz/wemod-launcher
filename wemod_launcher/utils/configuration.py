@@ -7,7 +7,7 @@ from .logger import LoggingHandler
 
 
 class Configuration(object):
-    def __init__(self, cfg_path: str = save_config_path("wemod_launcher")):
+    def __init__(self, cfg_path: str = save_config_path("wemod-launcher")):
         # Initialize logger for Config.
         self.__log = LoggingHandler(module_name=__name__).get_logger()
 
