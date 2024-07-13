@@ -1,5 +1,5 @@
 import os
-from .configuration import Configuration
+from wemod_launcher.utils.configuration import Configuration
 from pathlib import Path
 
 
