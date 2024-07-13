@@ -115,7 +115,6 @@ jobs:
           echo "BLACK_OUTCOME=${{ env.BLACK_OUTCOME }}"
           echo "On=${{ github.ref }}"
           sleep 2
-          git reset --hard origin
           git pull
           
       - name: Merge dev into main
