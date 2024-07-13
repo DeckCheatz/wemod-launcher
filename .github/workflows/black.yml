@@ -64,7 +64,7 @@ jobs:
             new_ver = ver + 0.001;
             printf("    script_version = \"%.3f\"\n", new_ver);
           }
-          !/script_version = "/ { print $0 }' wemod_launcher/coreutils.py > wemod_launcher/coreutils.py.tmp && mv wemod_launcher/oreutils.py.tmp wemod_launcher/coreutils.py
+          !/script_version = "/ { print $0 }' wemod_launcher/coreutils.py > wemod_launcher/coreutils.py.tmp && mv wemod_launcher/coreutils.py.tmp wemod_launcher/coreutils.py
 
           current_ver=$(awk '/script_version = "/ {print $3}' wemod_launcher/coreutils.py | tr -d '"')
           awk -v ver="$current_ver" '/The WeMod Launcher is currently on version / {
