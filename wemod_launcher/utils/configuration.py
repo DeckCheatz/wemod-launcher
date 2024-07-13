@@ -1,5 +1,5 @@
 import logging
-import typing
+from typing import Any, Optional
 from tomllib import load
 from pathlib import Path
 from xdg.BaseDirectory import save_config_path
@@ -7,7 +7,7 @@ from .logger import LoggingHandler
 
 
 class Configuration(object):
-    def __init__(self, cfg_path: str = save_config_path("wemod-launcher")):
+    def __init__(self, cfg_path: str = save_config_path("wemod_launcher")):
         # Initialize logger for Config.
         self.__log = LoggingHandler(module_name=__name__).get_logger()
         self.__log.debug("Initializing configuration.")
@@ -28,7 +28,7 @@ class Configuration(object):
         self.__config = load(open(str(cfg_file), "rb"))
         self.__log.debug("Configuration initialized.")
 
-    def get_key(self, keys: list[str]) -> typing.Any:
+    def get_key(self, keys: list[str]) -> Optional[Any]:
         try:
             config = self.__config
             for key in keys:
@@ -36,10 +36,8 @@ class Configuration(object):
 
             return config
         except KeyError:
-            self.__log.warning(
-                "Unable to get configuration entry, returning empty variable"
+            self.__log.debug(
+                "Unable to get configuration entry, returning None"
             )
-            self.__log.warning(f"Key: {keys}, config path: {self.__cfg_path}")
-            raise KeyError(
-                "Unable to find corresponding key in configuration."
-            )
+            self.__log.debug(f"Key: {keys}, config path: {self.__cfg_path}")
+            return None
