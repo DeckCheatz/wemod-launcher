@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 from xdg.BaseDirectory import save_data_path
 from pathlib import Path
@@ -56,7 +57,9 @@ class LoggingHandler(object):
         root_logger = logging.getLogger(module_name)
 
         file_handler = logging.FileHandler(
-            str(log_dir / "wemod-launcher.log")
+            os.getenv(
+                "WEMOD_LAUNCHER_LOG_FILE", str(log_dir / "wemod-launcher.log")
+            )
         )
         file_handler.setLevel(level)
         file_handler.setFormatter(logFormatter)
