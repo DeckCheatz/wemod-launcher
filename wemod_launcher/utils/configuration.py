@@ -10,7 +10,6 @@ class Configuration(object):
     def __init__(self, cfg_path: str = save_config_path("wemod_launcher")):
         # Initialize logger for Config.
         self.__log = LoggingHandler(module_name=__name__).get_logger()
-        self.__log.debug("Initializing configuration.")
 
         path = Path(cfg_path)
         if not path.exists():
@@ -26,7 +25,6 @@ class Configuration(object):
         self.__cfg_path = cfg_file
 
         self.__config = load(open(str(cfg_file), "rb"))
-        self.__log.debug("Configuration initialized.")
 
     def get_key(self, keys: list[str]) -> Optional[Any]:
         try:
