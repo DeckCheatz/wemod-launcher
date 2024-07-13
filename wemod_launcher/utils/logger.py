@@ -19,10 +19,10 @@ class LoggingHandler(object):
             if (
                 getenv("WEMOD_LAUNCHER_DEV_MODE", "false").lower()
                 in ("true", "1", "t")
-                and level is 0
+                and level == 0
             ):
                 level = logging.DEBUG
-            elif "WEMOD_LAUNCHER_LOG_LEVEL" in environ and level is 0:
+            elif "WEMOD_LAUNCHER_LOG_LEVEL" in environ and level == 0:
                 env_log_level = environ["WEMOD_LAUNCHER_LOG_LEVEL"]
                 match env_log_level:
                     case "DEBUG":
