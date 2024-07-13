@@ -279,7 +279,7 @@ def init(proton: str, iswine: bool = False) -> None:
         os.makedirs(BASE_STEAM_COMPAT, exist_ok=True)
 
     # Grab active proton version
-    if not iswine:
+    if iswine:
         os.environ["WINEPREFIX"] = BASE_STEAM_COMPAT
 
         try:
@@ -678,7 +678,7 @@ def run(skip_init: bool = False) -> str:
 
     # Initialize environment if not skipped
     if not skip_init:
-        init(PROTON, bool(verb))
+        init(PROTON, not bool(verb))
 
     # Get working dir
     WORK_DIR = os.path.realpath(os.getcwd())
