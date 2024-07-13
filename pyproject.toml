@@ -2,7 +2,7 @@
 name = "wemod-launcher"
 version = "2.000"
 description = "Tool made to launch the popular Game Trainer / Cheat tool WeMod along with your game (made for steam-runtime version in Linux)."
-authors = ["Dom Rodriguez <shymega@shymega.org.uk>"] # TODO: Fix licensing.
+authors = ["Dom Rodriguez <shymega@shymega.org.uk>"] # TODO: Fix licensing and authors list.
 license = "MIT"
 readme = "README.md"
 
@@ -11,7 +11,7 @@ python = "^3.12"
 freesimplegui = "5.1.0"
 requests = "2.32.3"
 pyxdg = "0.28"
-setuptools = "*" # Fails without this.
+setuptools = "*" # FIXME: Fails without this, needs lock.
 
 [tool.poetry.scripts]
 wemod-launcher = "wemod_launcher.cli:main"
