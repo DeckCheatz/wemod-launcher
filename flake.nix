@@ -4,13 +4,23 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    flake-compat = {
+      url = "github:edolstra/flake-compat";
+      flake = false;
+    };
+    devenv.url = "github:cachix/devenv";
     poetry2nix = {
       url = "github:nix-community/poetry2nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, poetry2nix }:
+  nixConfig = {
+    extra-trusted-public-keys = "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw=";
+    extra-substituters = "https://devenv.cachix.org";
+  };
+
+  outputs = { self, nixpkgs, flake-utils, poetry2nix, devenv, flake-compat }@inputs:
     flake-utils.lib.eachDefaultSystem
       (system:
         let
@@ -27,8 +37,12 @@
             default = self.packages.${system}.wemod-launcher;
           };
 
-          devShells.default = pkgs.mkShell {
-            inputsFrom = [ self.packages.${system}.wemod-launcher pkgs.poetry ];
+          devShells.${system} = devenv.lib.mkShell {
+            modules = [
+              ({ inputs, pkgs, self, ... }: {
+                imports = [ ./devenv.nix ];
+              })
+            ];
           };
         }) // {
       overlays.default = final: prev: {
