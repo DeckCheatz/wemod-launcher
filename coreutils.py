@@ -416,7 +416,7 @@ def get_user_input(
 
 def script_manager() -> None:
     script_name = "wemod-laucher"
-    script_version = "1.489"
+    script_version = "1.490"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 
