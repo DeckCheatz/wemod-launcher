@@ -50,6 +50,7 @@ from setup import (
     setup_main,
 )
 
+
 SCRIPT_FILE = os.path.realpath(__file__)
 SCRIPT_PATH = os.path.dirname(SCRIPT_FILE)
 
