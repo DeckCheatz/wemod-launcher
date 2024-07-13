@@ -326,8 +326,8 @@ def check_flatpak():
         infpr = os.getenv("WeModInfProtect", "1")
         infpr = str(int(infpr) + 1)
 
-        flatpak_start.append("FROM_FLATPAK=true")
-        flatpak_start.append(f"WeModInfProtect={infpr}")
+        flatpak_start.append("--env=FROM_FLATPAK=true")
+        flatpak_start.append(f"--env=WeModInfProtect={infpr}")
         flatpak_start.append("--")  # Isolate command from command args
 
         flatpak_cmd = flatpak_start + [sys.executable]
