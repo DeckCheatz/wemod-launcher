@@ -30,7 +30,6 @@ from coreutils import (
     log,
 )
 
-
 # Import main utils
 from mainutils import (
     find_closest_compatible_release,
@@ -50,7 +49,6 @@ from setup import (
     self_update,
     setup_main,
 )
-
 
 SCRIPT_FILE = os.path.realpath(__file__)
 SCRIPT_PATH = os.path.dirname(SCRIPT_FILE)
