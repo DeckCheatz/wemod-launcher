@@ -32,7 +32,7 @@ jobs:
       - name: Check if Python files or wemod file changed
         id: check_files
         run: |
-          if echo "${{ steps.changed_files.outputs.added_modified }}" | grep -E '\.py$|wemod' > /dev/null; then 
+          if echo "${{ steps.changed_files.outputs.added_modified }}" | grep -E 'wemod_launcher/\.py$' > /dev/null; then
             echo "PYTHON_FILES_CHANGED=true" >> "$GITHUB_ENV"
           else
             echo "PYTHON_FILES_CHANGED=false" >> "$GITHUB_ENV"
@@ -53,7 +53,7 @@ jobs:
         if: env.PYTHON_FILES_CHANGED == 'true'
         id: run_black
         run: |
-          black -l 78 -t py312 ./*.py ./wemod
+          black -l 78 -t py312 ./wemod_launcher/
           
       - name: Increment version number
         if: steps.run_black.outcome == 'success' && env.PYTHON_FILES_CHANGED == 'true'
@@ -64,13 +64,13 @@ jobs:
             new_ver = ver + 0.001;
             printf("    script_version = \"%.3f\"\n", new_ver);
           }
-          !/script_version = "/ { print $0 }' coreutils.py > coreutils.py.tmp && mv coreutils.py.tmp coreutils.py
+          !/script_version = "/ { print $0 }' wemod_launcher/coreutils.py > wemod_launcher/coreutils.py.tmp && mv wemod_launcher/oreutils.py.tmp wemod_launcher/coreutils.py
 
-          current_ver=$(awk '/script_version = "/ {print $3}' coreutils.py | tr -d '"')
+          current_ver=$(awk '/script_version = "/ {print $3}' wemod_launcher/coreutils.py | tr -d '"')
           awk -v ver="$current_ver" '/The WeMod Launcher is currently on version / {
             printf("**The WeMod Launcher is currently on version %.3f.**\n", ver);
           }
-          !/The WeMod Launcher is currently on version / { print $0 }' readme.md > readme.tmp && mv readme.tmp readme.md
+          !/The WeMod Launcher is currently on version / { print $0 }' README.md > README.tmp && mv README.tmp README.md
           
       - name: Commit changes on dev
         if: github.ref == 'refs/heads/dev' && steps.run_black.outcome == 'success' && env.PYTHON_FILES_CHANGED == 'true'
@@ -79,7 +79,7 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
-          git update-index --chmod=+x *.py wemod
+          git update-index --chmod=+x wemod_launcher/**.py
           git commit -m 'Github actions automatic code formatting on dev branch' -m 'This is an automatic task, run by a GitHub workflow, to automatically format the Python code in the repo, with the code formatter "black"' || echo "No changes to commit"
           git push
         env:
@@ -92,7 +92,7 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
-          git update-index --chmod=+x *.py wemod
+          git update-index --chmod=+x wemod_launcher/**.py
           git commit -m 'Github actions automatic code formatting on main branch' -m 'This is an automatic task, run by a GitHub workflow, to automatically format the Python code in the repo, with the code formatter "black"' || echo "No changes to commit"
           git push
         env:
