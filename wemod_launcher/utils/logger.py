@@ -10,23 +10,21 @@ class LoggingHandler(object):
     def __init__(
         self,
         module_name: str,
-        level: Optional[int] = None,
-        log_dir: Optional[str] = save_data_path("wemod-launcher"),
+        level: int = 0,
+        log_dir: str = save_data_path("wemod-launcher"),
     ):
         if not module_name or module_name.strip() == "":
             print("Module name is required!")
             print("This IS a bug, contact upstream devs.")
-        module_name = "wemod_launcher_{}".format(
-            module_name.replace(".", "_")
-        )
+        module_name = module_name.replace(".", "_")
         try:
             if (
-                getenv("WEMOD_LAUNCHER_DEV_MODE", "False").lower()
+                getenv("WEMOD_LAUNCHER_DEV_MODE", "false").lower()
                 in ("true", "1", "t")
-                and level is None
+                and level is 0
             ):
                 level = logging.DEBUG
-            elif "WEMOD_LAUNCHER_LOG_LEVEL" in environ and level is None:
+            elif "WEMOD_LAUNCHER_LOG_LEVEL" in environ and level is 0:
                 env_log_level = environ["WEMOD_LAUNCHER_LOG_LEVEL"]
                 match env_log_level:
                     case "DEBUG":
@@ -47,9 +45,9 @@ class LoggingHandler(object):
             level = logging.INFO
             pass
 
-        log_dir = Path(log_dir)
-        if not log_dir.exists():
-            log_dir.mkdir()
+        log_base = Path(log_dir)
+        if not log_base.exists():
+            log_base.mkdir()
 
         logFormatter = logging.Formatter(
             "%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s] %(name)s: %(message)s"
@@ -58,7 +56,8 @@ class LoggingHandler(object):
 
         file_handler = logging.FileHandler(
             os.getenv(
-                "WEMOD_LAUNCHER_LOG_FILE", str(log_dir / "wemod-launcher.log")
+                "WEMOD_LAUNCHER_LOG_FILE",
+                str(log_base / "wemod-launcher.log"),
             )
         )
         file_handler.setLevel(level)
