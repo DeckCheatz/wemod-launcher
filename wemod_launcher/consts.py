@@ -5,6 +5,8 @@ import os
 import sys
 from pathlib import Path
 from .utils.configuration import Configuration
+from .utils.consts import Consts
+from .pfx.wine_utils import WineUtils
 
 cfg: Configuration = Configuration()
 
@@ -154,11 +156,18 @@ def get_scan_folder() -> str:
     return scan_folder
 
 
-SCRIPT_IMP_FILE = os.path.realpath(__file__)
-SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
-BAT_COMMAND = ["start", winpath(os.path.join(SCRIPT_PATH, "wemod.bat"))]
+CONSTS = Consts()
+WINE_UTILS = WineUtils()
+
+
+SCRIPT_IMP_FILE = str(CONSTS.SCRIPT_PATH)
+SCRIPT_PATH = str(CONSTS.SCRIPT_RUNTIME_DIR)
+BAT_COMMAND = [
+    "start",
+    WINE_UTILS.native_path(os.path.join(SCRIPT_IMP_FILE, "wemod.bat")),
+]
 BASE_STEAM_COMPAT = get_scan_folder()
-STEAM_COMPAT_FOLDER = os.path.dirname(BASE_STEAM_COMPAT)
+STEAM_COMPAT_FOLDER = str(CONSTS.STEAM_COMPAT_DATA_DIR)
 SCAN_FOLDER = get_scan_folder()
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
