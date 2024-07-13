@@ -79,6 +79,7 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
+          git update-index --chmod=+x *.py wemod
           git commit -m 'Github actions automatic code formatting on dev branch' -m 'This is an automatic task, run by a GitHub workflow, to automatically format the Python code in the repo, with the code formatter "black"' || echo "No changes to commit"
           git push
         env:
@@ -91,6 +92,7 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
+          git update-index --chmod=+x *.py wemod
           git commit -m 'Github actions automatic code formatting on main branch' -m 'This is an automatic task, run by a GitHub workflow, to automatically format the Python code in the repo, with the code formatter "black"' || echo "No changes to commit"
           git push
         env:
