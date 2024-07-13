@@ -4,18 +4,18 @@
 import os
 import sys
 from pathlib import Path
-from .utils.configuration import Configuration
-from .utils.consts import Consts
-from .pfx.wine_utils import WineUtils
+from wemod_launcher.utils.configuration import Configuration
+from wemod_launcher.utils.consts import Consts
+from wemod_launcher.pfx.wine_utils import WineUtils
 
 cfg: Configuration = Configuration()
 
-from .core_nodeps import (
+from wemod_launcher.core_nodeps import (
     load_conf_setting,
     winpath,
 )
 
-from .core_utils import (
+from wemod_launcher.core_utils import (
     exit_with_message,
     log,
 )
