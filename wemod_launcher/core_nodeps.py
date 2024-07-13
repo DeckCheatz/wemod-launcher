@@ -41,7 +41,7 @@ def check_dependencies(requirements_file: str) -> bool:
 
                 log(f"Package '{package}' is missing")
                 ret = False
-    return True
+    return ret
 
 
 # Read a setting of the config file
