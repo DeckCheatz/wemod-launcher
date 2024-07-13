@@ -114,7 +114,6 @@ jobs:
           echo "PYTHON_FILES_CHANGED=${{ env.PYTHON_FILES_CHANGED }}"
           echo "BLACK_OUTCOME=${{ env.BLACK_OUTCOME }}"
           echo "On=${{ github.ref }}"
-          sleep 2
           git pull
           
       - name: Merge dev into main
