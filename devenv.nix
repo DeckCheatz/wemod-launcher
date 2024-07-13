@@ -5,7 +5,7 @@
     nix.enable = true;
     python = {
       enable = true;
-      package = pkgs.python3Full;
+      package = pkgs.python311Full;
       poetry = {
         enable = true;
         activate.enable = true;
