@@ -106,14 +106,17 @@ jobs:
       BLACK_OUTCOME: ${{ needs.lint-and-format.outputs.black_outcome }}
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Print PYTHON_FILES_CHANGED value
         run: | 
           echo "PYTHON_FILES_CHANGED=${{ env.PYTHON_FILES_CHANGED }}"
           echo "BLACK_OUTCOME=${{ env.BLACK_OUTCOME }}"
           echo "On=${{ github.ref }}"
-
-      - name: Checkout code
-        uses: actions/checkout@v2
+          sleep 2
+          git reset --hard origin
+          git pull
           
       - name: Merge dev into main
         if: github.ref == 'refs/heads/dev' && (env.PYTHON_FILES_CHANGED == 'false' || env.BLACK_OUTCOME == 'success')
