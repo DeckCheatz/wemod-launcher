@@ -20,7 +20,7 @@
     extra-substituters = "https://devenv.cachix.org";
   };
 
-  outputs = { self, nixpkgs, flake-utils, poetry2nix, devenv, flake-compat }@inputs:
+  outputs = { self, nixpkgs, flake-utils, poetry2nix, devenv, ... }:
     flake-utils.lib.eachDefaultSystem
       (system:
         let
@@ -38,6 +38,7 @@
           };
 
           devShells.${system} = devenv.lib.mkShell {
+            inputsFrom = [ self.packages.${system}.wemod-launcher ];
             modules = [
               ({ inputs, pkgs, self, ... }: {
                 imports = [ ./devenv.nix ];
