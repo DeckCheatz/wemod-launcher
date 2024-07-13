@@ -6,7 +6,10 @@ PATH_TO_MAIN = str(HERE / "cli.py")
 
 
 def install():
-    args = [
+    arglist = [
+        "poetry",
+        "run",
+        "pyinstaller",
         "--onefile",
         "--windowed",
         "--clean",
@@ -14,4 +17,4 @@ def install():
         "--collect-all tkinter",
         PATH_TO_MAIN,
     ]
-    subprocess.run("poetry run pyinstaller " + " ".join(args), shell=True)
+    subprocess.run(" ".join(arglist), stdout=subprocess.PIPE, shell=True)
