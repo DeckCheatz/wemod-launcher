@@ -3,7 +3,7 @@ from typing import Any, Optional
 from tomllib import load
 from pathlib import Path
 from xdg.BaseDirectory import save_config_path
-from .logger import LoggingHandler
+from wemod_launcher.utils.logger import LoggingHandler
 
 
 class Configuration(object):
