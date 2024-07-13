@@ -11,30 +11,27 @@
   };
 
   outputs = { self, nixpkgs, flake-utils, poetry2nix }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-        inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication;
-      in
-      {
-        packages = {
-          wemod-launcher = mkPoetryApplication {
-            projectDir = self;
-            python = pkgs.python3Full;
-            preferWheels = true;
+    flake-utils.lib.eachDefaultSystem
+      (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication;
+        in
+        {
+          packages = {
+            wemod-launcher = mkPoetryApplication {
+              projectDir = self;
+              python = pkgs.python3Full;
+              preferWheels = true;
+            };
+            default = self.packages.${system}.wemod-launcher;
           };
-          default = self.packages.${system}.wemod-launcher;
-        };
 
-        devShells.default = pkgs.mkShell {
-          inputsFrom = [ self.packages.${system}.wemod-launcher ];
-        };
-
-        devShells.poetry = pkgs.mkShell {
-          packages = [ pkgs.poetry ];
-        };
-      }) // {
-       overlays.default = final: prev: {
+          devShells.default = pkgs.mkShell {
+            inputsFrom = [ self.packages.${system}.wemod-launcher pkgs.poetry ];
+          };
+        }) // {
+      overlays.default = final: prev: {
         inherit (self.packages.${final.system}) wemod-launcher;
       };
     };
