@@ -31,7 +31,7 @@
           packages = {
             wemod-launcher = mkPoetryApplication {
               projectDir = self;
-              python = pkgs.python3Full;
+              python = pkgs.python311Full;
               preferWheels = true;
             };
             default = self.packages.${system}.wemod-launcher;
