@@ -6,23 +6,23 @@ import stat
 import shutil
 import subprocess
 
-from .core_utils import (
+from wemod_launcher.core_utils import (
     log,
     pip,
     exit_with_message,
 )
 
-from .core_nodeps import (
+from wemod_launcher.core_nodeps import (
     load_conf_setting,
     save_conf_setting,
     check_dependencies,
 )
 
-from .core_utils import (
+from wemod_launcher.core_utils import (
     show_message,
 )
 
-from .main_utils import (
+from wemod_launcher.main_utils import (
     download_progress,
 )
 

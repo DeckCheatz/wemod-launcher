@@ -13,11 +13,11 @@ from typing import (
 )
 
 
-from .core_nodeps import (
+from wemod_launcher.core_nodeps import (
     parse_version,
 )
 
-from .core_utils import (
+from wemod_launcher.core_utils import (
     exit_with_message,
     save_conf_setting,
     load_conf_setting,
