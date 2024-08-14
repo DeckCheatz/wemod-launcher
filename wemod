@@ -333,7 +333,13 @@ def init(proton: str, iswine: bool = False) -> None:
             and current_version_parts
             and closest_version == current_version_parts
         ):
-            response = "Yes"
+            response = show_message(
+                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} dosn't have WeMod installed. Would you like to use the perfectly matched Proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is very likely going to work?",
+                title="Very likely compatible WeMod version detected",
+                yesno=True,
+            )
+            if response == None:
+                response = "Yes"
         elif (
             closest_version
             and current_version_parts
@@ -341,7 +347,7 @@ def init(proton: str, iswine: bool = False) -> None:
         ):
 
             response = show_message(
-                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} dosn't have WeMod installed. Would you like to use the closest proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is probably going to work?",
+                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} dosn't have WeMod installed. Would you like to use the closest proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is likely going to work?",
                 title="Likely compatible WeMod version detected",
                 yesno=True,
             )
