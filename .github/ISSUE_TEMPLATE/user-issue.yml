@@ -1,0 +1,76 @@
+name: User Issue
+description: 'Report a problem where wemod won`t work for you'
+title: '[BUG]: The WeMod launcher fails with error X'
+labels: ["bug"]
+body:
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Describe the problem
+      description: A clear and concise description of what the problem is.
+      placeholder: I was trying to [...]
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps that will result in the problem
+      description: Steps that will result in the problem
+      placeholder: |
+        1. Go to x
+        2. Press button y
+        3. Error comes up
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected results
+      description: A clear and concise description of what shuld happen.
+      placeholder: I expected [...]
+    validations:
+      required: true
+
+
+  - type: textarea
+    id: any-logs
+    attributes:
+      label: Logs
+      description: Any logfile or teminal error output
+      placeholder: |
+        Drag wemod.log on here, 
+        if missing use the teminal output of the 'steam' command.
+    validations:
+      required: true
+      
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots to help explain your problem.
+      placeholder: Drag screenshots in here if applicable
+    validations:
+      required: false
+
+  - type: textarea
+    id: system-information
+    attributes:
+      label: System Information
+      description: Plese provide more information about your system
+      placeholder: |
+         * OS: [e.g. Ubuntu 20.04, Arch 2022.02.01]
+         * Wine Version: [eg. GE-Proton9.5]
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Any other relevant information about the problem.
+      placeholder: Add any other context about the problem here.
+    validations:
+      required: false
