@@ -758,7 +758,9 @@ def run(skip_init: bool = False) -> str:
 
         time.sleep(2)
         save_conf_setting("FlatpakRunning", "true")
-        log("While the flatpak run file exists, the command still runns, so wait for the file to be removed")
+        log(
+            "While the flatpak run file exists, the command still runns, so wait for the file to be removed"
+        )
         while os.path.isfile(flatpakrunfile):
             flatrunn = load_conf_setting("FlatpakRunning")
             if (flatrunn and flatrunn == "new") or not flatrunn:
@@ -801,7 +803,6 @@ def run(skip_init: bool = False) -> str:
 
         log("Waiting on the steam process to finish")
         resp = process.wait()
-
 
         if len(verb) == 0:
             log("Running the wineserver waiter")
