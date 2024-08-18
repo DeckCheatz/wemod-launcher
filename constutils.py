@@ -317,10 +317,11 @@ def troubleshooter() -> None:
     runtro = False
     if trouble == None or (trouble and trouble.lower() == "true"):
         runtro = True
+        log("Starting troubleshooter")
     else:
         log("Troubleshooter was disabled, continuing")
     while runtro:
-        log("Starting troubleshooter")
+        log("Troubleshooter start loop")
         ret = popup_options(
             "Troubleshooter",
             "Did WeMod work as expected,\nif not troubleshoot common problems with wemod.\nDeleteing the gameprefix helps often.\nDelete Wemod.exe helps if wemod updates their progamm\nTo use the Troubleshooter after it was disabled,\nyou can add TROUBLESHOOT=true in front of the launch command",
