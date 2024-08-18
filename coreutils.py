@@ -280,11 +280,16 @@ def monitor_file(
     if os.path.exists(ttfile):
         os.remove(ttfile)
     time.sleep(1)
-    bat_respond(responsefile, bout)
+    if bat_respond(responsefile, bout):
+        log("Finished early game close detetion")
+    else:
+        log("The game ran long enough, wemod is now allowed to close on game exit, therefore early game close detetion is finished")
 
 
-def bat_respond(responsefile: str, bout: Optional[int]):
+
+def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
     if os.path.isfile(responsefile):
+        log("Fast game closing was detected, Now the user will have to say what they want")
         returnmessage = read_file(responsefile)
         if bout != None:
             batresp = show_message(
@@ -294,6 +299,7 @@ def bat_respond(responsefile: str, bout: Optional[int]):
                 bout,
                 True,
             )
+            log(f"The user selected {batresp}, after asked if to wait longer for wemod")
         if bout == None or batresp == "No":
             show_message(
                 returnmessage + ",\nclick ok if you are ready to close WeMod",
@@ -301,7 +307,10 @@ def bat_respond(responsefile: str, bout: Optional[int]):
                 None,
                 False,
             )
+            log("The user accepted to close wemod")
         os.remove(responsefile)
+        return True
+    return None
 
 
 # Function to handle caching of files
