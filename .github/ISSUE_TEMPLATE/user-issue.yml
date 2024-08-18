@@ -1,6 +1,6 @@
 name: User Issue
 description: 'Report a problem where wemod won`t work for you'
-title: '[BUG]: The WeMod launcher fails with error X'
+title: '[BUG]: The WeMod launcher won`t continue after x'
 labels: ["bug"]
 body:
   - type: textarea
