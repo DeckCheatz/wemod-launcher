@@ -283,13 +283,16 @@ def monitor_file(
     if bat_respond(responsefile, bout):
         log("Finished early game close detetion")
     else:
-        log("The game ran long enough, wemod is now allowed to close on game exit, therefore early game close detetion is finished")
-
+        log(
+            "The game ran long enough, wemod is now allowed to close on game exit, therefore early game close detetion is finished"
+        )
 
 
 def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
     if os.path.isfile(responsefile):
-        log("Fast game closing was detected, Now the user will have to say what they want")
+        log(
+            "Fast game closing was detected, Now the user will have to say what they want"
+        )
         returnmessage = read_file(responsefile)
         if bout != None:
             batresp = show_message(
@@ -299,7 +302,9 @@ def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
                 bout,
                 True,
             )
-            log(f"The user selected {batresp}, after asked if to wait longer for wemod")
+            log(
+                f"The user selected {batresp}, after asked if to wait longer for wemod"
+            )
         if bout == None or batresp == "No":
             show_message(
                 returnmessage + ",\nclick ok if you are ready to close WeMod",
@@ -425,7 +430,7 @@ def get_user_input(
 
 def script_manager() -> None:
     script_name = "wemod-laucher"
-    script_version = "1.493"
+    script_version = "1.494"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 
