@@ -751,12 +751,14 @@ def run(skip_init: bool = False) -> str:
         errorfile = os.path.join(cachedir, "flatpakerror.tmp")
         warnfile = os.path.join(cachedir, "flatpakwarn.tmp")
 
+        log("Save flatpak command to, inside flatpak run file")
         with open(flatpakrunfile, "w") as frf:
             for line in FINAL:
                 frf.write(line + "\n")
 
         time.sleep(2)
         save_conf_setting("FlatpakRunning", "true")
+        log("While the flatpak run file exists, the command still runns, so wait for the file to be removed")
         while os.path.isfile(flatpakrunfile):
             flatrunn = load_conf_setting("FlatpakRunning")
             if (flatrunn and flatrunn == "new") or not flatrunn:
@@ -765,6 +767,7 @@ def run(skip_init: bool = False) -> str:
             time.sleep(1)
         save_conf_setting("FlatpakRunning", None)
 
+        log("Any errors from the runn command, get raised")
         if os.path.isfile(errorfile):
             with open(errorfile, "r") as fef:
                 error = fef.read()
@@ -772,6 +775,7 @@ def run(skip_init: bool = False) -> str:
                 if error:
                     raise Exception(str(error))
 
+        log("Any warnings from the command the logged")
         if os.path.isfile(warnfile):
             with open(warnfile, "r") as fwf:
                 warn = fwf.read()
@@ -781,20 +785,26 @@ def run(skip_init: bool = False) -> str:
                         f"Problem loading the winesever waiter, the error is:\n\t{warn}"
                     )
 
+        log("Finished flatpak mode code")
     else:
+        log("Running in regular mode")
         save_conf_setting("FlatpakRunning", None)
 
         # Execute the final command
         process = subprocess.Popen(FINAL, stdout=subprocess.PIPE)
 
+        log("Checking final comand stdout")
         for line in iter(process.stdout.readline, ""):
             if line == None or line == b"":
                 break
             log(line.decode("utf8"))
 
+        log("Waiting on the steam process to finish")
         resp = process.wait()
 
+
         if len(verb) == 0:
+            log("Running the wineserver waiter")
             try:
                 if os.path.isdir(os.path.join(WINEPREFIX, "drive_c")):
                     os.environ["WINEPREFIX"] = WINEPREFIX
@@ -819,9 +829,14 @@ def run(skip_init: bool = False) -> str:
                 print(str(wserver.stdout))
                 print(str(wserver.stderr))
 
+            log("Finished regular mode code")
+
+    log("At this point the game should have allready finished running")
     if os.path.exists(ttfile):
+        log("Deleteing early game tracking file")
         os.remove(ttfile)
 
+    log("Waiting for early game tracking thread to finish")
     ttime_thread.join()
 
     troubleshooter()
