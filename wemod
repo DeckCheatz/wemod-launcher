@@ -793,16 +793,19 @@ def run(skip_init: bool = False) -> str:
         save_conf_setting("FlatpakRunning", None)
 
         # Execute the final command
-        process = subprocess.Popen(FINAL, stdout=subprocess.PIPE)
+        process = subprocess.Popen(FINAL, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        log("Checking final comand stdout")
-        for line in iter(process.stdout.readline, ""):
-            if line == None or line == b"":
-                break
-            log(line.decode("utf8"))
+        log("Communicating with the process")
+        stdout, stderr = process.communicate()
 
-        log("Waiting on the steam process to finish")
-        resp = process.wait()
+        if stdout:
+            log(stdout.decode("utf8"))
+
+        if stderr:
+            log(stderr.decode("utf8"))
+
+        log("Process finished")
+        resp = process.returncode
 
         if len(verb) == 0:
             log("Running the wineserver waiter")
