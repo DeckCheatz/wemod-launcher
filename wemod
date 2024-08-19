@@ -793,7 +793,9 @@ def run(skip_init: bool = False) -> str:
         save_conf_setting("FlatpakRunning", None)
 
         # Execute the final command
-        process = subprocess.Popen(FINAL, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(
+            FINAL, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
 
         log("Communicating with the process")
         stdout, stderr = process.communicate()
