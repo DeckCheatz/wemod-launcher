@@ -56,6 +56,23 @@ def enshure_wine(verstr: Optional[str] = None) -> str:
             os.symlink(BASE_STEAM_COMPAT, WINEPREFIX)
         except Exception as e:
             pass
+    users = os.path.join(ProtonPfx, "users")
+    mainuser = os.path.join(users, os.getlogin())
+    steamuser = os.path.join(users, "steamuser")
+    if mainuser != steamuser:
+        if not os.path.isdir(mainuser) and not os.path.isdir(steamuser):
+            os.makedirs(mainuser, exist_ok=True)
+        elif os.path.isdir(steamuser) and not os.path.isdir(mainuser):
+            try:
+                os.symlink(steamuser, mainuser)
+            except Exception as e:
+                pass
+        if os.path.isdir(mainuser) and not os.path.isdir(steamuser):
+            try:
+                os.symlink(mainuser, steamuser)
+            except Exception as e:
+                pass
+
     if os.path.isdir(ProtonPfx):
         ProtonVersion = os.path.join(BASE_STEAM_COMPAT, "version")
         if verstr:
