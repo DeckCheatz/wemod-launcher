@@ -57,7 +57,7 @@ def enshure_wine(verstr: Optional[str] = None) -> str:
             os.symlink(BASE_STEAM_COMPAT, WINEPREFIX)
         except Exception as e:
             pass
-            
+
     users = os.path.join(ProtonPfx, "users")
     myuser = None
     try:
@@ -71,7 +71,7 @@ def enshure_wine(verstr: Optional[str] = None) -> str:
             pass
     if not myuser:
         myuser = "steamuser"
-    
+
     mainuser = os.path.join(users, myuser)
     steamuser = os.path.join(users, "steamuser")
     if mainuser != steamuser:
