@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import pwd
 import shutil
 import subprocess
 
@@ -56,8 +57,22 @@ def enshure_wine(verstr: Optional[str] = None) -> str:
             os.symlink(BASE_STEAM_COMPAT, WINEPREFIX)
         except Exception as e:
             pass
+            
     users = os.path.join(ProtonPfx, "users")
-    mainuser = os.path.join(users, os.getlogin())
+    myuser = None
+    try:
+        myuser = os.getlogin()
+    except Exception as e:
+        pass
+    if not myuser:
+        try:
+            myuser = pwd.getpwuid(os.getuid()).pw_name
+        except Exception as e:
+            pass
+    if not myuser:
+        myuser = "steamuser"
+    
+    mainuser = os.path.join(users, myuser)
     steamuser = os.path.join(users, "steamuser")
     if mainuser != steamuser:
         if not os.path.isdir(mainuser) and not os.path.isdir(steamuser):
