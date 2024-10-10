@@ -17,7 +17,46 @@ if getattr(sys, "frozen", False):
 else:
     SCRIPT_IMP_FILE = os.path.realpath(__file__)
 SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
-BAT_COMMAND = ["start", winpath(os.path.join(SCRIPT_PATH, "wemod.bat"))]
+
+def getbatcmd():
+    batf = os.path.join(SCRIPT_PATH, "wemod.bat")
+    if not os.path.isfile(batf):
+        try:
+            import urllib.request
+
+            repo_user = load_conf_setting("RepoUser")
+            if not repo_user:
+                repo_user = "DeckCheatz"
+                # save_conf_setting("RepoUser", repo_user)
+                log("RepoUser not set in config using: " + repo_user)
+
+            repo_name = load_conf_setting("RepoName")
+            if not repo_name:
+                repo_name = "wemod-launcher"
+                # save_conf_setting("RepoName", repo_name)
+                log("RepoName not set in config using: " + repo_name)
+
+            repo_parts = os.getenv("REPO_STRING")
+            if repo_parts:
+                repo_parts = repo_parts.split("/", 1) + [""]
+                if repo_parts[0] and repo_parts[0] != "":
+                    repo_user = repo_parts[0]
+                if repo_parts[1] and repo_parts[1] != "":
+                    repo_name = repo_parts[1]
+
+            repo_concat = repo_user + "/" + repo_name
+
+            url = f"https://raw.githubusercontent.com/{repo_concat}/refs/heads/main/wemod.bat"
+            urllib.request.urlretrieve(url, batf)
+
+        except Exception as e:
+            pass
+        if not os.path.isfile(batf):
+            exit_with_message("Missing bat","The 'wemod.bat' file is missing and could not be downloaded, exiting")
+
+    return ["start", winpath(batf)]
+
+BAT_COMMAND = getbatcmd()
 
 
 # Function to grab the Steam Compat Data Path

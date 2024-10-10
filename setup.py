@@ -249,8 +249,16 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
         upd = load_conf_setting("SelfUpdate")
 
     infinite = os.getenv("WeModInfProtect", "1")
-    if (upd and upd.lower() == "false") or int(infinite) > 2:
-        log("Self update skipped")
+    if int(infinite) > 3:
+        return path
+    elif int(infinite) > 2:
+        log("Self update skipped, beclase updates where made already.")
+        return path
+    elif getattr(sys, "frozen", False):
+        log("Self update skipped, becalse script was compiled")
+        return path
+    elif upd and upd.lower() == "false":
+        log("Self update skipped, becalse it was requested in the config")
         return path
 
     original_cwd = os.getcwd()
@@ -412,8 +420,11 @@ def setup_main() -> None:
 
 
 def run_wemod() -> None:
-    script_file = os.path.join(SCRIPT_PATH, "wemod")
-    command = [sys.executable, script_file] + sys.argv[1:]
+    if getattr(sys, "frozen", False):
+        exit_with_message("Invalid compile", "The script was compiled with 'setup.py' as the start file.\nThis is incorrect the startfile is 'wemod', please recompile")
+    else:
+        script_file = os.path.join(SCRIPT_PATH, "wemod")
+        command = [sys.executable, script_file] + sys.argv[1:]
 
     # Execute the main script so the venv gets created
     process = subprocess.run(command, capture_output=True, text=True)
