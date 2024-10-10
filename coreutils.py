@@ -21,7 +21,10 @@ from corenodep import (
     read_file,
 )
 
-SCRIPT_IMP_FILE = os.path.realpath(__file__)
+if getattr(sys, 'frozen', False):
+    SCRIPT_IMP_FILE = os.path.realpath(sys.executable)
+else:
+    SCRIPT_IMP_FILE = os.path.realpath(__file__)
 SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
 
 
