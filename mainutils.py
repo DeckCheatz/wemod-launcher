@@ -2,6 +2,7 @@
 
 import os
 import sys
+import pwd
 import shutil
 
 from typing import (
@@ -547,9 +548,21 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
     window = sg.Window("Unpacking Prefix", layout, finalize=True)
     window.refresh()
 
+    myuser = None
+    try:
+        myuser = os.getlogin()
+    except Exception as e:
+        pass
+    if not myuser:
+        try:
+            myuser = pwd.getpwuid(os.getuid()).pw_name
+        except Exception as e:
+            pass
+    if not myuser:
+        myuser = "steamuser"
     try:  # try own dest folder
         subprocess.run(
-            ["chown", "-R", os.getlogin(), dest_path],
+            ["chown", "-R", myuser, dest_path],
             capture_output=True,
             text=True,
             timeout=10,
@@ -557,7 +570,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
     except Exception as e:
         log(
             "failed to own folder as '"
-            + os.getlogin()
+            + myuser
             + "' for '"
             + dest_path
             + "' with error:\n\t"
