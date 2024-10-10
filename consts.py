@@ -12,7 +12,7 @@ from coreutils import (
     log,
 )
 
-if getattr(sys, 'frozen', False):
+if getattr(sys, "frozen", False):
     SCRIPT_IMP_FILE = os.path.realpath(sys.executable)
 else:
     SCRIPT_IMP_FILE = os.path.realpath(__file__)

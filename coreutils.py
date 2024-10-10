@@ -21,7 +21,7 @@ from corenodep import (
     read_file,
 )
 
-if getattr(sys, 'frozen', False):
+if getattr(sys, "frozen", False):
     SCRIPT_IMP_FILE = os.path.realpath(sys.executable)
 else:
     SCRIPT_IMP_FILE = os.path.realpath(__file__)
@@ -433,7 +433,7 @@ def get_user_input(
 
 def script_manager() -> None:
     script_name = "wemod-laucher"
-    script_version = "1.500"
+    script_version = "1.501"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 
