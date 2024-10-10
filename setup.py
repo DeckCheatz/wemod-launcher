@@ -421,7 +421,10 @@ def setup_main() -> None:
 
 def run_wemod() -> None:
     if getattr(sys, "frozen", False):
-        exit_with_message("Invalid compile", "The script was compiled with 'setup.py' as the start file.\nThis is incorrect the startfile is 'wemod', please recompile")
+        exit_with_message(
+            "Invalid compile",
+            "The script was compiled with 'setup.py' as the start file.\nThis is incorrect the startfile is 'wemod', please recompile",
+        )
     else:
         script_file = os.path.join(SCRIPT_PATH, "wemod")
         command = [sys.executable, script_file] + sys.argv[1:]

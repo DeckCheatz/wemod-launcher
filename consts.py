@@ -18,6 +18,7 @@ else:
     SCRIPT_IMP_FILE = os.path.realpath(__file__)
 SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
 
+
 def getbatcmd():
     batf = os.path.join(SCRIPT_PATH, "wemod.bat")
     if not os.path.isfile(batf):
@@ -52,9 +53,13 @@ def getbatcmd():
         except Exception as e:
             pass
         if not os.path.isfile(batf):
-            exit_with_message("Missing bat","The 'wemod.bat' file is missing and could not be downloaded, exiting")
+            exit_with_message(
+                "Missing bat",
+                "The 'wemod.bat' file is missing and could not be downloaded, exiting",
+            )
 
     return ["start", winpath(batf)]
+
 
 BAT_COMMAND = getbatcmd()
 
