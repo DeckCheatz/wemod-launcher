@@ -1,26 +1,39 @@
-{ pkgs, ... }:
+{ pkgs
+, self
+, inputs
+, ...
+}:
+let
+  freesimplegui = pkgs.python3Packages.buildPythonApplication rec {
+    pname = "freesimplegui";
+    version = "5.1.1";
+    src = pkgs.fetchPypi {
+      inherit pname version;
+      sha256 = "sha256-LwlGx6wiHJl5KRgcvnUm40L/9fwpGibR1yYoel3ZZPs=";
+    };
+  };
+in
 {
-  packages = [
-    pkgs.pyright
-    pkgs.poetry
-    pkgs.git
-  ];
+  packages =
+    with pkgs;
+    [
+      git
+      pdm
+      pyright
+    ]
+    ++ (with pkgs.python3Packages; [
+      requests
+      pyxdg
+      setuptools
+      pyinstaller
+      tkinter
+    ]) ++ [ freesimplegui ];
 
   languages = {
     nix.enable = true;
     python = {
       enable = true;
-      package = pkgs.python311Full;
-      poetry = {
-        enable = true;
-        activate.enable = true;
-        install = {
-          enable = true;
-          allExtras = true;
-          compile = true;
-          quiet = true;
-        };
-      };
+      package = pkgs.python313Full;
     };
     shell.enable = true;
   };
