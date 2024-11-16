@@ -36,8 +36,7 @@ Check the [Wiki Changelog](https://github.com/DaniAsh551/wemod-launcher/wiki/Cha
 - **Optional:** If you have access to another PC and wish to control the Steam Deck remotely,  
 consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest)** for easier setup (the `.flatpak` is easiest).
 
-- **Important:** There is currently a Proposal to change the Lisence of the wemod launcher from MIT to AGLP.  
-  Please vote with your opinion right here: [Proposal #131](https://github.com/DeckCheatz/wemod-launcher/discussions/131).
+- **Info:** The Proposal to change the License of the wemod launcher from MIT to AGLP3 was accepted by contributions and voters [(info here)](https://github.com/DeckCheatz/wemod-launcher/discussions/131) and will be integrated into the next big update (update time not yet planed).
 
 1. First `Python venv` and `TK` need to be installed  
    TK / Tkinter may have a other name in your repos  
