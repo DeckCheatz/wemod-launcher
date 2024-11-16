@@ -1,23 +1,30 @@
-[tool.poetry]
+[project]
 name = "wemod-launcher"
-version = "2.000"
+version = "1.503"
 description = "Tool made to launch the popular Game Trainer / Cheat tool WeMod along with your game (made for steam-runtime version in Linux)."
-authors = ["Dom Rodriguez <shymega@shymega.org.uk>"] # TODO: Fix licensing and authors list.
-license = "MIT"
+authors = [
+    {name = "The DeckCheatz Team", email = "deckcheatz@noreply.github.com"},
+]
+dependencies = [
+    "freesimplegui>=5.1.1",
+    "requests>=2.31.0",
+    "pyxdg>=0.28",
+    "setuptools>=75.1.0.post0",
+    "pyinstaller>=4.5.1",
+]
+requires-python = ">=3.11"
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = ">=3.11,<3.13"
-freesimplegui = "5.1.0"
-requests = "2.32.3"
-pyxdg = "0.28"
-setuptools = "*" # FIXME: Fails without this, needs lock.
-pyinstaller = "^6.9.0"
-
-[tool.poetry.scripts]
-wemod-launcher = "wemod_launcher.cli:main"
-package-exe = "wemod_launcher.pyinstaller:install"
+license = {text = "MIT"}
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm.scripts]
+package-exe = {call = "wemod_launcher.pyinstaller:install"}
+
+[project.scripts]
+wemod-launcher = "wemod_launcher.cli:main"
+
+[tool.pdm]
+distribution = true

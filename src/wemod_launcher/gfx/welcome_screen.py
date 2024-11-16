@@ -4,6 +4,7 @@ import requests
 from pathlib import Path
 from ..utils.logger import LoggingHandler
 
+
 class WelcomeScreenGfx(object):
     WEMOD_LOGO_URL: str = (
         "https://www.wemod.com/static/images/device-icons/favicon-192-ce0bc030f3.png"
@@ -14,7 +15,9 @@ class WelcomeScreenGfx(object):
 
         self.__logger = LoggingHandler(__name__).get_logger()
 
-        cache_path = Path(save_cache_path("wemod_launcher")) / "assets/wemod_logo.png"
+        cache_path = (
+            Path(save_cache_path("wemod_launcher")) / "assets/wemod_logo.png"
+        )
         if cache_path.exists():
             self.WEMOD_LOGO_RAW = open(str(cache_path), "rb").read()
         else:
