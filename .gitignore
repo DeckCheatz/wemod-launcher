@@ -16,3 +16,8 @@ devenv.local.nix
 
 # pre-commit
 .pre-commit-config.yaml
+
+/dist
+
+/.pdm-build
+/.pdm-python
