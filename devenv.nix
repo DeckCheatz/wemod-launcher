@@ -27,7 +27,8 @@ in
       setuptools
       pyinstaller
       tkinter
-    ]) ++ [ freesimplegui ];
+    ])
+    ++ [ freesimplegui ];
 
   languages = {
     nix.enable = true;
