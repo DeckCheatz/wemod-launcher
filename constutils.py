@@ -54,7 +54,7 @@ SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
 
 
 # Ensure that wine is installed
-def enshure_wine(verstr: Optional[str] = None) -> str:
+def ensure_wine(verstr: Optional[str] = None) -> str:
     WinePfx = os.path.join(BASE_STEAM_COMPAT, "drive_c")
     ProtonPfx = os.path.join(WINEPREFIX, "drive_c")
     if os.path.isdir(WinePfx):
