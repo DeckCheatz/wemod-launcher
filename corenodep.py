@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
 
 import os
 import sys
@@ -42,7 +43,7 @@ def check_dependencies(requirements_file: str) -> bool:
     return ret
 
 
-# Read a setting of the configfile
+# Read a setting of the config file
 def load_conf_setting(
     setting: str, section: str = DEF_SECTION
 ) -> Optional[str]:
@@ -51,7 +52,7 @@ def load_conf_setting(
     return None
 
 
-# Save a value onto a setting of the configfile
+# Save a value onto a setting of the config file
 def save_conf_setting(
     setting: str, value: Optional[str] = None, section: str = DEF_SECTION
 ) -> None:
