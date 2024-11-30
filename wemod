@@ -114,7 +114,7 @@ if __name__ == "__main__":
 from constutils import (
     scanfolderforversions,
     troubleshooter,
-    enshure_wine,
+    ensure_wine,
     winetricks,
     wine,
 )
@@ -296,11 +296,11 @@ def init(proton: str, iswine: bool = False) -> None:
             log(
                 f"Problem grabbing the external wine version, using file, returned was:\n\t{e}"
             )
-            prefix_version_file = enshure_wine()
+            prefix_version_file = ensure_wine()
         else:
-            prefix_version_file = enshure_wine(str(wver.stdout))
+            prefix_version_file = ensure_wine(str(wver.stdout))
     else:
-        prefix_version_file = enshure_wine()
+        prefix_version_file = ensure_wine()
     current_proton_version = read_file(prefix_version_file)
     current_version_parts = parse_version(current_proton_version)
     if current_version_parts == None:
