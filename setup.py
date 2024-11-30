@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
 
 import os
 import sys
@@ -51,7 +52,7 @@ def welcome() -> bool:
     sg.theme("systemdefault")
 
     ret = sg.popup_ok_cancel(
-        "Welcome to WeMod Installer!\nPress ok to start the setup.",
+        "Welcome to WeMod Installer!\nPress OK to start the setup.",
         title="WeMod Launcher Setup",
         image=wemod_logo.content,
         icon=wemod_logo.content,
@@ -183,7 +184,7 @@ def tk_check() -> None:
     except ImportError:
         exit_with_message(
             "Tkinter missing",
-            "Critical error, tkinter is not installed,\nmake shure you have installed the correct tkinter package for your system,\nsearch the internet for 'install tkinter for YOURDISTRO',\nreplace YOURDISTRO with your actual distro",
+            "Critical error, tkinter is not installed,\nmake sure you have installed the correct tkinter package for your system,\nsearch the internet for 'install tkinter for YOURDISTRO',\nreplace YOURDISTRO with your actual distro",
         )
 
 
@@ -231,7 +232,7 @@ def venv_manager() -> List[Optional[str]]:
             # Determine the path to the Python executable within the virtual environment
             venv_python = os.path.join(venv_path, "bin", "python")
 
-            # Preinstall dependencies in the virtual environment
+            # Pre-install dependencies in the virtual environment
             return_code = pip(pip_install, venv_path)
             if return_code != 0:
                 log("CRITICAL: Dependencies can't be installed")
@@ -252,13 +253,13 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
     if int(infinite) > 3:
         return path
     elif int(infinite) > 2:
-        log("Self update skipped, beclase updates where made already.")
+        log("Self update skipped, because updates where made already.")
         return path
     elif getattr(sys, "frozen", False):
-        log("Self update skipped, becalse script was compiled")
+        log("Self update skipped, because script was compiled")
         return path
     elif upd and upd.lower() == "false":
-        log("Self update skipped, becalse it was requested in the config")
+        log("Self update skipped, because it was requested in the config")
         return path
 
     original_cwd = os.getcwd()
@@ -342,8 +343,8 @@ def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
             infpr = os.getenv("WeModInfProtect", "1")
             infpr = str(int(infpr) + 1)
 
-            flatpak_start.append("FROM_FLATPAK=true")
-            flatpak_start.append(f"WeModInfProtect={infpr}")
+            flatpak_start.append("--env=FROM_FLATPAK=true")
+            flatpak_start.append(f"--env=WeModInfProtect={infpr}")
             flatpak_start.append("--")  # Isolate command from command args
 
             if bool(flatpak_cmd):  # if venv is set use it
@@ -401,10 +402,10 @@ def setup_main() -> None:
         unpacked = unpack_wemod(setup_file, temp_dir, install_location)
 
         show_message(
-            "Setup completed successfully.\nMake shure the LAUNCH OPTIONS of the game say '"
+            "Setup completed successfully.\nMake sure the \"LAUNCH OPTIONS\" of the game say '"
             + str(os.path.join(SCRIPT_PATH, "wemod"))
             + " %command%'",
-            title="Wemod Downloaded",
+            title="WeMod Downloaded",
             timeout=5,
         )
 
@@ -423,7 +424,7 @@ def run_wemod() -> None:
     if getattr(sys, "frozen", False):
         exit_with_message(
             "Invalid compile",
-            "The script was compiled with 'setup.py' as the start file.\nThis is incorrect the startfile is 'wemod', please recompile",
+            "The script was compiled with 'setup.py' as the start file.\nThis is incorrect the start-file is 'wemod', please recompile",
         )
     else:
         script_file = os.path.join(SCRIPT_PATH, "wemod")
