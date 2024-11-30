@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
 
 import os
 import sys
@@ -97,11 +98,11 @@ def get_compat() -> str:
             elif not tools or len(tools.strip(os.pathsep)) == 0:
                 if not wine:
                     log(
-                        "Error, The WINE environment variable needs to be set if using extenal runners, exiting"
+                        "Error, The WINE environment variable needs to be set if using external runners, exiting"
                     )
                     exit_with_message(
                         "Not wine not found",
-                        "Error, wine not found,\nthe WINE environment variable needs to be set if using extenal runners, exiting",
+                        "Error, wine not found,\nthe WINE environment variable needs to be set if using external runners, exiting",
                     )
                 # set wine compat tool
                 os.environ["STEAM_COMPAT_TOOL_PATHS"] = os.path.dirname(wine)
