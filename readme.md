@@ -31,12 +31,14 @@ Check the [Wiki Changelog](https://github.com/DaniAsh551/wemod-launcher/wiki/Cha
 
 ## Quick Guide
 <div><img src="https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=20&quality=lossless" alt="Alert"/>&nbsp;<b> This guide only includes the most relevant info and might not be enough to run WeMod,</b>
-<div> &nbsp; &nbsp; &nbsp; &nbsp; if so check out the <a href="https://github.com/DaniAsh551/wemod-launcher/wiki/Full-Guide">Full Guide</a> <b>OR</b> the <a href="https://youtu.be/5UlVCZvIl1E">video tutorial by Marvin1099</a><br><br>
+<div> &nbsp; &nbsp; &nbsp; &nbsp; if so check out the <a href="https://github.com/DaniAsh551/wemod-launcher/wiki/Full-Guide">Full Guide</a> <b>OR</b> the <a href="https://youtu.be/5UlVCZvIl1E">video tutorial by Marvin1099</a><br>
 
 - **Optional:** If you have access to another PC and wish to control the Steam Deck remotely,  
 consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest)** for easier setup (the `.flatpak` is easiest).
 
-- **Info:** The Proposal to change the License of the wemod launcher from MIT to AGLP3 was accepted by contributions and voters [(info here)](https://github.com/DeckCheatz/wemod-launcher/discussions/131) and will be integrated into the next big update (update time not yet planed).
+- **Info:** The Proposal to change the License of the wemod launcher from MIT to AGLP3  
+  was accepted by contributions and voters [(info here)](https://github.com/DeckCheatz/wemod-launcher/discussions/131)  
+  and was integrated into the project on the First of December in 2024.
 
 1. First `Python venv` and `TK` need to be installed  
    TK / Tkinter may have a other name in your repos  
