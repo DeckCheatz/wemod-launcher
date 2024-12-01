@@ -1,4 +1,5 @@
 #!/bin/bash
+# SPDX-License-Identifier: AGPL-3.0-only
 
 # Prompt user for information
 read -p "Enter your GitHub token: " GITHUB_TOKEN
