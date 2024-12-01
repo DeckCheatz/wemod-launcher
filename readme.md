@@ -85,10 +85,11 @@ The wemod-launcher will automatically update if you installed it using step 5.
 
 <div><img src="https://cdn.discordapp.com/emojis/999743709677633536.gif?size=20&quality=lossless" alt="WeModApp"/>&nbsp;<b>If you find this guide helpful, we encourage you to star the project.</b></div><br> 
 
-<a href="https://star-history.com/#DaniAsh551/wemod-launcher&Date">
+
+<a href="https://star-history.com/#DeckCheatz/wemod-launcher&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=DaniAsh551/wemod-launcher&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=DaniAsh551/wemod-launcher&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=DaniAsh551/wemod-launcher&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=DeckCheatz/wemod-launcher&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=DeckCheatz/wemod-launcher&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=DeckCheatz/wemod-launcher&type=Date" />
  </picture>
 </a>
