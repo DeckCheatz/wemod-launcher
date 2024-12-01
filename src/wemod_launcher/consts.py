@@ -3,13 +3,19 @@
 
 import os
 import sys
+from pathlib import Path
+from wemod_launcher.utils.configuration import Configuration
+from wemod_launcher.utils.consts import Consts
+from wemod_launcher.pfx.wine_utils import WineUtils
 
-from corenodep import (
+#cfg: Configuration = Configuration()
+
+from wemod_launcher.core_nodeps import (
     load_conf_setting,
     winpath,
 )
 
-from coreutils import (
+from wemod_launcher.core_utils import (
     exit_with_message,
     log,
 )
@@ -65,24 +71,33 @@ def getbatcmd():
 
 BAT_COMMAND = getbatcmd()
 
-
-# Function to grab the Steam Compat Data Path
+# Function to grab the Steam Compat Data path
 def get_compat() -> str:
     ccompat = load_conf_setting("SteamCompatDataPath")
     wcompat = load_conf_setting("WinePrefixPath")
     if not wcompat and os.getenv("WINE_PREFIX_PATH"):
-        os.environ["WINEPREFIX"] = os.getenv("WINE_PREFIX_PATH")
-    ecompat = os.getenv("STEAM_COMPAT_DATA_PATH")
+        os.environ["WINEPREFIX"] = os.getenv(
+            "WINE_PREFIX_PATH", ""
+        )  # TODO: Either use try/except here, or a sane default.
+    ecompat = os.getenv(
+        "STEAM_COMPAT_DATA_PATH", ""
+    )  # TODO: Either use try/except here, or a sane default.
     nogame = False
     # STEAM_COMPAT_DATA_PATH not set
     if not ecompat:
         if os.getenv("WINEPREFIX") or wcompat:
             ecompat = wcompat
             if not ecompat:
-                ecompat = os.getenv("WINEPREFIX")
+                ecompat = os.getenv(
+                    "WINEPREFIX", ""
+                )  # TODO: Either use try/except here, or a sane default.
             nogame = True
-            wine = os.getenv("WINE")
-            tools = os.getenv("STEAM_COMPAT_TOOL_PATHS")
+            wine = os.getenv(
+                "WINE", ""
+            )  # TODO: Either use try/except here, or a sane default.
+            tools = os.getenv(
+                "STEAM_COMPAT_TOOL_PATHS", ""
+            )  # TODO: Either use try/except here, or a sane default.
             # if tools set and wine not in compat tools
             if (
                 tools
@@ -123,20 +138,35 @@ def get_compat() -> str:
     return ecompat
 
 
-BASE_STEAM_COMPAT = get_compat()
-STEAM_COMPAT_FOLDER = os.path.dirname(BASE_STEAM_COMPAT)
+def get_scan_folder() -> str:
+    scan_folder: str
+    try:
+        scan_folder = os.getenv("SCANFOLDER") or ""
+    except KeyError:
+        scan_folder = ""
+        pass
+
+    if not Path(scan_folder).exists():
+        scan_folder = load_conf_setting("ScanFolder") or ""
+
+    if not Path(scan_folder).exists():
+        scan_folder = STEAM_COMPAT_FOLDER
+
+    return scan_folder
 
 
-def get_scan_folder():
-    wscanfolder = os.getenv("SCANFOLDER")
-    cscanfolder = load_conf_setting("ScanFolder")
-    if not wscanfolder:
-        wscanfolder = cscanfolder
-    if not wscanfolder:
-        wscanfolder = STEAM_COMPAT_FOLDER
-    return wscanfolder
+CONSTS = Consts()
+WINE_UTILS = WineUtils()
 
 
+SCRIPT_IMP_FILE = str(CONSTS.SCRIPT_PATH)
+SCRIPT_PATH = str(CONSTS.SCRIPT_RUNTIME_DIR)
+BAT_COMMAND = [
+    "start",
+    WINE_UTILS.native_path(os.path.join(SCRIPT_IMP_FILE, "wemod.bat")),
+]
+BASE_STEAM_COMPAT = get_scan_folder()
+STEAM_COMPAT_FOLDER = str(CONSTS.STEAM_COMPAT_DATA_DIR)
 SCAN_FOLDER = get_scan_folder()
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
