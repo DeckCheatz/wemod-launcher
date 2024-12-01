@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
 
 import os
 import sys
@@ -62,7 +63,7 @@ SCRIPT_PATH = os.path.dirname(SCRIPT_FILE)
 if __name__ == "__main__":
     # Print version and update config
     script_manager()
-    # Make venv if needed andreturn path
+    # Make venv if needed and return path
     python_venv = venv_manager()
     # Update the script
     python_venv = self_update(python_venv)
@@ -71,12 +72,12 @@ if __name__ == "__main__":
 
     # On venv path restart the script
     if bool(if_flatpak_list):
-        # Use environment varible to protect the script from re-running forever
+        # Use environment variable to protect the script from re-running forever
         inf_protect = os.getenv("WeModInfProtect", "1")
         if int(inf_protect) > 4:
             exit_with_message(
                 "Infinite rerun",
-                "Infinite script reruns were detected\nThe script was stoped\nCreate a issue on the wemod_laucher github\nand add this file to the issue",
+                "Infinite script reruns were detected\nThe script was stopped\nCreate a issue on the wemod_laucher GitHub\nand add this file to the issue",
             )
         os.environ["WeModInfProtect"] = str(int(inf_protect) + 1)
 
@@ -99,13 +100,13 @@ if __name__ == "__main__":
             log(f"Unknown rerun command error:\n\t{e}")
             exit_with_message(
                 "Unknown Command error",
-                f"The command to rerun the script failed becalse the command returned an unknown error:\n\t{e}\nYou are probably using flatpak,\nif that is the case install flatpak-xdg-utils\nand allow system and session bus in flatseal",
+                f"The command to rerun the script failed because the command returned an unknown error:\n\t{e}\nYou are probably using flatpak,\nif that is the case install flatpak-xdg-utils\nand allow system and session bus in flatseal",
             )
 
         if len(if_flatpak_list) > 1:
             flat_thread.join()
 
-        # exit after it was run in a venv succesfully
+        # exit after it was run in a venv successfully
         sys.exit(process.returncode)
 
 
@@ -113,7 +114,7 @@ if __name__ == "__main__":
 from constutils import (
     scanfolderforversions,
     troubleshooter,
-    enshure_wine,
+    ensure_wine,
     winetricks,
     wine,
 )
@@ -129,7 +130,7 @@ from consts import (
 )
 
 
-# Symlink wemod data to make all wemod prefixes use the same wemod data
+# Symlink WeMod data to make all WeMod prefixes use the same WeMod data
 def syncwemod(
     folder: Optional[str] = None,
 ) -> None:
@@ -178,7 +179,7 @@ def syncwemod(
         )
 
         if not os.path.isfile(INIT_FILE):
-            log(f"WeMod is not installed in {BASE_STEAM_COMPAT}, Error")
+            log(f"WeMod is not installed in {BASE_STEAM_COMPAT}, error")
             exit_with_message(
                 "WeMod not installed",
                 "WeMod is not installed in the active prefix, exiting",
@@ -220,7 +221,7 @@ def syncwemod(
         log("Done creating Prefix zip")
         exit_with_message(
             "Prefix Packaged",
-            "The prefix was zipped succesfully, exiting",
+            "The prefix was zipped successfully, exiting",
             timeout=5,
         )
 
@@ -233,40 +234,40 @@ def syncwemod(
     )  # link dest
 
     log(
-        f"Syncing wemod data from '{WeModExtenal}' to laucher dir '{WeModData}'"
+        f"Syncing WeMod data from '{WeModExtenal}' to launcher dir '{WeModData}'"
     )
     if not os.path.isdir(WeModData):
-        os.makedirs(WeModData)  # Make wemod data folder if missing
+        os.makedirs(WeModData)  # Make WeMod data folder if missing
     if not os.path.isdir(WeModExtenal):
         os.makedirs(WeModExtenal)
     if os.path.isdir(WeModExtenal) and not os.path.islink(
         WeModExtenal
-    ):  # If the extenal data exist
+    ):  # If the external data exist
         if (
             len(os.listdir(WeModData)) > 0
             and len(os.listdir(WeModExtenal)) > 0
-        ):  # If wemod folder and extenal folder are not empty
+        ):  # If WeMod folder and external folder are not empty
             # We ask what files to use
 
             response = show_message(
-                f"Warnig wemod might have been installed previously.\nUse wemod laucher dir account (Yes) or\nUse wemod prefix/game dir account (No)",
+                f"Warnig WeMod might have been installed previously.\nUse WeMod Launcher dir account (Yes) or\nUse WeMod prefix/game dir account (No)",
                 title="Multiple accounts found",
                 yesno=True,
             )
         if (response == "No" or len(os.listdir(WeModData)) == 0) and len(
             os.listdir(WeModExtenal)
         ) > 0:
-            log("The local wemod data was requested to be overwritten")
+            log("The local WeMod data was requested to be overwritten")
             shutil.rmtree(WeModData)
             shutil.copytree(
                 WeModExtenal, WeModData
             )  # We copy from game if the user selects or if data is empty
-        shutil.rmtree(WeModExtenal)  # Remove wemod data from game
+        shutil.rmtree(WeModExtenal)  # Remove WeMod data from game
     if not os.path.isdir(WeModExtenal) and not os.path.islink(WeModExtenal):
         os.symlink(
             WeModData, WeModExtenal
-        )  # And symlink the data from the wemod laucher
-        log("Linked wemod data to gameprefix")
+        )  # And symlink the data from the WeMod Launcher
+        log("Linked WeMod data to game prefix")
 
     if not os.path.exists(
         os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
@@ -276,7 +277,7 @@ def syncwemod(
 
 # Initialize the environment
 def init(proton: str, iswine: bool = False) -> None:
-    # Create wineprefix directory if it doesn't exist
+    # Create wine prefix directory if it doesn't exist
     if not os.path.isdir(WINEPREFIX):
         os.makedirs(BASE_STEAM_COMPAT, exist_ok=True)
 
@@ -293,13 +294,13 @@ def init(proton: str, iswine: bool = False) -> None:
             )
         except Exception as e:
             log(
-                f"Problem grabing the external wine version, using file, returned was:\n\t{e}"
+                f"Problem grabbing the external wine version, using file, returned was:\n\t{e}"
             )
-            prefix_version_file = enshure_wine()
+            prefix_version_file = ensure_wine()
         else:
-            prefix_version_file = enshure_wine(str(wver.stdout))
+            prefix_version_file = ensure_wine(str(wver.stdout))
     else:
-        prefix_version_file = enshure_wine()
+        prefix_version_file = ensure_wine()
     current_proton_version = read_file(prefix_version_file)
     current_version_parts = parse_version(current_proton_version)
     if current_version_parts == None:
@@ -310,14 +311,14 @@ def init(proton: str, iswine: bool = False) -> None:
             ask_for_log=True,
         )
 
-    # If wemod is not installed try to copy a working prefix to the current one
+    # If WeMod is not installed try to copy a working prefix to the current one
     log(f"Looking for init file '{INIT_FILE}'")
     if not os.path.exists(INIT_FILE):
         log(
-            f"Loking for compatible wine prefixes in '{STEAM_COMPAT_FOLDER}' with proton version '{current_version_parts[0]}.{current_version_parts[1]}'"
+            f"Looking for compatible wine prefixes in '{STEAM_COMPAT_FOLDER}' with proton version '{current_version_parts[0]}.{current_version_parts[1]}'"
         )
 
-        # Get closest version that has wemod installed
+        # Get closest version that has WeMod installed
         closest_version, closest_prefix_folder = scanfolderforversions(
             current_version_parts
         )
@@ -337,7 +338,7 @@ def init(proton: str, iswine: bool = False) -> None:
             and closest_version == current_version_parts
         ):
             response = show_message(
-                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} dosn't have WeMod installed. Would you like to use the perfectly matched Proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is very likely going to work?",
+                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have WeMod installed. Would you like to use the perfectly matched Proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is very likely going to work?",
                 title="Very likely compatible WeMod version detected",
                 yesno=True,
             )
@@ -350,7 +351,7 @@ def init(proton: str, iswine: bool = False) -> None:
         ):
 
             response = show_message(
-                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} dosn't have WeMod installed. Would you like to use the closest proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is likely going to work?",
+                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have WeMod installed. Would you like to use the closest proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is likely going to work?",
                 title="Likely compatible WeMod version detected",
                 yesno=True,
             )
@@ -362,8 +363,8 @@ def init(proton: str, iswine: bool = False) -> None:
             and closest_version[0] != current_version_parts[0]
         ):
             response = show_message(
-                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} dosn't have WeMod installed. Would you like to attempt to use the closest proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which may result in some issues?",
-                title="Mabye compatible WeMod version detected",
+                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have WeMod installed. Would you like to attempt to use the closest proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which may result in some issues?",
+                title="Maybe compatible WeMod version detected",
                 yesno=True,
             )
         else:
@@ -371,11 +372,11 @@ def init(proton: str, iswine: bool = False) -> None:
                 "No compatible Proton version found in the compatibility folder."
             )
         if response == "Yes":
-            # Copy the closest version's prefix to the gameprefix
+            # Copy the closest version's prefix to the game prefix
             log(f"Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}")
             syncwemod(
                 closest_prefix_folder
-            )  # Sync wemod data in closest version
+            )  # Sync WeMod data in closest version
 
             copy_folder_with_progress(
                 closest_prefix_folder,
@@ -384,7 +385,7 @@ def init(proton: str, iswine: bool = False) -> None:
                 [None],
                 [None],
             )
-            syncwemod()  # Sync wemod data
+            syncwemod()  # Sync WeMod data
             log(
                 f"Copied Proton version {cut_version[0]}.{cut_version[1]} prefix to game prefix that was on version {current_version_parts[0]}.{current_version_parts[1]}"
             )
@@ -395,10 +396,10 @@ def init(proton: str, iswine: bool = False) -> None:
         else:
             log(f"No versions to copy available")
 
-    # Check for the initialization file in the wineprefix
+    # Check for the initialization file in the wine prefix
     log(f"Looking once more for the init file")
     if os.path.exists(INIT_FILE):
-        syncwemod()  # Sync wemod data and prefix packaging
+        syncwemod()  # Sync WeMod data and prefix packaging
         log("Found init file. Continuing launch...")
         return
 
@@ -421,17 +422,17 @@ def init(proton: str, iswine: bool = False) -> None:
         build_prefix(proton_dir)
     else:
         download_prefix(proton_dir)
-    syncwemod()  # Sync wemod data
+    syncwemod()  # Sync WeMod data
 
 
-# Function to download and unpack a pre-configured wineprefix
+# Function to download and unpack a pre-configured wine prefix
 def download_prefix(proton_dir: str) -> None:
     # Check and prepare for first launch
     if not os.path.exists(WINEPREFIX + "/drive_c"):
         log(WINEPREFIX)
         exit_with_message(
             "First Launch",
-            "First Launch Detected: Please run the game once without wemod first. Error.",
+            "First Launch Detected: Please run the game once without WeMod first. Error.",
             ask_for_log=True,
         )
 
@@ -493,12 +494,12 @@ def download_prefix(proton_dir: str) -> None:
     elif closest_version and current_version_parts:
         response = show_message(
             f"The current version {closest_version[0]}.{closest_version[1]} might not be compatible with version {current_version_parts[0]}.{current_version_parts[1]}, download and use it?",
-            title="Mabye copatible version found",
+            title="Maybe compatible version found",
             yesno=True,
         )
     else:
         log(
-            f"There was no version to download on repo '{repo_concat}', Error..."
+            f"There was no version to download on repo '{repo_concat}', error..."
         )
         exit_with_message(
             "No downloads available",
@@ -518,7 +519,7 @@ def download_prefix(proton_dir: str) -> None:
     # Download or use cached prefix
     prefix_path = cache(
         file_name,
-        lambda name: popup_download("Dowloading Prefix...", url, name),
+        lambda name: popup_download("Downloading Prefix...", url, name),
         simple=True,
     )
 
@@ -527,11 +528,11 @@ def download_prefix(proton_dir: str) -> None:
 
     unpack_zip_with_progress(prefix_path, BASE_STEAM_COMPAT)
 
-    # Delete cache file since the prefix copyer has been added there is no need to keep this file around
+    # Delete cache file since the prefix copier has been added there is no need to keep this file around
     if os.path.isfile(prefix_path):
         os.remove(prefix_path)
 
-    syncwemod()
+    syncWeMod()
     if not os.path.isfile(
         os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
     ):
@@ -562,7 +563,7 @@ def build_prefix(proton_dir: str) -> None:
     # Choose method to install dotnet48
     dotnet48_method = popup_options(
         "dotnet48",
-        "Would you like to install dotnet48 with winetricks (default, for GE-Proton8 or above)\nor with wemod-launcher (ONLY USE FOR GE-Proton7)\nWARNING: The wemod-launcher option isn't working well, you can try using it anyway (ONLY ON GE-Proton7)",
+        "Would you like to install dotnet48 with winetricks (default, for GE-Proton8 or above)\nor with wemod-launcher (ONLY USE FOR GE-Proton7)\nWARNING: The WeMod Launcher option isn't working well, you can try using it anyway (ONLY ON GE-Proton7)",
         [["winetricks", "wemod-launcher"]],
     )
 
@@ -640,7 +641,7 @@ def run(skip_init: bool = False) -> str:
     verb = ["waitforexitandrun"]
     tout = 90
     if fnr >= 0:  # if the proton tool path was found
-        # Log the args for future improvment
+        # Log the args for future improvement
         log(
             f"The normal args list is {len(ARGS)} long and the full contents are:\n\t{ARGS}"
         )
@@ -662,7 +663,7 @@ def run(skip_init: bool = False) -> str:
     else:
         # Subdivide the list into multiple lists based on delimiter
         AARGS = split_list_by_delimiter(ARGS, "--")
-        # Log the args for future improvment
+        # Log the args for future improvement
         log(
             f"The subsplit args list is {len(AARGS)} long and the full contents are:\n\t{AARGS}"
         )
@@ -702,10 +703,10 @@ def run(skip_init: bool = False) -> str:
             ask_for_log=True,
         )
 
-    # Make gamepath be relative to workdir (workdir is the root game dir)
+    # Make game path be relative to work dir (work dir is the root game dir)
     REL_EXE = os.path.relpath(GAME_EXE, WORK_DIR)
 
-    # Make shure the relative gamepath is in windows format
+    # Make shure the relative game path is in windows format
     WIN_CMD = winpath(REL_EXE, addfront="")
 
     # Log the found parts of the command
@@ -748,7 +749,7 @@ def run(skip_init: bool = False) -> str:
     if fromflat:
         import time
 
-        log("Useing flatpak mode")
+        log("Using flatpak mode")
 
         cachedir = os.path.join(SCRIPT_PATH, ".cache")
         os.makedirs(cachedir, exist_ok=True)
@@ -765,17 +766,17 @@ def run(skip_init: bool = False) -> str:
         time.sleep(2)
         save_conf_setting("FlatpakRunning", "true")
         log(
-            "While the flatpak run file exists, the command still runns, so wait for the file to be removed"
+            "While the flatpak run file exists, the command still runs, so wait for the file to be removed"
         )
         while os.path.isfile(flatpakrunfile):
             flatrunn = load_conf_setting("FlatpakRunning")
             if (flatrunn and flatrunn == "new") or not flatrunn:
-                log("New instance detected, closesing old instance")
+                log("New instance detected, closing old instance")
                 sys.exit(0)
             time.sleep(1)
         save_conf_setting("FlatpakRunning", None)
 
-        log("Any errors from the runn command, get raised")
+        log("Any errors from the run command, get raised")
         if os.path.isfile(errorfile):
             with open(errorfile, "r") as fef:
                 error = fef.read()
@@ -790,7 +791,7 @@ def run(skip_init: bool = False) -> str:
                 os.remove(warnfile)
                 if warn:
                     log(
-                        f"Problem loading the winesever waiter, the error is:\n\t{warn}"
+                        f"Problem loading the wine server waiter, the error is:\n\t{warn}"
                     )
 
         log("Finished flatpak mode code")
@@ -816,7 +817,7 @@ def run(skip_init: bool = False) -> str:
         resp = process.returncode
 
         if len(verb) == 0:
-            log("Running the wineserver waiter")
+            log("Running the wine server waiter")
             try:
                 if os.path.isdir(os.path.join(WINEPREFIX, "drive_c")):
                     os.environ["WINEPREFIX"] = WINEPREFIX
@@ -835,7 +836,7 @@ def run(skip_init: bool = False) -> str:
                 )
             except Exception as e:
                 log(
-                    f"Problem loading the winesever waiter, the error is:\n\t{e}"
+                    f"Problem loading the wine server waiter, the error is:\n\t{e}"
                 )
             else:
                 print(str(wserver.stdout))
@@ -843,9 +844,9 @@ def run(skip_init: bool = False) -> str:
 
             log("Finished regular mode code")
 
-    log("At this point the game should have allready finished running")
+    log("At this point the game should have already finished running")
     if os.path.exists(ttfile):
-        log("Deleteing early game tracking file")
+        log("Deleting early game tracking file")
         os.remove(ttfile)
 
     log("Waiting for early game tracking thread to finish")
@@ -867,7 +868,7 @@ if __name__ == "__main__":
     except Exception as e:
         RESP = "ERR:\n" + str(e)
         logy = show_message(
-            "Error occored, open the log?", "Error occored", 30, True
+            "Error occurred, open the log?", "Error occurred", 30, True
         )
 
     # Log final response or error

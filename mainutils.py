@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
 
 import os
 import sys
@@ -33,7 +34,7 @@ else:
 SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
 
 
-# Get the github releases from "USERNAME/REPO"
+# Get the GitHub releases from "USERNAME/REPO"
 def get_github_releases(repo_name: str) -> List[Any]:
     try:
         import requests
@@ -299,7 +300,7 @@ def deref(path: str) -> None:
     def dereference_links() -> None:
         links = find_symlinks(path)
         total_links = len(links)
-        extra.update("Dereferencing links, please be patient...")
+        extra.update("De-referencing links, please be patient...")
         for i, link in enumerate(links):
             target, src = link
             try:
@@ -312,7 +313,7 @@ def deref(path: str) -> None:
                 else:
                     os.remove(target)  # Remove the broken link
             except Exception as e:
-                log(f"Failed to dereference {target}: {e}")
+                log(f"Failed to de-reference {target}: {e}")
             update_progress(int((i + 1) / total_links * 100))
 
     def find_symlinks(path: str) -> List[List[str]]:
@@ -338,7 +339,7 @@ def deref(path: str) -> None:
     text = sg.Text("0%")
     extra = sg.Text("Reading directory, please wait...")
     layout = [[extra], [progress], [text]]
-    window = sg.Window("Dereferencing Links", layout, finalize=True)
+    window = sg.Window("De-referencing Links", layout, finalize=True)
     window.refresh()
 
     window.perform_long_operation(dereference_links, "-DEREF DONE-")
@@ -619,7 +620,7 @@ def flatpakrunner():
     errorfile = os.path.join(cachedir, "flatpakerror.tmp")
     warnfile = os.path.join(cachedir, "flatpakwarn.tmp")
 
-    log(f"Looking for runfile '{flatpakrunfile}'")
+    log(f"Looking for run-file '{flatpakrunfile}'")
 
     save_conf_setting("FlatpakRunning", "new")
 
