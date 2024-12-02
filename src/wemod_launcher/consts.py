@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
 
 import os
+import sys
 from pathlib import Path
 from wemod_launcher.utils.configuration import Configuration
 from wemod_launcher.utils.consts import Consts
 from wemod_launcher.pfx.wine_utils import WineUtils
 
-cfg: Configuration = Configuration()
+#cfg: Configuration = Configuration()
 
 from wemod_launcher.core_nodeps import (
     load_conf_setting,
@@ -18,6 +20,56 @@ from wemod_launcher.core_utils import (
     log,
 )
 
+if getattr(sys, "frozen", False):
+    SCRIPT_IMP_FILE = os.path.realpath(sys.executable)
+else:
+    SCRIPT_IMP_FILE = os.path.realpath(__file__)
+SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
+
+
+def getbatcmd():
+    batf = os.path.join(SCRIPT_PATH, "wemod.bat")
+    if not os.path.isfile(batf):
+        try:
+            import urllib.request
+
+            repo_user = load_conf_setting("RepoUser")
+            if not repo_user:
+                repo_user = "DeckCheatz"
+                # save_conf_setting("RepoUser", repo_user)
+                log("RepoUser not set in config using: " + repo_user)
+
+            repo_name = load_conf_setting("RepoName")
+            if not repo_name:
+                repo_name = "wemod-launcher"
+                # save_conf_setting("RepoName", repo_name)
+                log("RepoName not set in config using: " + repo_name)
+
+            repo_parts = os.getenv("REPO_STRING")
+            if repo_parts:
+                repo_parts = repo_parts.split("/", 1) + [""]
+                if repo_parts[0] and repo_parts[0] != "":
+                    repo_user = repo_parts[0]
+                if repo_parts[1] and repo_parts[1] != "":
+                    repo_name = repo_parts[1]
+
+            repo_concat = repo_user + "/" + repo_name
+
+            url = f"https://raw.githubusercontent.com/{repo_concat}/refs/heads/main/wemod.bat"
+            urllib.request.urlretrieve(url, batf)
+
+        except Exception as e:
+            pass
+        if not os.path.isfile(batf):
+            exit_with_message(
+                "Missing bat",
+                "The 'wemod.bat' file is missing and could not be downloaded, exiting",
+            )
+
+    return ["start", winpath(batf)]
+
+
+BAT_COMMAND = getbatcmd()
 
 # Function to grab the Steam Compat Data path
 def get_compat() -> str:
@@ -61,11 +113,11 @@ def get_compat() -> str:
             elif not tools or len(tools.strip(os.pathsep)) == 0:
                 if not wine:
                     log(
-                        "Error, The WINE environment variable needs to be set if using extenal runners, exiting"
+                        "Error, The WINE environment variable needs to be set if using external runners, exiting"
                     )
                     exit_with_message(
                         "Not wine not found",
-                        "Error, wine not found,\nthe WINE environment variable needs to be set if using extenal runners, exiting",
+                        "Error, wine not found,\nthe WINE environment variable needs to be set if using external runners, exiting",
                     )
                 # set wine compat tool
                 os.environ["STEAM_COMPAT_TOOL_PATHS"] = os.path.dirname(wine)

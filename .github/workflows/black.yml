@@ -114,8 +114,12 @@ jobs:
           echo "PYTHON_FILES_CHANGED=${{ env.PYTHON_FILES_CHANGED }}"
           echo "BLACK_OUTCOME=${{ env.BLACK_OUTCOME }}"
           echo "On=${{ github.ref }}"
+
+      - name: Pull changes if main or dev
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+        run: | 
           git pull
-          
+        
       - name: Merge dev into main
         if: github.ref == 'refs/heads/dev' && (env.PYTHON_FILES_CHANGED == 'false' || env.BLACK_OUTCOME == 'success')
         uses: peter-evans/create-pull-request@v3

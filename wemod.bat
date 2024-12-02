@@ -7,7 +7,7 @@ SET wemodpath=%mypath:~0,-1%\wemod_bin\%wemodname%
 SET temptime=%mypath:~0,-1%\.cache\early.tmp
 SET returnfile=%mypath:~0,-1%\.cache\return.tmp
 
-echo Hello from WeMod Launcher.
+echo Hello from the WeMod Launcher, the WeMod bat was started successfully.
 echo.
 echo WEMOD EXE:
 echo "%wemodpath%"
@@ -22,9 +22,10 @@ echo.
 echo.
 
 REM Start WeMod.exe and get its PID
-echo Starting %wemodname%.
+echo Starting WeMod by using %wemodname%.
 start "" %wemodpath%
 
+echo Cheking for running WeMod pid
 set wemodPID=
 REM Get the wemod pid over proton
 for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%" 2>NUL') do (
@@ -58,6 +59,8 @@ REM Start the game and wait for exit
 echo Running game "%~1" and waiting for close
 echo The full command is: %*
 start /wait "" %*
+echo.
+echo The game was closed
 
 if defined wemodPID (
     if exist %temptime% (
@@ -71,11 +74,14 @@ if defined wemodPID (
             goto WaitUser
         )
     )
+    echo Closing WeMod
     C:/windows/system32/taskkill.exe /PID %wemodPID% /F 2>NUL
     C:/windows/system32/taskkill.exe /PID %wemodPID% /F 2>NUL
+    echo.
+    echo Killed %wemodname% with pid %wemodPID%
 )
+
 echo.
-echo Killed %wemodname% over pid %wemodPID%
-echo.
-echo Done, closing in 1 second
+echo Done running bat, closing in 1 second
 @ping localhost -n 1 > NUL 2>&1
+echo.

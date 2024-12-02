@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
 
 import os
+import sys
+import pwd
 import shutil
 import subprocess
 
@@ -43,11 +46,14 @@ from wemod_launcher.main_utils import (
     popup_execute,
 )
 
-SCRIPT_IMP_FILE = os.path.realpath(__file__)
+if getattr(sys, "frozen", False):
+    SCRIPT_IMP_FILE = os.path.realpath(sys.executable)
+else:
+    SCRIPT_IMP_FILE = os.path.realpath(__file__)
 SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
 
 
-# Enshure that wine is isntalled
+# Ensure that wine is installed
 def ensure_wine(verstr: Optional[str] = None) -> str:
     WinePfx = os.path.join(BASE_STEAM_COMPAT, "drive_c")
     ProtonPfx = os.path.join(WINEPREFIX, "drive_c")
@@ -56,6 +62,37 @@ def ensure_wine(verstr: Optional[str] = None) -> str:
             os.symlink(BASE_STEAM_COMPAT, WINEPREFIX)
         except Exception as e:
             pass
+
+    users = os.path.join(ProtonPfx, "users")
+    myuser = None
+    try:
+        myuser = os.getlogin()
+    except Exception as e:
+        pass
+    if not myuser:
+        try:
+            myuser = pwd.getpwuid(os.getuid()).pw_name
+        except Exception as e:
+            pass
+    if not myuser:
+        myuser = "steamuser"
+
+    mainuser = os.path.join(users, myuser)
+    steamuser = os.path.join(users, "steamuser")
+    if mainuser != steamuser:
+        if not os.path.isdir(mainuser) and not os.path.isdir(steamuser):
+            os.makedirs(mainuser, exist_ok=True)
+        elif os.path.isdir(steamuser) and not os.path.isdir(mainuser):
+            try:
+                os.symlink(steamuser, mainuser)
+            except Exception as e:
+                pass
+        if os.path.isdir(mainuser) and not os.path.isdir(steamuser):
+            try:
+                os.symlink(mainuser, steamuser)
+            except Exception as e:
+                pass
+
     if os.path.isdir(ProtonPfx):
         ProtonVersion = os.path.join(BASE_STEAM_COMPAT, "version")
         if verstr:
@@ -66,13 +103,13 @@ def ensure_wine(verstr: Optional[str] = None) -> str:
             resp = None
             while not got:
                 resp, tout = get_user_input(
-                    "Imput wine version", "Version file", "WineGE8.26", 40
+                    "Input wine version", "Version file", "WineGE8.26", 40
                 )
                 got = parse_version(resp)
                 if not got:
                     show_message(
-                        "The version string was incorrect.\nMake shure you have at least 1 number in the version string",
-                        "Incorect version",
+                        "The version string was incorrect.\nMake sure you have at least 1 number in the version string",
+                        "Incorrect version",
                         20,
                         False,
                     )
@@ -83,7 +120,7 @@ def ensure_wine(verstr: Optional[str] = None) -> str:
     else:
         exit_with_message(
             "Missing Prefix",
-            "Error, wineprefix is missing,\nmake shure you run the game without the wemod-laucher once",
+            "Error, wine prefix is missing,\nmake sure you run the game without the wemod-launcher once",
             ask_for_log=True,
         )
 
@@ -97,12 +134,12 @@ def scan_compat_for_versions(
     closest_version_number = None
     priority = 6
 
-    # var to note a working protonge 7 prefix
+    # var to note a working ProtonGE 7 prefix
     prefix_path_seven = None
 
     # For all folders in steam compat
     for folder in os.listdir(SCAN_FOLDER):
-        # Get the version file, folder path and check if wemod is installed
+        # Get the version file, folder path and check if WeMod is installed
         folder_path = os.path.join(SCAN_FOLDER, folder)
         version_file = os.path.join(folder_path, "version")
 
@@ -197,7 +234,7 @@ def scan_compat_for_versions(
                         priority = 5
                         closest_version_folder = folder_path
                         closest_version_number = folder_version_parts
-                # try to find any Proton7 prefix that the user might have for uploading
+                # try to find any GE-Proton7 prefix that the user might have for uploading
                 if (
                     folder_version_parts[0] == 7
                     and folder_version_str.find("GE-Proton") >= 0
@@ -228,8 +265,8 @@ def scan_compat_for_versions(
         )
         # ask the user to upload the prefix if they have one
         prresp = show_message(
-            f"In your scanfolder the online missing prefix version with GE-Proton 7 (.{protonconfminor}) was found,\nplease be so kind and click yes to zip the prefix\nafter that upload it to something like https://www.sendgb.com/\nand lastly paste the link in a wemod issue",
-            "Proton7 found",
+            f"In your scan folder the online missing prefix version with GE-Proton 7 (.{protonconfminor}) was found,\nplease be so kind and click yes to zip the prefix\nafter that upload it to something like https://www.sendgb.com/\nand lastly paste the link in a WeMod issue",
+            "GE-Proton7 found",
             60,
             True,
         )
@@ -317,48 +354,49 @@ def troubleshooter() -> None:
     runtro = False
     if trouble == None or (trouble and trouble.lower() == "true"):
         runtro = True
+        log("Starting troubleshooter")
     else:
         log("Troubleshooter was disabled, continuing")
     while runtro:
-        log("Starting troubleshooter")
+        log("Troubleshooter start loop")
         ret = popup_options(
             "Troubleshooter",
-            "Did WeMod work as expected,\nif not troubleshoot common problems with wemod.\nDeleteing the gameprefix helps often.\nDelete Wemod.exe helps if wemod updates their progamm\nTo use the Troubleshooter after it was disabled,\nyou can add TROUBLESHOOT=true in front of the launch command",
+            "Did WeMod work as expected,\nif not troubleshoot common problems with WeMod.\nDeleting the game prefix helps often.\nDelete Wemod.exe helps if wemod updates their program\nTo use the Troubleshooter after it was disabled,\nyou can add TROUBLESHOOT=true in front of the launch command",
             [
                 [
-                    "Disable troubleshooter globaly",
+                    "Disable troubleshooter globally",
                     "Disable troubleshooter for this game",
                 ],
                 [
-                    "Enable troubleshooter globaly",
+                    "Enable troubleshooter globally",
                     "Enable troubleshooter for this game",
                 ],
-                ["Delete Gameprefix", "Delete Wemod.exe"],
-                ["Close wemod-laucher"],
+                ["Delete game prefix", "Delete WeMod.exe"],
+                ["Close wemod-launcher"],
             ],
             120,
         )
         log(f"Selected in the troubleshooter was '{ret}'")
-        if ret == "Disable troubleshooter globaly":
+        if ret == "Disable troubleshooter globally":
             save_conf_setting("Troubleshoot", "false")
         elif ret == "Disable troubleshooter for this game":
             with open(INIT_FILE, "w") as init:
                 init.write("false")
-        elif ret == "Enable troubleshooter globaly":
+        elif ret == "Enable troubleshooter globally":
             save_conf_setting("Troubleshoot", "true")
         elif ret == "Enable troubleshooter for this game":
             with open(INIT_FILE, "w") as init:
                 init.write("true")
-        elif ret == "Delete Wemod.exe":
+        elif ret == "Delete WeMod.exe":
             try:
                 os.remove(os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe"))
             except Exception as e:
                 pass
-        elif ret == "Delete Gameprefix":
+        elif ret == "Delete game prefix":
             try:
                 shutil.rmtree(STEAM_COMPAT_FOLDER)
             except Exception as e:
                 pass
-        elif not ret or ret == "Close wemod-laucher":
+        elif not ret or ret == "Close wemod-launcher":
             runtro = False
             log("Closing troubleshooter as requested")
