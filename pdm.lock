@@ -3,9 +3,12 @@
 
 [metadata]
 groups = ["default"]
-strategy = ["cross_platform", "inherit_metadata"]
-lock_version = "4.4.1"
-content_hash = "sha256:03e7a204848535189d0fdcf1337c7886230e9c6f781d26a98b5ea7ff7d7d5b29"
+strategy = ["inherit_metadata"]
+lock_version = "4.5.0"
+content_hash = "sha256:a7ebdffdd8052b5027f405deef19c7bb0733c216ebd2a4b8a041669259a10c7f"
+
+[[metadata.targets]]
+requires_python = ">=3.11"
 
 [[package]]
 name = "altgraph"
@@ -150,6 +153,7 @@ summary = "PyInstaller bundles a Python application and all its dependencies int
 groups = ["default"]
 dependencies = [
     "altgraph",
+    "importlib-metadata; python_version < \"3.8\"",
     "macholib>=1.8; sys_platform == \"darwin\"",
     "pefile>=2017.8.1; sys_platform == \"win32\"",
     "pyinstaller-hooks-contrib>=2020.6",
@@ -173,6 +177,7 @@ requires_python = ">=3.8"
 summary = "Community maintained hooks for PyInstaller"
 groups = ["default"]
 dependencies = [
+    "importlib-metadata>=4.6; python_version < \"3.10\"",
     "packaging>=22.0",
     "setuptools>=42.0.0",
 ]
@@ -222,13 +227,13 @@ files = [
 
 [[package]]
 name = "setuptools"
-version = "75.5.0"
+version = "75.6.0"
 requires_python = ">=3.9"
 summary = "Easily download, build, install, upgrade, and uninstall Python packages"
 groups = ["default"]
 files = [
-    {file = "setuptools-75.5.0-py3-none-any.whl", hash = "sha256:87cb777c3b96d638ca02031192d40390e0ad97737e27b6b4fa831bea86f2f829"},
-    {file = "setuptools-75.5.0.tar.gz", hash = "sha256:5c4ccb41111392671f02bb5f8436dfc5a9a7185e80500531b133f5775c4163ef"},
+    {file = "setuptools-75.6.0-py3-none-any.whl", hash = "sha256:ce74b49e8f7110f9bf04883b730f4765b774ef3ef28f722cce7c273d253aaf7d"},
+    {file = "setuptools-75.6.0.tar.gz", hash = "sha256:8199222558df7c86216af4f84c30e9b34a61d8ba19366cc914424cdbd28252f6"},
 ]
 
 [[package]]
