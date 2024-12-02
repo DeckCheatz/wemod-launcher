@@ -394,7 +394,7 @@ def setup_main() -> None:
         unpacked = unpack_wemod(setup_file, temp_dir, install_location)
 
         show_message(
-            "Setup completed successfully.\nMake sure the \"LAUNCH OPTIONS\" of the game say '"
+            'Setup completed successfully.\nMake sure the "LAUNCH OPTIONS" of the game say \''
             + str(os.path.join(SCRIPT_PATH, "wemod"))
             + " %command%'",
             title="WeMod Downloaded",
