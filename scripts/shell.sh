@@ -5,7 +5,10 @@
 cd "$(dirname "$0")/.."
 
 # Setup PDM
-./scripts/pdm.sh
+if ! ./scripts/pdm.sh; then
+    echo "PDM setup failed. Exiting."
+    exit 1
+fi
 
 # Set your preferred shell
 read -p "Input your preferred shell path: " VAR

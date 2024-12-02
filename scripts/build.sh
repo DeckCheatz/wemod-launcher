@@ -10,6 +10,5 @@ if ! ./scripts/pdm.sh; then
     exit 1
 fi
 
-# Drop into the PDM shell
-echo "Dropping into PDM shell..."
-pdm run "$SHELL"
+# Build by running pyinstaller
+./src/wemod_launcher/pyinstaller.py

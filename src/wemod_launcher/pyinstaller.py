@@ -7,7 +7,7 @@ PATH_TO_MAIN = str(HERE / "cli.py")
 
 def install():
     arglist = [
-        "poetry",
+        "pdm",
         "run",
         "pyinstaller",
         "--onefile",

@@ -5,7 +5,10 @@
 cd "$(dirname "$0")/.."
 
 # Setup PDM
-./scripts/pdm.sh
+if ! ./scripts/pdm.sh; then
+    echo "PDM setup failed. Exiting."
+    exit 1
+fi
 
 # Run the application with passed arguments
 pdm run wemod-launcher "$@"

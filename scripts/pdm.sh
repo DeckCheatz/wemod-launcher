@@ -4,38 +4,50 @@
 # Navigate to the project root
 cd "$(dirname "$0")/.."
 
-installed=0
-while [ $installed -lt 1 ]
-    do
-    if [ ! -f $HOME/.local/share/pdm/venv/bin/pdm ] || [ ! -f $HOME/.local/share/pdm/venv/bin/activate ] || [ $installed -eq -1 ];
-    then
-        curl -sSL https://pdm-project.org/install-pdm.py | python3 -
-    else
-        source $HOME/.local/share/pdm/venv/bin/activate
-        export PATH="$HOME/.local/share/pdm/venv/bin:$PATH"
-    fi
+PDM_DIR="$HOME/.local/share/pdm/venv/bin"
+PDM_BIN="$PDM_DIR/pdm"
+PDM_ACTIVATE="$PDM_DIR/activate"
 
-    # Send a signal to pdm to update itself if possible
-    echo "Trying to run PDM update"
+install_pdm() {
+    echo "Installing PDM..."
+    curl -sSL https://pdm-project.org/install-pdm.py | python3 -
+}
+
+activate_pdm() {
+    echo "Activating PDM..."
+    source "$PDM_ACTIVATE"
+    export PATH="$PDM_DIR:$PATH"
+}
+
+install_dependencies() {
+    echo "Installing PDM updates and dependencies..."
     pdm self update 2>/dev/null
+    pdm install
+}
 
-    # Ensure dependencies are installed using PDM
-    if [ ! -f "pdm.lock" ]; then
-        echo "Installing dependencies for the first time..."
-        pdm install || { echo "Failed to install dependencies."; installed=$((installed - 1)); }
+run_installer() {
+    if [ ! -f "$PDM_BIN" ] || [ ! -f "$PDM_ACTIVATE" ]; then
+        install_pdm
     else
-        echo "Ensuring dependencies are up-to-date..."
-        pdm install || { echo "Failed to install dependencies."; installed=$((installed - 1)); }
+        activate_pdm
     fi
 
-    if [ $installed -lt -1 ]
-    then
-        exit 1
-    elif [ $installed -eq -1 ]
-    then
-        echo "Retrying the install"
+    if install_dependencies; then
+        return 0
     else
-        installed=1
+        echo "Possible issue with the PDM install. Reinstalling..."
+        install_pdm
+        if install_dependencies; then
+            return 0
+        else
+            return 1
+        fi
     fi
-done
+}
+
+if run_installer; then
+    echo "PDM Project setup complete."
+else
+    exit 1
+fi
 
