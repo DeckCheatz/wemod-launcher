@@ -1,9 +1,24 @@
 .cache/
+logs/
 wemod_bin/
 wemod_data/
 wemod_venv/
 __pycache__/
+
 wemod.conf
-wemod.log
 winetricks
-pip.pyz
+poetry.lock
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+
+dist/
+.pdm-build/
+.pdm-python

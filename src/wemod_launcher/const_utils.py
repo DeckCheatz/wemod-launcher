@@ -10,7 +10,7 @@ import subprocess
 from urllib import request
 
 # Import consts
-from consts import (
+from wemod_launcher.consts import (
     STEAM_COMPAT_FOLDER,
     BASE_STEAM_COMPAT,
     SCAN_FOLDER,
@@ -18,14 +18,14 @@ from consts import (
     INIT_FILE,
 )
 
-from coreutils import (
+from wemod_launcher.core_utils import (
     exit_with_message,
     get_user_input,
     popup_options,
     show_message,
 )
 
-from corenodep import (
+from wemod_launcher.core_nodeps import (
     load_conf_setting,
     save_conf_setting,
     parse_version,
@@ -38,11 +38,11 @@ from typing import (
     Optional,
 )
 
-from coreutils import (
+from wemod_launcher.core_utils import (
     log,
 )
 
-from mainutils import (
+from wemod_launcher.main_utils import (
     popup_execute,
 )
 
@@ -125,8 +125,8 @@ def ensure_wine(verstr: Optional[str] = None) -> str:
         )
 
 
-# Scan the steam compat folder for WeMod installed prefixes
-def scanfolderforversions(
+# Scan the steam compat folder for wemod installed prefixes
+def scan_compat_for_versions(
     current_version_parts: List[Union[int, None]] = [None, None]
 ) -> List[Union[Optional[List[int]], Optional[str]]]:
     # At default, we don't know of any available version
@@ -255,7 +255,7 @@ def scanfolderforversions(
                         prefix_path_seven = folder_path
 
     if prefix_path_seven:
-        from mainutils import copy_folder_with_progress
+        from wemod_launcher.main_utils import copy_folder_with_progress
 
         prefixesfolder = os.path.join(SCAN_FOLDER, "prefix")
         os.makedirs(prefixesfolder, exists_ok=True)
