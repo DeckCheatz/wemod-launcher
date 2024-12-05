@@ -2,85 +2,106 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import os
-from consts import Constants as CN
-
-# TODO  Change to tomllib
+import sys
+from consts import Constants
 import configparser
 
-# TODO  Make custom logging Module
-import logging
+CT = None
+CT = Constants()
 
+class ConfigManager:
+    def __init__(self, env_vars=False, cmd=False, config_file=None):
+        # Use super().__setattr__ to set initial attributes
+        super().__setattr__('_env_vars', env_vars)
+        super().__setattr__('_cmd', cmd)
+        super().__setattr__('_config', {})
+        super().__setattr__('_config_file', config_file or CT.config_path)
+        super().__setattr__('_logger_obj', None)
+        super().__setattr__('AppArgs', [])
+        super().__setattr__('PassArgs', [])
+        if cmd:
+            self._args_grabber()
 
-class ConfigManagerMeta(type):
-    def __getattr__(cls, name):
+    def __getattr__(self, name):
         """
-        Intercept attribute access to dynamically fetch values from the config.
-
-        Args:
-            name (str): The configuration key to retrieve.
-
-        Returns:
-            The configuration value or raises error if not found.
+        Dynamically fetch values from the config or environment.
         """
-        cls._load_config()
-        #return cls._config.get(name, None)
+        # Use getattr to safely access attributes
+        env_vars = getattr(self, '_env_vars')
+
+        if env_vars:
+            if name in os.environ:
+                return os.environ[name]
+
+        self._load_config()
+        cmd = getattr(self, '_cmd')
+
+        if cmd:
+            app_args = getattr(self, 'AppArgs')
+            for arg in app_args:
+                s, e = arg.split("=", 1)
+                s = s.strip()
+                if s == name:
+                    return e.strip()
 
         # If the key exists in the config, return the value
-        if name in cls._config:
-            return cls._config[name]
+        config = getattr(self, '_config')
+        if name in config:
+            return config[name]
 
-        # If the key does not exist in the config, raise an error
-        raise AttributeError(f"Config key '{name}' does not exist")
+        # If the key does not exist in the config, return None
+        return None
 
-
-    def __setattr__(cls, name, value):
+    def __setattr__(self, name, value):
         """
-        Intercept attribute assignment to modify values in the config.
-
-        Args:
-            name (str): The configuration key to set.
-            value: The value to assign to the configuration key.
+        Modify values in the config or environment.
         """
-        # Skip special attributes
-        if name.startswith('_'):
+        # Use getattr to safely access attributes
+        env_vars = getattr(self, '_env_vars', False)
+
+        if env_vars:
+            os.environ[name] = str(value)
+            return
+
+        # Use super().__setattr__ for special attributes
+        if name.startswith('_') or name in ['AppArgs', 'PassArgs']:
             super().__setattr__(name, value)
             return
 
-        cls._load_config()
-        cls._config[name] = str(value)  # Convert to string for consistent storage
-        cls._save_config()
+        self._load_config()
+        config = getattr(self, '_config')
+        config[name] = str(value)  # Convert to string for consistent storage
+        self._save_config()
 
-    def __delattr__(cls, name):
+    def __delattr__(self, name):
         """
-        Intercept attribute deletion to remove values from the config.
-
-        Args:
-            name (str): The configuration key to delete.
-
-        Raises:
-            AttributeError: If the key does not exist in the configuration.
+        Remove values from the config or environment.
         """
-        cls._load_config()
+        # Use getattr to safely access attributes
+        env_vars = getattr(self, '_env_vars', False)
 
-        if name not in cls._config:
-            raise AttributeError(f"Config key '{name}' does not exist")
+        if env_vars:
+            if name in os.environ:
+                del os.environ[name]
+                return
 
-        del cls._config[name]
-        cls._save_config()
+        self._load_config()
+        config = getattr(self, '_config')
 
-class ConfigManager(metaclass=ConfigManagerMeta):
-    # Static variable to store configuration data
-    _config = None
+        if name not in config:
+            # You might want to replace this with proper logging
+            print(f"ERROR: Config key '{name}' does not exist")
+            return
 
-    @classmethod
-    def _load_config(cls, config_file=CT.ConfigPath):
+        del config[name]
+        self._save_config()
+
+    def _load_config(self, config_file=None):
         """
-        Load the configuration from an conf file.
-
-        Args:
-            config_file (str, optional): Path to the configuration file.
-                                         Defaults to CT.ConfigPath.
+        Load the configuration from a config file.
         """
+        config_file = config_file or self._config_file
+
         # Ensure the configuration file exists
         if not os.path.exists(config_file):
             try:
@@ -90,44 +111,66 @@ class ConfigManager(metaclass=ConfigManagerMeta):
                 with open(config_file, 'w') as f:
                     pass
             except OSError as e:
-                logging.error(f"Error creating config file: {e}")
                 return
 
         config = configparser.ConfigParser()
         config.read(config_file)
 
-        # Initialize _config if it's None
-        if cls._config is None:
-            cls._config = {}
-
-        # Load all options from the CT.ConfigSection section
-        if CT.ConfigSection in config:
-            cls._config.update({
-                key: config[CT.ConfigSection].get(key)
-                for key in config[CT.ConfigSection]
+        # Load all options from the CT.config_section section
+        if CT.config_section in config:
+            self._config.update({
+                key: config[CT.config_section].get(key)
+                for key in config[CT.config_section]
             })
 
-    @classmethod
-    def _save_config(cls, config_file=CT.ConfigPath):
+    def _save_config(self, config_file=None):
         """
-        Save the current configuration to an conf file.
-
-        Args:
-            config_file (str, optional): Path to the configuration file.
-                                         Defaults to CT.ConfigPath.
+        Save the current configuration to a config file.
         """
+        config_file = config_file or self._config_file
         try:
             config = configparser.ConfigParser()
 
-            # Ensure the CT.ConfigSection section exists
-            if CT.ConfigSection not in config:
-                config.add_section(CT.ConfigSection)
+            # Ensure the CT.config_section section exists
+            if CT.config_section not in config:
+                config.add_section(CT.config_section)
 
-            # Set all config values in the CT.ConfigSection section
-            for key, value in cls._config.items():
-                config.set(CT.ConfigSection, key, str(value))
+            # Set all config values in the CT.config_section section
+            for key, value in self._config.items():
+                config.set(CT.config_section, key, str(value))
 
+            os.makedirs(os.path.dirname(config_file), exist_ok=True)
             with open(config_file, "w") as configfile:
                 config.write(configfile)
         except IOError as e:
-            logging.error(f"Error saving config file: {e}")
+            # Logger can't be used here as it wound import in a loop
+            raise f"Error saving config file: {e}"
+
+    def _args_grabber(self, args=sys.argv):
+        arguments = sys.argv[1:]
+        End = self.script_cli_end or CT.script_cli_end
+        Start = self.script_cli_start or CT.script_cli_start
+        AllowOnlyEnd = self.allow_only_cli_end or CT.allow_only_cli_end
+        EndIn = bool(End in arguments)
+        if EndIn and Start in arguments:
+            e = arguments.index(End)
+            s = arguments.index(Start) + 1
+            if e > s+1:
+                self.AppArgs = arguments[s:e]
+                self.PassArgs = arguments[:s-1]
+                self.PassArgs += arguments[:e+1]
+            else:
+                arguments.remove(End)
+                arguments.remove(Start)
+                self.PassArgs = arguments
+                return
+        elif AllowOnlyEnd and End in arguments:
+            e = arguments.index(End)
+            if e > 0:
+                self.AppArgs = arguments[:e]
+                self.PassArgs = arguments[e+1:]
+            else:
+                self.PassArgs = arguments[1:]
+
+
+
