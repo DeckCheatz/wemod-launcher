@@ -532,7 +532,7 @@ def download_prefix(proton_dir: str) -> None:
     if os.path.isfile(prefix_path):
         os.remove(prefix_path)
 
-    syncWeMod()
+    syncwemod()
     if not os.path.isfile(
         os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
     ):
