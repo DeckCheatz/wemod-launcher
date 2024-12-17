@@ -39,7 +39,7 @@ def get_github_releases(repo_name: str) -> List[Any]:
     try:
         import requests
     except Exception as e:
-        log(f"Failed to fetch releases, the error reports:\n{e}")
+        log(f"Failed to fetch releases:\n{e}")
         return []
     url = f"https://api.github.com/repos/{repo_name}/releases"
     response = requests.get(url)
@@ -48,7 +48,7 @@ def get_github_releases(repo_name: str) -> List[Any]:
         return releases
     else:
         log(
-            f"Failed to grab the github releases from '{url}',\nto fix this try to delete the config file"
+            f"Failed to grab the GitHub releases from '{url}'.\nTo fix this, try deleting the config file"
         )
         return []
 
@@ -194,7 +194,7 @@ def popup_execute(
             break
         elif event is None:
             exit_with_message(
-                "Window Closed", "The window was closed, exiting", timeout=5
+                "Window Closed", "The window was closed. Exiting...", timeout=5
             )
         else:
             if len(text_str[0]) < 1:
@@ -267,7 +267,7 @@ def popup_download(title: str, link: str, file_name: str) -> str:
             break
         elif event is None:
             exit_with_message(
-                "Window Closed", "The window was closed, exiting", timeout=5
+                "Window Closed", "The window was closed. Exiting...", timeout=5
             )
         else:
             if len(status) < 2:
@@ -350,7 +350,7 @@ def deref(path: str) -> None:
             break
         elif event is None:
             exit_with_message(
-                "Window Closed", "The window was closed, exiting", timeout=5
+                "Window Closed", "The window was closed. Exiting...", timeout=5
             )
 
     window.close()
@@ -487,7 +487,7 @@ def copy_folder_with_progress(
             break
         elif event is None:
             exit_with_message(
-                "Window Closed", "The window was closed, exiting", timeout=5
+                "Window Closed", "The window was closed. Exiting...", timeout=5
             )
 
     window.close()
@@ -524,7 +524,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
                     log(
                         "failed to make dir '"
                         + os.path.dirname(full_file)
-                        + "' with error:\n\t"
+                        + "':\n\t"
                         + e
                     )
                 try:  # try to delete old file
@@ -532,13 +532,13 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
                         os.remove(full_file)
                 except Exception as e:
                     log(
-                        f"failed to remove file '{full_file}' with error:\n\t{e}"
+                        f"failed to remove file '{full_file}':\n\t{e}"
                     )
                 try:
                     zip_ref.extract(file, dest_path)
                 except Exception as e:
                     log(
-                        f"Failed to extract '{file}' from the zip to '{dest_path}' with error:\n\t{e}"
+                        f"Failed to extract '{file}' to '{dest_path}':\n\t{e}"
                     )
 
                 update_progress(i + 1, total_files)
@@ -577,7 +577,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             + myuser
             + "' for '"
             + dest_path
-            + "' with error:\n\t"
+            + "':\n\t"
             + str(e)
         )
     try:  # try to allow read and write on dest folder
@@ -591,7 +591,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
         log(
             "failed to allow rw on '"
             + dest_path
-            + "' with error:\n\t"
+            + "':\n\t"
             + str(e)
         )
 
@@ -603,7 +603,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             break
         elif event is None:
             exit_with_message(
-                "Window Closed", "The window was closed, exiting", timeout=5
+                "Window Closed", "The window was closed. Exiting...", timeout=5
             )
 
     window.close()

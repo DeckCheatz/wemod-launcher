@@ -59,7 +59,7 @@ def save_conf_setting(
     from coreutils import log
 
     if not isinstance(section, str):
-        log("Error adding the given section, it wasn't a string")
+        log("Error adding the given section: Not a string")
         return
     if section not in CONFIG:
         CONFIG[section] = {}
@@ -69,7 +69,7 @@ def save_conf_setting(
     elif isinstance(value, str):
         CONFIG[section][setting] = value
     else:
-        log("Error saving given value, it wasn't a sting or none")
+        log("Error saving given value: Not a string or None")
         return
     with open(CONFIG_PATH, "w") as configfile:
         CONFIG.write(configfile)

@@ -27,12 +27,12 @@ start "" %wemodpath%
 
 echo Cheking for running WeMod pid
 set wemodPID=
-REM Get the wemod pid over proton
+REM Get the wemod pid over Proton
 for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%" 2>NUL') do (
     set void=%%a
     set wemodPID=%%b
 )
-REM On fail try once more to get the wemod pid over proton
+REM On fail try once more to get the wemod pid over Proton
 if not defined wemodPID (
     for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%" 2>NUL') do (
         set void=%%a
