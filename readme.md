@@ -45,9 +45,9 @@ consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest
 	- Ubuntu/Debian: `sudo apt install python3-tk`
 	- Arch Linux: `sudo pacman -S tk`.
 	- Fedora: `sudo dnf install python3-tkinter`
-2. <ins>[OPTIONAL]</ins>: In case you'd like to use a different Proton-based layer than Valve's own Proton:  
+2. Install GE-Proton, which is necessary to run the game and WeMod with. Using Valve's own Proton seems to work, but using GE-Proton is recommended:  
 	1. Search for and install `ProtonUp-QT` via your distro's software center. If using Flatpak, command is: `flatpak install net.davidotek.pupgui2`.
-	2. Download the latest `GE-Proton` in `ProtonUp-QT`  
+	2. Download the latest GE-Proton in `ProtonUp-QT`  
 3. Restart Steam/SteamOS.
 4. In a terminal session (Konsole if using KDE Plasma):
 	1. Change directory to a location of your choosing, then run `git clone https://github.com/DaniAsh551/wemod-launcher`.  
