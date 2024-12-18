@@ -25,6 +25,7 @@ from coreutils import (
 
 from mainutils import (
     download_progress,
+    is_flatpak,
 )
 
 from typing import (
@@ -262,21 +263,33 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
         log("Self update skipped, because it was requested in the config")
         return path
 
+    flatpak_cmd = ["flatpak-spawn", "--host"] if is_flatpak() else []
+
     original_cwd = os.getcwd()
     try:
         os.chdir(SCRIPT_PATH)
 
+        # Check if we're in the main branch
+        curr_branch = subprocess.run(flatpak_cmd +
+            ["git", "branch", "--show-current"], stdout=subprocess.PIPE, text=True
+        ).stdout.strip()
+        if curr_branch != "main":
+            log("Currently not in main branch. Aborting update")
+            if not path:
+                path = [sys.executable]
+            return path
+
         # Fetch latest changes
-        subprocess.run(["git", "fetch"], text=True)
+        subprocess.run(flatpak_cmd + ["git", "fetch"], text=True)
 
         # Get local and remote commit hashes
-        local_hash = subprocess.run(
+        local_hash = subprocess.run(flatpak_cmd +
             ["git", "rev-parse", "@"], stdout=subprocess.PIPE, text=True
         ).stdout.strip()
-        remote_hash = subprocess.run(
+        remote_hash = subprocess.run(flatpak_cmd +
             ["git", "rev-parse", "@{u}"], stdout=subprocess.PIPE, text=True
         ).stdout.strip()
-        base_hash = subprocess.run(
+        base_hash = subprocess.run(flatpak_cmd +
             ["git", "merge-base", "@", "@{u}"],
             stdout=subprocess.PIPE,
             text=True,
@@ -293,11 +306,11 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
                     "Warning: Local changes detected, updating from remote anyway."
                 )
 
-            subprocess.run(["git", "reset", "--hard", "origin"], text=True)
-            subprocess.run(["git", "pull"], text=True)
+            subprocess.run(flatpak_cmd + ["git", "reset", "--hard", "origin"], text=True)
+            subprocess.run(flatpak_cmd + ["git", "pull"], text=True)
 
             # Set executable permissions (replace with specific file names if needed)
-            subprocess.run(["chmod", "-R", "ug+x", "."], text=True)
+            subprocess.run(flatpak_cmd + ["chmod", "-R", "ug+x", "*.py", "wemod{,.bat}"], text=True)
 
             # Optionally update the path to include the executable if not already set
             if not path:
@@ -313,46 +326,45 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
 
 def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
     if flatpak_cmd == None:
-        if "FLATPAK_ID" in os.environ or os.path.exists("/.flatpak-info"):
-            return ["True"]
+        if is_flatpak():
+            return ["python3"]
         return []
-    else:
-        if "FLATPAK_ID" in os.environ or os.path.exists("/.flatpak-info"):
-            flatpak_start = [
-                "flatpak-spawn",
-                "--host",
-            ]
+    elif is_flatpak():
+        flatpak_start = [
+            "flatpak-spawn",
+            "--host",
+        ]
 
-            envlist = [
-                "STEAM_COMPAT_TOOL_PATHS",
-                "STEAM_COMPAT_DATA_PATH",
-                "WINE_PREFIX_PATH",
-                "WINEPREFIX",
-                "WINE",
-                "SCANFOLDER",
-                "TROUBLESHOOT",
-                "WEMOD_LOG",
-                "WAIT_ON_GAMECLOSE",
-                "SELF_UPDATE",
-                "FORCE_UPDATE_WEMOD",
-                "REPO_STRING",
-            ]
-            for env in envlist:
-                if env in os.environ:
-                    flatpak_start.append(f"--env={env}={os.environ[env]}")
-            infpr = os.getenv("WeModInfProtect", "1")
-            infpr = str(int(infpr) + 1)
+        envlist = [
+            "STEAM_COMPAT_TOOL_PATHS",
+            "STEAM_COMPAT_DATA_PATH",
+            "WINE_PREFIX_PATH",
+            "WINEPREFIX",
+            "WINE",
+            "SCANFOLDER",
+            "TROUBLESHOOT",
+            "WEMOD_LOG",
+            "WAIT_ON_GAMECLOSE",
+            "SELF_UPDATE",
+            "FORCE_UPDATE_WEMOD",
+            "REPO_STRING",
+        ]
+        for env in envlist:
+            if env in os.environ:
+                flatpak_start.append(f"--env={env}={os.environ[env]}")
+        infpr = os.getenv("WeModInfProtect", "1")
+        infpr = str(int(infpr) + 1)
 
-            flatpak_start.append("--env=FROM_FLATPAK=true")
-            flatpak_start.append(f"--env=WeModInfProtect={infpr}")
-            flatpak_start.append("--")  # Isolate command from command args
+        flatpak_start.append("--env=FROM_FLATPAK=true")
+        flatpak_start.append(f"--env=WeModInfProtect={infpr}")
+        flatpak_start.append("--")  # Isolate command from command args
 
-            if bool(flatpak_cmd):  # if venv is set use it
-                flatpak_cmd = flatpak_start + flatpak_cmd
-            else:  # if not use python executable
-                flatpak_cmd = flatpak_start + [sys.executable]
+        if bool(flatpak_cmd):  # if venv is set use it
+            flatpak_cmd = flatpak_start + flatpak_cmd
+        else:  # if not use python executable
+            flatpak_cmd = flatpak_start + [sys.executable]
 
-        return flatpak_cmd
+    return flatpak_cmd
 
 
 def setup_main() -> None:
