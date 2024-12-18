@@ -54,7 +54,7 @@ def log(message: Optional[str] = None, open_log: bool = False) -> None:
             if not oswemodlog:  # Only save if not a environment var
                 save_conf_setting("WeModLog", wemodlog)
 
-            new_message = f"WeModLog path was not given or invalid using path '{wemodlog}'\nIf you don't want to generate a log file use WEMOD_LOG='' or set the config to WeModLog=''"
+            new_message = f"WeModLog path was not given or invalid using path '{wemodlog}'\nIf you don't want to generate a log file, use WEMOD_LOG='' or set the config to WeModLog=''"
             if message == None:
                 message = new_message
             else:
@@ -170,7 +170,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
             log("Externally managed environment detected.")
             return 99
         else:
-            log(f"Pip error appeared:\n\t{stdout}\n\t{stderr}")
+            log(f"Pip error occurred:\n\t{stdout}\n\t{stderr}")
     else:
         process = subprocess.Popen(
             f"'{pos_pip}' {command}",
@@ -189,10 +189,10 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
             return 99
         else:
             show_message(
-                "The pip inside the virtual environment reported a error,\nthis may require the deletion of the virtual environment folder,\nby default the folder is named named wemod_venv\nand is located inside the wemod-launcher folder"
+                "The pip inside the virtual environment reported an error.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wemod_venv\nand is located inside the wemod-launcher folder"
             )
             log(
-                f"A pip error appeared\nthis may require the deletion of the virtual environment folder,\nby default the folder is named named wemod_venv\nand is located inside the wemod-launcher folder,\nthe error is:\n\t{stdout}\n\t{stderr}"
+                f"A pip error occurred.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wemod_venv\nand is located inside the wemod-launcher folder.\nError message:\n\t{stdout}\n\t{stderr}"
             )
 
     # Try to use the built-in pip
@@ -211,7 +211,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
         log("Externally managed environment detected.")
         return 99
     else:
-        log(f"Pip error appeared:\n\t{stdout}\n\t{stderr}")
+        log(f"Pip error occurred:\n\t{stdout}\n\t{stderr}")
 
     # If -m pip failed, fallback to using pip.pyz
     if venv_path:
@@ -229,7 +229,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
             log("CRITICAL: Failed to download pip. Exiting!")
             exit_with_message(
                 "Pip missing",
-                "CRITICAL: Failed to download pip, exiting",
+                "CRITICAL: Failed to download pip. Exiting",
                 1,
                 timeout=5,
                 ask_for_log=True,
@@ -252,7 +252,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
         log("Externally managed environment detected.")
         return 99
     else:
-        log(f"Pip error appeared:\n\t{stdout}\n\t{stderr}")
+        log(f"Pip error occurred:\n\t{stdout}\n\t{stderr}")
 
     # Return the exit code of the process
     return process.returncode
@@ -295,19 +295,19 @@ def monitor_file(
 def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
     if os.path.isfile(responsefile):
         log(
-            "Fast game closing was detected, Now the user will have to say what they want"
+            "Detected abrupt game closure. User should select what they want"
         )
         returnmessage = read_file(responsefile)
         if bout != None:
             batresp = show_message(
                 returnmessage
-                + f",\ndo you want to close WeMod (yes) or wait longer (no)?\nWeMod will close in {bout} seconds",
+                + f".\nDo you want to close WeMod (yes) or wait longer (no)?\nWeMod will close in {bout} seconds",
                 "BAT Warning",
                 bout,
                 True,
             )
             log(
-                f"The user selected {batresp}, after asked if to wait longer for WeMod"
+                f"The user selected {batresp} after being asked to wait longer for WeMod"
             )
         if bout == None or batresp == "No":
             show_message(
@@ -439,7 +439,7 @@ def script_manager() -> None:
     last_version = load_conf_setting("Version")
 
     if last_name and last_name != script_name:
-        log("Warning config might be for a other script, overwriting name")
+        log("Warning: config might be for another script. Overwriting name")
     elif not last_name:
         log("Adding script name to config")
     if last_version:
@@ -450,11 +450,11 @@ def script_manager() -> None:
                 )
             elif float(last_version) > float(script_version):
                 log(
-                    f"Warning config on version {last_version} downgrading to {script_version}"
+                    f"Warning: config on version {last_version}; downgrading to {script_version}"
                 )
         except Exception as e:
             log(
-                f"Warning config error '{e}' changing version to {script_version}"
+                f"Warning: config error '{e}'; changing version to {script_version}"
             )
     else:
         log("Adding script version to config")
