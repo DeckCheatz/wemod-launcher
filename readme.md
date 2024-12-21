@@ -58,8 +58,8 @@ consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest
 	1. In the `Compatibility` tab, change the Proton version to the one picked in Step 2, or otherwise to the latest numbered Proton (e.g. Proton-9.0).
 	2. Under `Launch Options`, input `{path/to/wemod-launcher}/wemod %command%`.
 6. Start the game.
-7. Select "no" to the copy prefix question if it says `might work`.  
-   If it mentions `likely works` go to 12.
+7. Select "no" to the copy prefix question if it appears and says `might work`.  
+   If it mentions `likely works` go to 9 (accept all).
 8. Select download.
 9. Select Yes/Ok until no more windows appear.  
     All rundll32.exe errors can safely be ignored (by clicking `no`).  
