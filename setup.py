@@ -270,8 +270,10 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
         os.chdir(SCRIPT_PATH)
 
         # Check if we're in the main branch
-        curr_branch = subprocess.run(flatpak_cmd +
-            ["git", "branch", "--show-current"], stdout=subprocess.PIPE, text=True
+        curr_branch = subprocess.run(
+            flatpak_cmd + ["git", "branch", "--show-current"],
+            stdout=subprocess.PIPE,
+            text=True
         ).stdout.strip()
         if curr_branch != "main":
             log("Currently not in main branch. Aborting update")
@@ -283,14 +285,18 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
         subprocess.run(flatpak_cmd + ["git", "fetch"], text=True)
 
         # Get local and remote commit hashes
-        local_hash = subprocess.run(flatpak_cmd +
-            ["git", "rev-parse", "@"], stdout=subprocess.PIPE, text=True
+        local_hash = subprocess.run(
+            flatpak_cmd + ["git", "rev-parse", "@"],
+            stdout=subprocess.PIPE,
+            text=True
         ).stdout.strip()
-        remote_hash = subprocess.run(flatpak_cmd +
-            ["git", "rev-parse", "@{u}"], stdout=subprocess.PIPE, text=True
+        remote_hash = subprocess.run(
+            flatpak_cmd + ["git", "rev-parse", "@{u}"],
+            stdout=subprocess.PIPE,
+            text=True
         ).stdout.strip()
-        base_hash = subprocess.run(flatpak_cmd +
-            ["git", "merge-base", "@", "@{u}"],
+        base_hash = subprocess.run(
+            flatpak_cmd + ["git", "merge-base", "@", "@{u}"],
             stdout=subprocess.PIPE,
             text=True,
         ).stdout.strip()
