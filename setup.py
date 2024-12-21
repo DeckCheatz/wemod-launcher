@@ -273,7 +273,7 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
         curr_branch = subprocess.run(
             flatpak_cmd + ["git", "branch", "--show-current"],
             stdout=subprocess.PIPE,
-            text=True
+            text=True,
         ).stdout.strip()
         if curr_branch != "main":
             log("Currently not in main branch. Aborting update")
@@ -288,12 +288,12 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
         local_hash = subprocess.run(
             flatpak_cmd + ["git", "rev-parse", "@"],
             stdout=subprocess.PIPE,
-            text=True
+            text=True,
         ).stdout.strip()
         remote_hash = subprocess.run(
             flatpak_cmd + ["git", "rev-parse", "@{u}"],
             stdout=subprocess.PIPE,
-            text=True
+            text=True,
         ).stdout.strip()
         base_hash = subprocess.run(
             flatpak_cmd + ["git", "merge-base", "@", "@{u}"],
@@ -312,11 +312,16 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
                     "Warning: Local changes detected, updating from remote anyway."
                 )
 
-            subprocess.run(flatpak_cmd + ["git", "reset", "--hard", "origin"], text=True)
+            subprocess.run(
+                flatpak_cmd + ["git", "reset", "--hard", "origin"], text=True
+            )
             subprocess.run(flatpak_cmd + ["git", "pull"], text=True)
 
             # Set executable permissions (replace with specific file names if needed)
-            subprocess.run(flatpak_cmd + ["chmod", "-R", "ug+x", "*.py", "wemod{,.bat}"], text=True)
+            subprocess.run(
+                flatpak_cmd + ["chmod", "-R", "ug+x", "*.py", "wemod{,.bat}"],
+                text=True,
+            )
 
             # Optionally update the path to include the executable if not already set
             if not path:

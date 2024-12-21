@@ -432,7 +432,7 @@ def get_user_input(
 
 def script_manager() -> None:
     script_name = "wemod-launcher"
-    script_version = "1.508"
+    script_version = "1.509"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 
