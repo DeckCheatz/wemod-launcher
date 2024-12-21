@@ -25,7 +25,7 @@ Code contributions would be greatly appreciated.
 You are also welcome to report your findings/suggestions by filing an Issue.  
 For more info on suggestions, check out the [Wiki Suggestion info](https://github.com/DeckCheatz/wemod-launcher/wiki/Suggestions).
 
-Check the [Wiki Changelog](/%2E%2E/wiki/Changes) or the [Wiki features section](https://github.com/DeckCheatz/wemod-launcher/wiki/Features) for changes.
+Check the [Wiki Changelog](https://github.com/DeckCheatz/wemod-launcher/wiki/Changes) or the [Wiki features section](https://github.com/DeckCheatz/wemod-launcher/wiki/Features) for changes.
 
 ## Quick Guide
 ![Alert](https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=20&quality=lossless) **This guide only includes the most relevant info and might not be enough to run WeMod;**  
