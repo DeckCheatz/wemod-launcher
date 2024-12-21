@@ -23,13 +23,13 @@ If this tool helps you, please consider one or more of the following:
 
 Code contributions would be greatly appreciated.  
 You are also welcome to report your findings/suggestions by filing an Issue.  
-For more info on suggestions, check out the [Wiki Suggestion info](/%2E%2E/wiki/Suggestions).
+For more info on suggestions, check out the [Wiki Suggestion info](https://github.com/DeckCheatz/wemod-launcher/wiki/Suggestions).
 
-Check the [Wiki Changelog](/%2E%2E/wiki/Changes) or the [Wiki features section](/%2E%2E/wiki/Features) for changes.
+Check the [Wiki Changelog](/%2E%2E/wiki/Changes) or the [Wiki features section](https://github.com/DeckCheatz/wemod-launcher/wiki/Features) for changes.
 
 ## Quick Guide
 ![Alert](https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=20&quality=lossless) **This guide only includes the most relevant info and might not be enough to run WeMod;**  
-in which case, check out the [Full Guide](/%2E%2E/wiki/Full-Guide) **OR** the [video tutorial by Marvin1099](https://youtu.be/5UlVCZvIl1E).
+in which case, check out the [Full Guide](https://github.com/DeckCheatz/wemod-launcher/wiki/Full-Guide) **OR** the [video tutorial by Marvin1099](https://youtu.be/5UlVCZvIl1E).
 
 - **Optional:** If you have access to another PC and wish to control the Steam Deck remotely,  
 consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest)** for easier setup (the `.flatpak` is easiest).
@@ -53,7 +53,7 @@ consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest
 	1. Change directory to a location of your choosing, then run `git clone https://github.com/DaniAsh551/wemod-launcher`.  
 	Make note of the directory obtained with `readlink -f wemod-launcher` (which will be labeled `{path/to/wemod-launcher}` for the rest of this guide).
 	2. Run `chmod -R ug+x wemod-launcher`.  
-	**NOTE:** To use this tool with the Flatpak version of Steam (not recomended), continue [here](/%2E%2E/wiki/Steam-Flatpak-Usage).
+	**NOTE:** To use this tool with the Flatpak version of Steam (not recomended), continue [here](https://github.com/DeckCheatz/wemod-launcher/wiki/Steam-Flatpak-Usage).
 5. In your Steam Library, open the game settings with which to run WeMod with. Make sure you ran the game once before doing this!
 	1. In the `Compatibility` tab, change the Proton version to the one picked in Step 2, or otherwise to the latest numbered Proton (e.g. Proton-9.0).
 	2. Under `Launch Options`, input `{path/to/wemod-launcher}/wemod %command%`.
@@ -69,11 +69,11 @@ consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest
 12. You may now set or switch mods. Closing the WeMod window will keep it running in the background.
 
 wemod-launcher will automatically update if you installed it using step 5.  
-**But**: This will only work if you have [launcher version 1.092 or older](/%2E%2E/wiki/The-Self-Update).
+**But**: This will only work if you have [launcher version 1.092 or older](https://github.com/DeckCheatz/wemod-launcher/wiki/The-Self-Update).
 
-**Optionally**: Check out tutorials on how to use specific [WeMod Laucher features](/%2E%2E/wiki/Launcher-Tutorials)  
-**Like**: Check how to [Use External Launchers](/%2E%2E/wiki/Using-External-Launchers) (Use The WeMod Launcher outside of Steam)  
-**OR**: Check out how to [Edit The Config](/%2E%2E/wiki/Config-Usage)
+**Optionally**: Check out tutorials on how to use specific [WeMod Laucher features](https://github.com/DeckCheatz/wemod-launcher/wiki/Launcher-Tutorials)  
+**Like**: Check how to [Use External Launchers](https://github.com/DeckCheatz/wemod-launcher/wiki/Using-External-Launchers) (Use The WeMod Launcher outside of Steam)  
+**OR**: Check out how to [Edit The Config](https://github.com/DeckCheatz/wemod-launcher/wiki/Config-Usage)
 
 ## ![Heart](https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=20&quality=lossless) Additional
 
