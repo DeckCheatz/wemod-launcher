@@ -1,4 +1,5 @@
 .cache/
+.vscode/
 wemod_bin/
 wemod_data/
 wemod_venv/

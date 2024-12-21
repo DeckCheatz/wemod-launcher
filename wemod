@@ -71,7 +71,7 @@ if __name__ == "__main__":
     if_flatpak_list = check_flatpak(python_venv)
 
     # On venv path restart the script
-    if bool(if_flatpak_list):
+    if 0 < len(if_flatpak_list):
         # Use environment variable to protect the script from re-running forever
         inf_protect = os.getenv("WeModInfProtect", "1")
         if int(inf_protect) > 4:
@@ -747,6 +747,8 @@ def run(skip_init: bool = False) -> str:
     if fromflat:
         import time
 
+        resp = 0
+
         log("Using flatpak mode")
 
         cachedir = os.path.join(SCRIPT_PATH, ".cache")
@@ -780,6 +782,7 @@ def run(skip_init: bool = False) -> str:
                 error = fef.read()
                 os.remove(errorfile)
                 if error:
+                    resp = 1
                     raise Exception(str(error))
 
         log("Any warnings from the command the logged")

@@ -612,6 +612,9 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
     window.close()
 
 
+def is_flatpak() -> bool:
+    return "FLATPAK_ID" in os.environ or os.path.exists("/.flatpak-info")
+
 def flatpakrunner():
     import subprocess
     import time
@@ -653,7 +656,7 @@ def flatpakrunner():
     try:
         if os.getenv("SteamCompatDataPath") == None:
             wserver = subprocess.run(
-                ["wineserver", "--wait"],
+                ["flatpak-spawn", "--host","wineserver", "--wait"],
                 bufsize=1,
                 capture_output=True,
                 text=True,
