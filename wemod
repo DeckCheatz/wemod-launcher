@@ -498,9 +498,7 @@ def download_prefix(proton_dir: str) -> None:
             yesno=True,
         )
     else:
-        log(
-            f"No version to download found on repo '{repo_concat}'"
-        )
+        log(f"No version to download found on repo '{repo_concat}'")
         exit_with_message(
             "No downloads available",
             f"Error: Nothing to download on repo '{repo_concat}',\nTo fix this, you can try to delete wemod.conf",
@@ -835,9 +833,7 @@ def run(skip_init: bool = False) -> str:
                     text=True,
                 )
             except Exception as e:
-                log(
-                    f"Error while loading the wine server waiter:\n\t{e}"
-                )
+                log(f"Error while loading the wine server waiter:\n\t{e}")
             else:
                 print(str(wserver.stdout))
                 print(str(wserver.stderr))

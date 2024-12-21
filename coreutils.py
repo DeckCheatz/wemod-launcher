@@ -294,9 +294,7 @@ def monitor_file(
 
 def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
     if os.path.isfile(responsefile):
-        log(
-            "Detected abrupt game closure. User should select what they want"
-        )
+        log("Detected abrupt game closure. User should select what they want")
         returnmessage = read_file(responsefile)
         if bout != None:
             batresp = show_message(
@@ -434,7 +432,7 @@ def get_user_input(
 
 def script_manager() -> None:
     script_name = "wemod-launcher"
-    script_version = "1.507"
+    script_version = "1.508"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 

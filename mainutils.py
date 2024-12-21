@@ -194,7 +194,9 @@ def popup_execute(
             break
         elif event is None:
             exit_with_message(
-                "Window Closed", "The window was closed. Exiting...", timeout=5
+                "Window Closed",
+                "The window was closed. Exiting...",
+                timeout=5,
             )
         else:
             if len(text_str[0]) < 1:
@@ -267,7 +269,9 @@ def popup_download(title: str, link: str, file_name: str) -> str:
             break
         elif event is None:
             exit_with_message(
-                "Window Closed", "The window was closed. Exiting...", timeout=5
+                "Window Closed",
+                "The window was closed. Exiting...",
+                timeout=5,
             )
         else:
             if len(status) < 2:
@@ -350,7 +354,9 @@ def deref(path: str) -> None:
             break
         elif event is None:
             exit_with_message(
-                "Window Closed", "The window was closed. Exiting...", timeout=5
+                "Window Closed",
+                "The window was closed. Exiting...",
+                timeout=5,
             )
 
     window.close()
@@ -487,7 +493,9 @@ def copy_folder_with_progress(
             break
         elif event is None:
             exit_with_message(
-                "Window Closed", "The window was closed. Exiting...", timeout=5
+                "Window Closed",
+                "The window was closed. Exiting...",
+                timeout=5,
             )
 
     window.close()
@@ -531,9 +539,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
                     if os.path.isfile(full_file) or os.path.islink(full_file):
                         os.remove(full_file)
                 except Exception as e:
-                    log(
-                        f"failed to remove file '{full_file}':\n\t{e}"
-                    )
+                    log(f"failed to remove file '{full_file}':\n\t{e}")
                 try:
                     zip_ref.extract(file, dest_path)
                 except Exception as e:
@@ -588,12 +594,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             timeout=10,
         )
     except Exception as e:
-        log(
-            "failed to allow rw on '"
-            + dest_path
-            + "':\n\t"
-            + str(e)
-        )
+        log("failed to allow rw on '" + dest_path + "':\n\t" + str(e))
 
     window.perform_long_operation(unpack_files, "-UNPACK DONE-")
 
@@ -603,7 +604,9 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             break
         elif event is None:
             exit_with_message(
-                "Window Closed", "The window was closed. Exiting...", timeout=5
+                "Window Closed",
+                "The window was closed. Exiting...",
+                timeout=5,
             )
 
     window.close()
