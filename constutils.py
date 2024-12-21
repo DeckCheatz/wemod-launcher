@@ -120,7 +120,7 @@ def ensure_wine(verstr: Optional[str] = None) -> str:
     else:
         exit_with_message(
             "Missing Prefix",
-            "Error, wine prefix is missing,\nmake sure you run the game without the wemod-launcher once",
+            "Error: wine prefix is missing.\nMake sure you run the game without wemod-launcher once",
             ask_for_log=True,
         )
 
@@ -265,7 +265,7 @@ def scanfolderforversions(
         )
         # ask the user to upload the prefix if they have one
         prresp = show_message(
-            f"In your scan folder the online missing prefix version with GE-Proton 7 (.{protonconfminor}) was found,\nplease be so kind and click yes to zip the prefix\nafter that upload it to something like https://www.sendgb.com/\nand lastly paste the link in a WeMod issue",
+            f"In your scan folder, the online missing prefix version with GE-Proton 7 (.{protonconfminor}) was found.\nPlease, be so kind and click yes to zip the prefix\nand that upload it to something like https://www.sendgb.com/; \nlastly, paste the link in a WeMod-Launcher issue on GitHub",
             "GE-Proton7 found",
             60,
             True,
@@ -361,7 +361,7 @@ def troubleshooter() -> None:
         log("Troubleshooter start loop")
         ret = popup_options(
             "Troubleshooter",
-            "Did WeMod work as expected,\nif not troubleshoot common problems with WeMod.\nDeleting the game prefix helps often.\nDelete Wemod.exe helps if wemod updates their program\nTo use the Troubleshooter after it was disabled,\nyou can add TROUBLESHOOT=true in front of the launch command",
+            "Did WeMod work as expected?\nIf not, troubleshoot common problems with WeMod.\nDeleting the game prefix usually helps.\nDeleting Wemod.exe helps if wemod updates their program.\nTo use the Troubleshooter after it was disabled,\nyou can add TROUBLESHOOT=true in front of the launch command",
             [
                 [
                     "Disable troubleshooter globally",

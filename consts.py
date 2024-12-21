@@ -31,13 +31,13 @@ def getbatcmd():
             if not repo_user:
                 repo_user = "DeckCheatz"
                 # save_conf_setting("RepoUser", repo_user)
-                log("RepoUser not set in config using: " + repo_user)
+                log("RepoUser not set in config. Using: " + repo_user)
 
             repo_name = load_conf_setting("RepoName")
             if not repo_name:
                 repo_name = "wemod-launcher"
                 # save_conf_setting("RepoName", repo_name)
-                log("RepoName not set in config using: " + repo_name)
+                log("RepoName not set in config. Using: " + repo_name)
 
             repo_parts = os.getenv("REPO_STRING")
             if repo_parts:
@@ -57,7 +57,7 @@ def getbatcmd():
         if not os.path.isfile(batf):
             exit_with_message(
                 "Missing bat",
-                "The 'wemod.bat' file is missing and could not be downloaded, exiting",
+                "The 'wemod.bat' file is missing and could not be downloaded. Exiting",
             )
 
     return ["start", winpath(batf)]
@@ -98,21 +98,21 @@ def get_compat() -> str:
             elif not tools or len(tools.strip(os.pathsep)) == 0:
                 if not wine:
                     log(
-                        "Error, The WINE environment variable needs to be set if using external runners, exiting"
+                        "Error: The WINE environment variable needs to be set if using external runners. Exiting..."
                     )
                     exit_with_message(
                         "Not wine not found",
-                        "Error, wine not found,\nthe WINE environment variable needs to be set if using external runners, exiting",
+                        "Error: wine not found.\nThe WINE environment variable needs to be set if using external runners. Exiting...",
                     )
                 # set wine compat tool
                 os.environ["STEAM_COMPAT_TOOL_PATHS"] = os.path.dirname(wine)
         else:
             log(
-                "The STEAM_COMPAT_DATA_PATH and the WINEPREFIX / WINE_PREFIX_PATH environment variables were not set.\nMost likely this is not running under wine, exiting"
+                "The STEAM_COMPAT_DATA_PATH and the WINEPREFIX / WINE_PREFIX_PATH environment variables were not set.\nMost likely this is not running under wine. Exiting..."
             )
             exit_with_message(
                 "Not running wine",
-                "Error, not running with wine,\nto run with wine you could select Proton in the compatibility settings, exiting",
+                "Error: Not running with wine.\nTo run with wine, you can select Proton in the game's compatibility settings. Exiting...",
             )
 
     if ccompat and not nogame:
