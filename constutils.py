@@ -394,7 +394,7 @@ def troubleshooter() -> None:
                 pass
         elif ret == "Delete game prefix":
             try:
-                shutil.rmtree(STEAM_COMPAT_FOLDER)
+                shutil.rmtree(BASE_STEAM_COMPAT)
             except Exception as e:
                 pass
         elif not ret or ret == "Close wemod-launcher":
