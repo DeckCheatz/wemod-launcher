@@ -371,7 +371,7 @@ def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
         flatpak_cmd = flatpak_start + flatpak_cmd
     else:  # if not use python executable
         flatpak_cmd = flatpak_start + [sys.executable]
-        
+
 
 def setup_main() -> None:
     import tempfile
