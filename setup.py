@@ -336,11 +336,8 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
 
 
 def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
-    if flatpak_cmd == None:
-        if is_flatpak():
-            return ["python3"]
-        return []
-    elif is_flatpak():
+    flatpak_start = []
+    if is_flatpak():
         flatpak_start = [
             "flatpak-spawn",
             "--host",
@@ -370,13 +367,11 @@ def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
         flatpak_start.append(f"--env=WeModInfProtect={infpr}")
         flatpak_start.append("--")  # Isolate command from command args
 
-        if bool(flatpak_cmd):  # if venv is set use it
-            flatpak_cmd = flatpak_start + flatpak_cmd
-        else:  # if not use python executable
-            flatpak_cmd = flatpak_start + [sys.executable]
-
-    return flatpak_cmd
-
+    if flatpak_cmd:  # if venv is set use it
+        flatpak_cmd = flatpak_start + flatpak_cmd
+    else:  # if not use python executable
+        flatpak_cmd = flatpak_start + [sys.executable]
+        
 
 def setup_main() -> None:
     import tempfile
