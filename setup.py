@@ -277,8 +277,6 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
         ).stdout.strip()
         if curr_branch != "main":
             log("Currently not in main branch. Aborting update")
-            if not path:
-                path = [sys.executable]
             return path
 
         # Fetch latest changes
