@@ -373,6 +373,7 @@ def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
         flatpak_cmd = flatpak_start + [sys.executable]
     return flatpak_cmd
 
+
 def setup_main() -> None:
     import tempfile
     import FreeSimpleGUI as sg
