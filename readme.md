@@ -7,25 +7,45 @@ The work done here is purely from the contributors who donate their time and eff
 WeMod (the company) makes WeMod (the mod tool).  
 We (`wemod-launcher`) enable you to run it on Linux (and by extension, the Steam Deck).
 
-## Support
-If this tool helps you, please consider one or more of the following:
-- Star the project.
-- Code contributions. We could use some more developers!
-- Support the original developer DaniAsh551 on:
-[Buymeacoffee](https://www.buymeacoffee.com/TIjUvF1),
-[Patreon](https://www.patreon.com/daniash551),
-[PayPal](https://www.paypal.com/donate/?hosted_button_id=D7Y43PT9HUEUY).
-- Support the current developer Marvin1099 on:
-[Patreon](https://www.patreon.com/marvin1099),
-[Tipeeestream](https://www.tipeeestream.com/marvin1099/tip)
-- Suport the developer JohnHamwi on:
-[Github](@JohnHamwi)
+## Support & Contributions  
+If this tool helps you, please consider one or more of the following:  
+- Star the project to show your support.  
+- Code contributions are welcome! We need developers of all kinds, including:  
+  - General developers to improve functionality and stability.  
+  - Developers to enhance compatibility within Flatpak.  
+  - Developers for a possible **rework** of the tool (more details below).  
+- Wiki contributions:  
+  - Help add or modify wiki pages for specific issues or solutions.  
+  - Create new help pages based on recurring problems or community feedback.  
+  - For Wiki content of the **rework** (more details below).  
+- Answer issues:  
+  - Use existing help pages and resolved issues to assist others in the community.  
+- Financial support for the developers:  
+  - Support the original developer DaniAsh551 on:  
+    [Buymeacoffee](https://www.buymeacoffee.com/TIjUvF1),
+    [Patreon](https://www.patreon.com/daniash551),
+    [PayPal](https://www.paypal.com/donate/?hosted_button_id=D7Y43PT9HUEUY).
+  - Support the current developer Marvin1099 on:  
+    [Patreon](https://www.patreon.com/marvin1099),
+    [Tipeeestream](https://www.tipeeestream.com/marvin1099/tip).
+  - Support the developer JohnHamwi on:  
+    [GitHub](https://github.com/JohnHamwi).  
 
-Code contributions would be greatly appreciated.  
-You are also welcome to report your findings/suggestions by filing an Issue.  
-For more info on suggestions, check out the [Wiki Suggestion info](https://github.com/DeckCheatz/wemod-launcher/wiki/Suggestions).
+**For more suggestions and updates:**  
+- Check the [Wiki Suggestion Info](https://github.com/DeckCheatz/wemod-launcher/wiki/Suggestions).  
+- See the [Wiki Changelog](https://github.com/DeckCheatz/wemod-launcher/wiki/Changes).  
+- Explore the [Wiki Features Section](https://github.com/DeckCheatz/wemod-launcher/wiki/Features).  
+- You are also welcome to report your findings or suggestions by **[filing an Issue](https://github.com/DeckCheatz/wemod-launcher/issues)**!  
 
-Check the [Wiki Changelog](https://github.com/DeckCheatz/wemod-launcher/wiki/Changes) or the [Wiki features section](https://github.com/DeckCheatz/wemod-launcher/wiki/Features) for changes.
+## Potential Rework
+We’re considering a **complete rework** of the WeMod Launcher to improve performance, compatibility, and user experience.  
+
+This possible project would need:  
+- **Developers**: Mainly python developers for Struture, GUI, Wine, config management, and more.  
+- **Wiki writers**: To create and maintain documentation for the rework.  
+- **Community testers**: To test features and provide valuable feedback.  
+
+Interested in contributing? Join the [discussion](https://github.com/DeckCheatz/wemod-launcher/discussions), [file an issue](https://github.com/DeckCheatz/wemod-launcher/issues), or reach out directly!  
 
 ## Quick Guide
 ![Alert](https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=20&quality=lossless) **This guide only includes the most relevant info and might not be enough to run WeMod;**  
