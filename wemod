@@ -655,7 +655,11 @@ def run(skip_init: bool = False) -> str:
             tout = 60
 
         # Get the game exe
-        GAME_EXE = os.path.realpath(ARGS[(fnr + 2)])
+        if os.getenv('NO_EXE') or load_conf_setting("NoEXE"):
+            GAME_EXE = ARGS[(fnr + 2)]
+        else:
+            GAME_EXE = os.path.realpath(ARGS[(fnr + 2)])
+
         # Add more args at the end
         LAUNCH_OPTIONS = ARGS[(fnr + 3) :]
     else:
@@ -682,7 +686,12 @@ def run(skip_init: bool = False) -> str:
             tout = 60
 
         # Get the game exe
-        GAME_EXE = os.path.realpath(PROTON_CMD[fnr + 2])
+        if os.getenv('NO_EXE') or load_conf_setting("NoEXE"):
+            GAME_EXE = PROTON_CMD[fnr + 2]
+        else:
+            GAME_EXE = os.path.realpath(PROTON_CMD[fnr + 2])
+        
+        
         # Add more args at the end
         LAUNCH_OPTIONS = PROTON_CMD[(fnr + 3) :]
 
@@ -693,19 +702,23 @@ def run(skip_init: bool = False) -> str:
     # Get working dir
     WORK_DIR = os.path.realpath(os.getcwd())
 
-    if not os.path.isfile(GAME_EXE):
-        log(f"Error, the game executable '{GAME_EXE}' is missing")
-        exit_with_message(
-            "Game Missing",
-            f"The game executable '{GAME_EXE}' is missing.\nMake sure the game runs without WeMod.\nIf not, use 'Verify Files' in Steam or ensure the game is installed correctly.",
-            ask_for_log=True,
-        )
+    if os.getenv('NO_EXE') or load_conf_setting("NoEXE"):
+        REL_EXE = GAME_EXE
+        WIN_CMD = REL_EXE
+    else:
+        if not os.path.isfile(GAME_EXE):
+            log(f"Error, the game executable '{GAME_EXE}' is missing")
+            exit_with_message(
+                "Game Missing",
+                f"The game executable '{GAME_EXE}' is missing.\nMake sure the game runs without WeMod.\nIf not, use 'Verify Files' in Steam or ensure the game is installed correctly.",
+                ask_for_log=True,
+            )
+    
+        # Make game path be relative to work dir (work dir is the root game dir)
+        REL_EXE = os.path.relpath(GAME_EXE, WORK_DIR)
 
-    # Make game path be relative to work dir (work dir is the root game dir)
-    REL_EXE = os.path.relpath(GAME_EXE, WORK_DIR)
-
-    # Make sure the relative game path is in windows format
-    WIN_CMD = winpath(REL_EXE, addfront="")
+        # Make sure the relative game path is in windows format
+        WIN_CMD = winpath(REL_EXE, addfront="")
 
     # Log the found parts of the command
     log(
