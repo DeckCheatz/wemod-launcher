@@ -8,8 +8,8 @@ read -p "Enter the repository name (e.g., username/repo): " REPO_NAME
 
 #read -p "Enter the release name: " RELEASE_NAME
 
-#BRANCH_NAME="prefix-downloads"
-read -p "Enter the branch to release from (e.g., main, prefix-downloads): " BRANCH_NAME
+#BRANCH_NAME="main"
+read -p "Enter the branch to release from (e.g., main): " BRANCH_NAME
 
 
 # Define constants
@@ -59,9 +59,7 @@ fi
 
 FILE_NAME=$(basename "$FILE_PATH")
 
-RELEASE_DESCRIPTION="This is the download for a WeMod ready GE-Proton$VERSION_NAME prefix.  
-**If you want to download the WeMod Launcher check the guide.**  
-\`The WeMod Launcher will auto download this prefix if needed.\`"
+RELEASE_DESCRIPTION="This is the download for a WeMod ready GE-Proton$VERSION_NAME prefix.\\n**If you want to download the WeMod Launcher check the guide.**\\n\`The WeMod Launcher will auto download this prefix if needed.\`"
 
 echo ""
 echo "API_URL: $API_URL"
