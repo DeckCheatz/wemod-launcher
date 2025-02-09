@@ -70,7 +70,7 @@ consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest
 	2. Download the latest GE-Proton in `ProtonUp-QT`  
 3. Restart Steam/SteamOS.
 4. In a terminal session (Konsole if using KDE Plasma):
-	1. Change directory to a location of your choosing, then run `git clone https://github.com/DaniAsh551/wemod-launcher`.  
+	1. Change directory to a location of your choosing, then run `git clone https://github.com/DeckCheatz/wemod-launcher`.  
 	Make note of the directory obtained with `readlink -f wemod-launcher` (which will be labeled `{path/to/wemod-launcher}` for the rest of this guide).
 	2. Run `chmod -R ug+x wemod-launcher`.  
 	**NOTE:** To use this tool with the Flatpak version of Steam (not recomended), continue [here](https://github.com/DeckCheatz/wemod-launcher/wiki/Steam-Flatpak-Usage).
@@ -78,8 +78,8 @@ consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest
 	1. In the `Compatibility` tab, change the Proton version to the one picked in Step 2, or otherwise to the latest numbered Proton (e.g. Proton-9.0).
 	2. Under `Launch Options`, input `{path/to/wemod-launcher}/wemod %command%`.
 6. Start the game.
-7. Select "no" to the copy prefix question if it appears and says `might work`.  
-   If it mentions `likely works` go to 9 (accept all).
+7. Select "no" to the "copy prefix question" if it appears and says `might work`.  
+   If it mentions `likely works` (or better) go to step 9 (accept all).
 8. Select download.
 9. Select Yes/Ok until no more windows appear.  
     All rundll32.exe errors can safely be ignored (by clicking `no`).  
