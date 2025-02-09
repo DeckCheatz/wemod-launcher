@@ -437,14 +437,24 @@ def download_prefix(proton_dir: str) -> None:
         )
 
     repo_user = load_conf_setting("RepoUser")
+    if repo_user and repo_user.lower() == "DaniAsh551".lower():
+        repo_user = "DeckCheatz"
+        save_conf_setting("RepoUser", repo_user)
+        log("Updated RepoUser in config to: " + repo_user)
+
     if not repo_user:
         repo_user = "DeckCheatz"
         # save_conf_setting("RepoUser", repo_user)
         log("RepoUser not set in config using: " + repo_user)
 
     repo_name = load_conf_setting("RepoName")
+    if repo_name and repo_name.lower() == "wemod-launcher".lower():
+        repo_name = "BuiltPrefixes-dev"
+        save_conf_setting("RepoName", repo_name)
+        log("Updated RepoName in config to: " + repo_user)
+
     if not repo_name:
-        repo_name = "wemod-launcher"
+        repo_name = "BuiltPrefixes-dev"
         # save_conf_setting("RepoName", repo_name)
         log("RepoName not set in config using: " + repo_name)
 
