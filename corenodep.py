@@ -84,7 +84,7 @@ def read_file(version_file: str) -> Optional[str]:  # read file
 
 
 def parse_version(
-    version_str: Optional[Union[list, str]] = None
+    version_str: Optional[Union[list, str]] = None,
 ) -> Optional[List[int]]:
     if version_str and isinstance(version_str, str):
         # Replace '-' with '.' and ',' with '.'
