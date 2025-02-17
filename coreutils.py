@@ -299,7 +299,7 @@ def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
         if bout != None:
             batresp = show_message(
                 returnmessage
-                + f".\nDo you want to close WeMod (yes) or wait longer (no)?\nWeMod will close in {bout} seconds",
+                + f"\nYou can still use wemod by clicking \"Yes\",\nthis will keep wemod open in the backround\nIf you want to close WeMod click \"No\"\nWeMod will automaticly close in {bout} seconds, if nothing is done",
                 "BAT Warning",
                 bout,
                 True,
@@ -307,9 +307,9 @@ def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
             log(
                 f"The user selected {batresp} after being asked to wait longer for WeMod"
             )
-        if bout == None or batresp == "No":
+        if bout == None or batresp == "Yes":
             show_message(
-                returnmessage + ",\nclick OK if you are ready to close WeMod",
+                returnmessage + "\nClick \"OK\" ONLY if you are ready to close WeMod\nTo KEEP it open, just minimize THIS message box.",
                 "BAT Warning",
                 None,
                 False,
