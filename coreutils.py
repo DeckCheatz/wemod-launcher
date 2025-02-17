@@ -299,7 +299,7 @@ def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
         if bout != None:
             batresp = show_message(
                 returnmessage
-                + f"\nYou can still use wemod by clicking \"Yes\",\nthis will keep wemod open in the backround\nIf you want to close WeMod click \"No\"\nWeMod will automaticly close in {bout} seconds, if nothing is done",
+                + f'\nYou can still use wemod by clicking "Yes",\nthis will keep wemod open in the backround\nIf you want to close WeMod click "No"\nWeMod will automaticly close in {bout} seconds, if nothing is done',
                 "BAT Warning",
                 bout,
                 True,
@@ -309,7 +309,8 @@ def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
             )
         if bout == None or batresp == "Yes":
             show_message(
-                returnmessage + "\nClick \"OK\" ONLY if you are ready to close WeMod\nTo KEEP it open, just minimize THIS message box.",
+                returnmessage
+                + '\nClick "OK" ONLY if you are ready to close WeMod\nTo KEEP it open, just minimize THIS message box.',
                 "BAT Warning",
                 None,
                 False,
@@ -432,7 +433,7 @@ def get_user_input(
 
 def script_manager() -> None:
     script_name = "wemod-launcher"
-    script_version = "1.518"
+    script_version = "1.519"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 
