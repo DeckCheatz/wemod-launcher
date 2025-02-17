@@ -65,7 +65,11 @@ echo The game was closed
 if defined wemodPID (
     if exist %temptime% (
         del %temptime%
-        echo Game closed to fast, Game detection may have failed > %returnfile%
+        echo Game closed to fast, Game detection may have failed. > %returnfile%
+        echo Keep in mind the wemod-launcher usualy can`t detect game launchers. >> %returnfile%
+        echo THIS IS NOT A BUG, its not possible with the current project structure. >> %returnfile%
+        echo Only open a Issue if the game (launcher) did not start, >> %returnfile%
+        echo or if the game crashed, or if wemod won't closes unexpectedly. >> %returnfile%
         echo.
         echo Game closed to fast, Game detection may have failed, sending problem to python script and waiting for awnser
         :WaitUser
