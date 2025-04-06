@@ -25,7 +25,8 @@ If this tool helps you, please consider one or more of the following:
     [Buymeacoffee](https://www.buymeacoffee.com/TIjUvF1),
     [Patreon](https://www.patreon.com/daniash551),
     [PayPal](https://www.paypal.com/donate/?hosted_button_id=D7Y43PT9HUEUY).
-  - Support the current developer Marvin1099 on:  
+  - Support the current developer Marvin1099 on:
+    [Buymeacoffee](https://www.buymeacoffee.com/marvin1099)
     [Patreon](https://www.patreon.com/marvin1099),
     [Tipeeestream](https://www.tipeeestream.com/marvin1099/tip).
   - Support the developer JohnHamwi on:  
