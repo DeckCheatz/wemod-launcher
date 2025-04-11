@@ -139,8 +139,15 @@ def exit_with_message(
 # Function to install or execute pip commands
 def pip(command: str, venv_path: Optional[str] = None) -> int:
     # If there is a virtual environment but its not set or used return error to get virtual environment next time
-    if load_conf_setting("VirtualEnvironment") and not venv_path and "--break-system-packages" not in command and sys.prefix == sys.base_prefix:
-        log("Virtual environment is set in config, but was not passed, returning error to get the virtual environment next time")
+    if (
+        load_conf_setting("VirtualEnvironment")
+        and not venv_path
+        and "--break-system-packages" not in command
+        and sys.prefix == sys.base_prefix
+    ):
+        log(
+            "Virtual environment is set in config, but was not passed, returning error to get the virtual environment next time"
+        )
         return 1
     if venv_path and not os.path.isabs(venv_path):
         venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))
@@ -437,7 +444,7 @@ def get_user_input(
 
 def script_manager() -> None:
     script_name = "wemod-launcher"
-    script_version = "1.519"
+    script_version = "1.520"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 
