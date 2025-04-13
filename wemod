@@ -737,8 +737,10 @@ def run(skip_init: bool = False) -> str:
                 if not isinstance(t, list):
                     raise TypeError("The given variable is not of type list")
             except Exception as e:
-                log("The environment variable GAME_FRONT is not a valid list. Clearing GAME_FRONT.")
-                log("Expected format: GAME_FRONT='[\"cmd\", \"/c\", \"exit\"]'")
+                log(
+                    "The environment variable GAME_FRONT is not a valid list. Clearing GAME_FRONT."
+                )
+                log('Expected format: GAME_FRONT=\'["cmd", "/c", "exit"]\'')
                 log(f"\tThe error returned was:\n{e}")
                 GAME_FRONT = []
             else:
