@@ -354,6 +354,8 @@ def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
             "SELF_UPDATE",
             "FORCE_UPDATE_WEMOD",
             "REPO_STRING",
+            "GAME_FRONT",
+            "NO_EXE",
         ]
         for env in envlist:
             if env in os.environ:
