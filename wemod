@@ -3,6 +3,7 @@
 
 import os
 import sys
+import json
 import shutil
 import threading
 import subprocess
@@ -729,9 +730,25 @@ def run(skip_init: bool = False) -> str:
         # Make sure the relative game path is in windows format
         WIN_CMD = winpath(REL_EXE, addfront="")
 
+        GAME_FRONT = os.getenv("GAME_FRONT")
+        if GAME_FRONT:
+            try:
+                t = json.loads(GAME_FRONT)
+                if not isinstance(t, list):
+                    raise TypeError("The given variable is not of type list")
+            except Exception as e:
+                log("The environment variable GAME_FRONT is not a valid list. Clearing GAME_FRONT.")
+                log("Expected format: GAME_FRONT='[\"cmd\", \"/c\", \"exit\"]'")
+                log(f"\tThe error returned was:\n{e}")
+                GAME_FRONT = []
+            else:
+                GAME_FRONT = t
+        else:
+            GAME_FRONT = []
+
     # Log the found parts of the command
     log(
-        f"D:{WORK_DIR}\nR:{REAPER_CMD}\nP:{PROTON}\nV:{verb}\nB:{BAT_COMMAND}\nG:{WIN_CMD}\nL:{LAUNCH_OPTIONS}"
+        f"D:{WORK_DIR}\nR:{REAPER_CMD}\nP:{PROTON}\nV:{verb}\nB:{BAT_COMMAND}\nF:{GAME_FRONT}\nG:{WIN_CMD}\nL:{LAUNCH_OPTIONS}"
     )
 
     # Construct the final command
@@ -740,6 +757,7 @@ def run(skip_init: bool = False) -> str:
         + [PROTON]
         + verb
         + BAT_COMMAND
+        + GAME_FRONT
         + [WIN_CMD]
         + LAUNCH_OPTIONS
     )
