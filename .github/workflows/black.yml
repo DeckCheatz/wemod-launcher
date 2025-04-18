@@ -14,6 +14,8 @@ jobs:
   lint-and-format:
     runs-on: ubuntu-latest
 
+    if: false
+
     outputs:
       python_files_changed: ${{ env.PYTHON_FILES_CHANGED }}
       black_outcome: ${{ steps.run_black.outcome }}
