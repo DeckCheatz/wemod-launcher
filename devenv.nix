@@ -1,9 +1,9 @@
-{ pkgs
-, self
-, inputs
-, ...
-}:
-let
+{
+  pkgs,
+  self,
+  inputs,
+  ...
+}: let
   freesimplegui = pkgs.python3Packages.buildPythonApplication rec {
     pname = "freesimplegui";
     version = "5.1.1";
@@ -12,10 +12,8 @@ let
       sha256 = "sha256-LwlGx6wiHJl5KRgcvnUm40L/9fwpGibR1yYoel3ZZPs=";
     };
   };
-in
-{
-  packages =
-    with pkgs;
+in {
+  packages = with pkgs;
     [
       git
       pdm
@@ -27,7 +25,12 @@ in
       setuptools
       pyinstaller
       tkinter
-    ]) ++ [ freesimplegui ];
+    ])
+<<<<<<< HEAD
+    ++ [freesimplegui];
+=======
+    ++ [ freesimplegui ];
+>>>>>>> 6e7adfa (chore: Run lints on Nix files)
 
   languages = {
     nix.enable = true;
@@ -61,5 +64,4 @@ in
     export TK_LIBRARY="${pkgs.tk.outPath}/lib/${pkgs.tk.libPrefix}"
     export TCL_LIBRARY="${pkgs.tcl.outPath}/lib/${pkgs.tcl.libPrefix}"
   '';
-
 }
