@@ -1,0 +1,30 @@
+[project]
+name = "wemod-launcher"
+version = "1.503"
+description = "Tool made to launch the popular Game Trainer / Cheat tool WeMod along with your game (made for steam-runtime version in Linux)."
+authors = [
+    {name = "The DeckCheatz Team", email = "deckcheatz@noreply.github.com"},
+]
+dependencies = [
+    "freesimplegui>=5.1.1",
+    "requests>=2.31.0",
+    "pyxdg>=0.28",
+    "setuptools>=75.1.0.post0",
+    "pyinstaller>=4.5.1",
+]
+requires-python = ">=3.11"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm.scripts]
+package-exe = {call = "wemod_launcher.pyinstaller:install"}
+
+[project.scripts]
+wemod-launcher = "wemod_launcher.cli:main"
+
+[tool.pdm]
+distribution = true
