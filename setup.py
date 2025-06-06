@@ -93,7 +93,7 @@ def download_wemod(temp_dir: str) -> str:
         event, values = window.read(timeout=1000)
         if event == "-DL COMPLETE-":
             break
-        elif event == None:
+        elif event == None or event == sg.WIN_CLOSED:
             exit_with_message(
                 "Window Closed", "The window was closed, exiting", timeout=5
             )
@@ -102,7 +102,7 @@ def download_wemod(temp_dir: str) -> str:
                 continue
             [dl, total] = status
             perc = int(100 * (dl / total)) if total > 0 else 0
-            text.update("{}% ({}/{})".format(perc, dl, total))
+            text.update(f"{perc}% ({dl}/{total})")
             progress.update(perc)
 
     window.close()
@@ -146,14 +146,13 @@ def unpack_wemod(
         shutil.rmtree(temp_dir, ignore_errors=True)
 
         return True
-    except:
+    except Exception as e:
+        log(f"Failed to unpack WeMod: {e}")
         return False
 
 
 def mk_venv() -> Optional[str]:
-    venv_path = load_conf_setting("VirtualEnvironment")
-    if not venv_path:
-        venv_path = "wemod_venv"
+    venv_path = load_conf_setting("VirtualEnvironment") or "wemod_venv"
     try:
         if os.path.isabs(venv_path):
             subprocess.run(
@@ -430,7 +429,6 @@ def setup_main() -> None:
         )
 
         if not unpacked:
-            log("Failed to unpack WeMod.")
             exit_with_message(
                 "Failed Unpack",
                 "Failed to unpack WeMod, exiting",
