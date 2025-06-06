@@ -587,11 +587,11 @@ def build_prefix(proton_dir: str) -> None:
     setup_main()
 
     # Install each dependency
-    resp = 0
+    response = 0
     dep_i = -1
-    while resp == 0 and (len(deps) - 1) > dep_i:
+    while response == 0 and (len(deps) - 1) > dep_i:
         dep_i = dep_i + 1
-        resp = winetricks(deps[dep_i], path)
+        response = winetricks(deps[dep_i], path)
 
     # Install dotnet48 using wemod-launcher if selected
     if dotnet48_method and dotnet48_method == "wemod-launcher":
@@ -616,16 +616,16 @@ def build_prefix(proton_dir: str) -> None:
     wine("winecfg -v win10", path)  # Set Windows version to Windows 10
 
     # Finalize setup
-    if resp == 0:
+    if response == 0:
         log("Finished dependencies installation. Writing init file...")
         open(INIT_FILE, "a").close()
     else:
         exit_with_message(
             "ERROR",
             "Failed dependencies installation with code '{}'. Aborting...".format(
-                resp
+                response
             ),
-            resp,
+            response,
             ask_for_log=True,
         )
 
@@ -789,7 +789,7 @@ def run(skip_init: bool = False) -> str:
     if fromflat:
         import time
 
-        resp = 0
+        response = 0
 
         log("Using flatpak mode")
 
@@ -824,7 +824,7 @@ def run(skip_init: bool = False) -> str:
                 error = fef.read()
                 os.remove(errorfile)
                 if error:
-                    resp = 1
+                    response = 1
                     raise Exception(str(error))
 
         log("Any warnings from the command the logged")
@@ -857,7 +857,7 @@ def run(skip_init: bool = False) -> str:
             log(stderr.decode("utf8"))
 
         log("Process finished")
-        resp = process.returncode
+        response = process.returncode
 
         if len(verb) == 0:
             log("Running the wine server waiter")
@@ -895,25 +895,25 @@ def run(skip_init: bool = False) -> str:
 
     troubleshooter()
 
-    log(f"Exit command with {resp}")
+    log(f"Exit command with {response}")
     return "EXIT"
 
 
 # Second main block
 if __name__ == "__main__":
     # Main execution block
-    RESP = ""
+    RESPONCE = ""
     logy = "No"
     try:
-        RESP = run()
+        RESPONCE = run()
     except Exception as e:
-        RESP = "ERR:\n" + str(e)
+        RESPONCE = "ERR:\n" + str(e)
         logy = show_message(
             "Error occurred. Open the log?", "Error occurred", 30, True
         )
 
     # Log final response or error
-    log(str(RESP))
+    log(str(RESPONCE))
     log("\n\n\n")
 
     if not logy or logy == "Yes":
