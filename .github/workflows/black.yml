@@ -21,42 +21,78 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
+        with:
+          fetch-depth: 2
+  
       - name: Get changed files
         id: changed_files
         uses: jitterbit/get-changed-files@v1
         with:
           format: space-delimited
           token: ${{ secrets.GITHUB_TOKEN }}
-
+  
       - name: Check if Python files or wemod file changed
         id: check_files
         run: |
-          if echo "${{ steps.changed_files.outputs.added_modified }}" | grep -E '\.py$|wemod' > /dev/null; then
-            echo "PYTHON_FILES_CHANGED=true" >> $GITHUB_ENV
-          else
-            echo "PYTHON_FILES_CHANGED=false" >> $GITHUB_ENV
+          echo "PYTHON_FILES_CHANGED=false" >> $GITHUB_ENV
+          if [[ ${{ github.ref }} == 'refs/heads/dev' ]] || [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
+            if echo "${{ steps.changed_files.outputs.added_modified }}" | grep -E '\.py$|wemod' > /dev/null; then
+              echo "PYTHON_FILES_CHANGED=true" >> $GITHUB_ENV
+            fi
           fi
-
+  
       - name: Set up Python
         if: env.PYTHON_FILES_CHANGED == 'true'
         uses: actions/setup-python@v2
         with:
           python-version: '3.12.3'
-
+  
       - name: Install dependencies
         if: env.PYTHON_FILES_CHANGED == 'true'
         run: |
           pip install black
+  
+      - name: Extract commit metadata
+        if: env.PYTHON_FILES_CHANGED == 'true'
+        id: commit_info
+        run: |
+          echo "AUTHOR_NAME=$(git log -1 --pretty=format:'%an')" >> $GITHUB_ENV
+          echo "AUTHOR_EMAIL=$(git log -1 --pretty=format:'%ae')" >> $GITHUB_ENV
+          
+          COMMIT_MSG=$(git log -1 --pretty=format:%B | sed ':a;N;$!ba;s/\n/\\n/g')
+          echo "COMMIT_MSG=${COMMIT_MSG}" >> $GITHUB_ENV
+  
+      - name: Configure Git author
+        if: env.PYTHON_FILES_CHANGED == 'true'
+        run: |
+          echo "=== Commit Author ==="
+          echo "$AUTHOR_NAME"
+          echo "=== Full Commit Message ==="
+          echo "$COMMIT_MSG"
+          echo "============================"
+          
+          git config --global user.name "${{ env.AUTHOR_NAME }}"
+          git config --global user.email "${{ env.AUTHOR_EMAIL }}"
+  
+      - name: Soft reset previous commit
+        if: env.PYTHON_FILES_CHANGED == 'true'
+        run: |
+          commits="$(git log --pretty=format:"%H %s" | head -3)"
+          BEFORE_LAST_COMMIT=$(echo "$commits" | awk '{print $1}' | head -2 | tail -1)
+          echo "From:"
+          echo "$commits"
+          echo "Using:"
+          echo $BEFORE_LAST_COMMIT
+          git reset --soft $BEFORE_LAST_COMMIT
 
       - name: Run Black
         if: env.PYTHON_FILES_CHANGED == 'true'
         id: run_black
         run: |
           black -l 78 -t py312 ./*.py ./wemod
-          
-      - name: Increment version number
-        if: steps.run_black.outcome == 'success' && env.PYTHON_FILES_CHANGED == 'true'
+  
+      - name: Increment version number in coreutils.py
+        if: steps.run_black.outcome == 'success'
         run: |
           awk '/script_version = "/ {
             ver = $3;
@@ -65,36 +101,23 @@ jobs:
             printf("    script_version = \"%.3f\"\n", new_ver);
           }
           !/script_version = "/ { print $0 }' coreutils.py > coreutils.py.tmp && mv coreutils.py.tmp coreutils.py
-
+  
+      - name: Update version in README
+        if: steps.run_black.outcome == 'success'
+        run: |
           current_ver=$(awk '/script_version = "/ {print $3}' coreutils.py | tr -d '"')
           awk -v ver="$current_ver" '/The WeMod Launcher is currently on version / {
             printf("**The WeMod Launcher is currently on version %.3f.**\n", ver);
           }
           !/The WeMod Launcher is currently on version / { print $0 }' readme.md > readme.tmp && mv readme.tmp readme.md
-          
-      - name: Commit changes on dev
-        if: github.ref == 'refs/heads/dev' && steps.run_black.outcome == 'success' && env.PYTHON_FILES_CHANGED == 'true'
-        id: commit_changes_dev
+  
+      - name: Stage and commit updated files
+        if: steps.run_black.outcome == 'success'
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
-          git update-index --chmod=+x *.py wemod
-          git commit -m 'Github actions automatic code formatting on dev branch' -m 'This is an automatic task, run by a GitHub workflow, to automatically format the Python code in the repo, with the code formatter "black"' || echo "No changes to commit"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Commit changes on main
-        if: github.ref == 'refs/heads/main' && steps.run_black.outcome == 'success' && env.PYTHON_FILES_CHANGED == 'true'
-        id: commit_changes_main
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add .
-          git update-index --chmod=+x *.py wemod
-          git commit -m 'Github actions automatic code formatting on main branch' -m 'This is an automatic task, run by a GitHub workflow, to automatically format the Python code in the repo, with the code formatter "black"' || echo "No changes to commit"
-          git push
+          git update-index --chmod=+x *.py wemod || true
+          git commit -m "$(echo -e "${COMMIT_MSG}")"
+          git push --force
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
