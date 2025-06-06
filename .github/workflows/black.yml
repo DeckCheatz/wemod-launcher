@@ -17,6 +17,8 @@ jobs:
     outputs:
       python_files_changed: ${{ env.PYTHON_FILES_CHANGED }}
       black_outcome: ${{ steps.run_black.outcome }}
+      author_name: ${{ env.AUTHOR_NAME }}
+      author_email: ${{ env.AUTHOR_EMAIL }}
 
     steps:
       - name: Checkout code
@@ -69,7 +71,7 @@ jobs:
           echo "$AUTHOR_NAME"
           echo "=== Full Commit Message ==="
           echo "$COMMIT_MSG"
-          echo "============================"
+          echo "==========================="
           
           git config --global user.name "${{ env.AUTHOR_NAME }}"
           git config --global user.email "${{ env.AUTHOR_EMAIL }}"
@@ -127,21 +129,39 @@ jobs:
     env:
       PYTHON_FILES_CHANGED: ${{ needs.lint-and-format.outputs.python_files_changed }}
       BLACK_OUTCOME: ${{ needs.lint-and-format.outputs.black_outcome }}
-
+      AUTHOR_NAME: ${{ needs.lint-and-format.outputs.author_name }}
+      AUTHOR_EMAIL: ${{ needs.lint-and-format.outputs.author_email }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
 
       - name: Print PYTHON_FILES_CHANGED value
         run: | 
           echo "PYTHON_FILES_CHANGED=${{ env.PYTHON_FILES_CHANGED }}"
           echo "BLACK_OUTCOME=${{ env.BLACK_OUTCOME }}"
           echo "On=${{ github.ref }}"
-
+        
       - name: Pull changes if main or dev
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
-        run: | 
-          git pull
+        run: |
+          echo "=== Commit Author ==="
+          echo "$AUTHOR_NAME"
+          echo "====================="
+          
+          git config --global user.name "${{ env.AUTHOR_NAME }}"
+          git config --global user.email "${{ env.AUTHOR_EMAIL }}"
+
+          commits="$(git log --pretty=format:"%H %s" | head -3)"
+          BEFORE_LAST_COMMIT=$(echo "$commits" | awk '{print $1}' | head -2 | tail -1)
+          echo "From:"
+          echo "$commits"
+          echo "Using:"
+          echo $BEFORE_LAST_COMMIT
+          
+          git reset --hard $BEFORE_LAST_COMMIT
+          git pull --allow-unrelated-histories
         
       - name: Merge dev into main
         if: github.ref == 'refs/heads/dev' && (env.PYTHON_FILES_CHANGED == 'false' || env.BLACK_OUTCOME == 'success')
