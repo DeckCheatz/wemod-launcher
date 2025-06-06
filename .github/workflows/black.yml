@@ -17,14 +17,12 @@ jobs:
     outputs:
       python_files_changed: ${{ env.PYTHON_FILES_CHANGED }}
       black_outcome: ${{ steps.run_black.outcome }}
-      author_name: ${{ env.AUTHOR_NAME }}
-      author_email: ${{ env.AUTHOR_EMAIL }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          fetch-depth: 2
+          fetch-depth: 0
   
       - name: Get changed files
         id: changed_files
@@ -53,39 +51,6 @@ jobs:
         if: env.PYTHON_FILES_CHANGED == 'true'
         run: |
           pip install black
-  
-      - name: Extract commit metadata
-        if: env.PYTHON_FILES_CHANGED == 'true'
-        id: commit_info
-        run: |
-          echo "AUTHOR_NAME=$(git log -1 --pretty=format:'%an')" >> $GITHUB_ENV
-          echo "AUTHOR_EMAIL=$(git log -1 --pretty=format:'%ae')" >> $GITHUB_ENV
-          
-          COMMIT_MSG=$(git log -1 --pretty=format:%B | sed ':a;N;$!ba;s/\n/\\n/g')
-          echo "COMMIT_MSG=${COMMIT_MSG}" >> $GITHUB_ENV
-  
-      - name: Configure Git author
-        if: env.PYTHON_FILES_CHANGED == 'true'
-        run: |
-          echo "=== Commit Author ==="
-          echo "$AUTHOR_NAME"
-          echo "=== Full Commit Message ==="
-          echo "$COMMIT_MSG"
-          echo "==========================="
-          
-          git config --global user.name "${{ env.AUTHOR_NAME }}"
-          git config --global user.email "${{ env.AUTHOR_EMAIL }}"
-  
-      - name: Soft reset previous commit
-        if: env.PYTHON_FILES_CHANGED == 'true'
-        run: |
-          commits="$(git log --pretty=format:"%H %s" | head -3)"
-          BEFORE_LAST_COMMIT=$(echo "$commits" | awk '{print $1}' | head -2 | tail -1)
-          echo "From:"
-          echo "$commits"
-          echo "Using:"
-          echo $BEFORE_LAST_COMMIT
-          git reset --soft $BEFORE_LAST_COMMIT
 
       - name: Run Black
         if: env.PYTHON_FILES_CHANGED == 'true'
@@ -116,9 +81,15 @@ jobs:
       - name: Stage and commit updated files
         if: steps.run_black.outcome == 'success'
         run: |
+          # This commits as previous commit user
+          git config --global user.name "$(git log -1 --pretty=format:'%an')"
+          git config --global user.email "$(git log -1 --pretty=format:'%ae')"
+          # The github bot adds to the last commit (aternative to above)
+          # git config --global user.name 'github-actions[bot]'
+          # git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
           git update-index --chmod=+x *.py wemod || true
-          git commit -m "$(echo -e "${COMMIT_MSG}")"
+          git commit --amend --no-edit
           git push --force
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -129,8 +100,6 @@ jobs:
     env:
       PYTHON_FILES_CHANGED: ${{ needs.lint-and-format.outputs.python_files_changed }}
       BLACK_OUTCOME: ${{ needs.lint-and-format.outputs.black_outcome }}
-      AUTHOR_NAME: ${{ needs.lint-and-format.outputs.author_name }}
-      AUTHOR_EMAIL: ${{ needs.lint-and-format.outputs.author_email }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -146,13 +115,6 @@ jobs:
       - name: Pull changes if main or dev
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
         run: |
-          echo "=== Commit Author ==="
-          echo "$AUTHOR_NAME"
-          echo "====================="
-          
-          git config --global user.name "${{ env.AUTHOR_NAME }}"
-          git config --global user.email "${{ env.AUTHOR_EMAIL }}"
-
           commits="$(git log --pretty=format:"%H %s" | head -3)"
           BEFORE_LAST_COMMIT=$(echo "$commits" | awk '{print $1}' | head -2 | tail -1)
           echo "From:"
@@ -162,6 +124,7 @@ jobs:
           
           git reset --hard $BEFORE_LAST_COMMIT
           git pull --allow-unrelated-histories
+          
         
       - name: Merge dev into main
         if: github.ref == 'refs/heads/dev' && (env.PYTHON_FILES_CHANGED == 'false' || env.BLACK_OUTCOME == 'success')
