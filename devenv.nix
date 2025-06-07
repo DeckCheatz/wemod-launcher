@@ -47,22 +47,6 @@ in {
   difftastic.enable = true;
   devcontainer.enable = true;
 
-  pre-commit.hooks = {
-    shellcheck.enable = true;
-    shfmt.enable = true;
-    # FIXME: Fix Flake8 lints.
-    #    flake8.enable = true;
-    actionlint.enable = true;
-    alejandra.enable = true;
-    black = {
-      enable = true;
-      settings.flags = "-l 78 -t py312";
-    };
-    # FIXME: Fix Markdown lints.
-    #    markdownlint.enable = true;
-    statix.enable = true;
-  };
-
   enterShell = ''
     export TK_LIBRARY="${pkgs.tk.outPath}/lib/${pkgs.tk.libPrefix}"
     export TCL_LIBRARY="${pkgs.tcl.outPath}/lib/${pkgs.tcl.libPrefix}"
