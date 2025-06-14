@@ -8,46 +8,52 @@ The work done here is purely from the contributors who donate their time and eff
 WeMod (the company) makes WeMod (the mod tool).  
 We (`wemod-launcher`) enable you to run it on Linux (and by extension, the Steam Deck).
 
-## Support & Contributions  
-If this tool helps you, please consider one or more of the following:  
-- Star the project to show your support.  
-- Code contributions are welcome! We need developers of all kinds, including:  
-  - General developers to improve functionality and stability.  
-  - Developers to enhance compatibility within Flatpak.  
-  - Developers for a possible **rework** of the tool (more details below).  
-- Wiki contributions:  
-  - Help add or modify wiki pages for specific issues or solutions.  
-  - Create new help pages based on recurring problems or community feedback.  
-  - For Wiki content of the **rework** (more details below).  
-- Answer issues:  
-  - Use existing help pages and resolved issues to assist others in the community.  
-- Financial support for the developers:  
-  - Support the original developer DaniAsh551 on:  
-    [Buymeacoffee](https://www.buymeacoffee.com/TIjUvF1),
-    [Patreon](https://www.patreon.com/daniash551),
-    [PayPal](https://www.paypal.com/donate/?hosted_button_id=D7Y43PT9HUEUY).
-  - Support the current developer Marvin1099 on:  
-    [Buymeacoffee](https://www.buymeacoffee.com/marvin1099),
-    [Patreon](https://www.patreon.com/marvin1099),
-    [Tipeeestream](https://www.tipeeestream.com/marvin1099/tip).
-  - Support the developer JohnHamwi on:  
-    [GitHub](https://github.com/JohnHamwi).  
+## Support & Contributions
 
-**For more suggestions and updates:**  
-- Check the [Wiki Suggestion Info](https://github.com/DeckCheatz/wemod-launcher/wiki/Suggestions).  
-- See the [Wiki Changelog](https://github.com/DeckCheatz/wemod-launcher/wiki/Changes).  
-- Explore the [Wiki Features Section](https://github.com/DeckCheatz/wemod-launcher/wiki/Features).  
-- You are also welcome to report your findings or suggestions by **[filing an Issue](https://github.com/DeckCheatz/wemod-launcher/issues)**!  
+If this tool helps you, please consider one or more of the following:
 
-## Potential Rework
-We’re considering a **complete rework** of the WeMod Launcher to improve performance, compatibility, and user experience.  
+* **Star the project** to show support and visibility.  
+* **Code contributions are welcome!**  
+  We are actively looking for developers, especially to support and collaborate with the **rework effort** (see below).
+  * General developers to improve the current launcher.
+  * Developers to assist shymega’s modern rework in areas like GUI, Wine handling, config logic, and Python code structure.
+  * Flatpak compatibility improvements.
+  
+* **Wiki contributors**:
+  * Help document known issues and write new guides.
+  
+* **Answering issues**:
+  * Help others by referencing existing solutions or adding new ones.
+  
+* **Financial and regular support for developers**:
+  * Support Marvin1099 (current maintainer):  
+    [Buymeacoffee](https://www.buymeacoffee.com/marvin1099), [Patreon](https://www.patreon.com/marvin1099), [Tipeeestream](https://www.tipeeestream.com/marvin1099/tip)
+  * Support shymega (rework leader):  
+    [GitHub Sponsors](https://github.com/sponsors/shymega)
+  * Support DaniAsh551 (original creator):  
+    [Buymeacoffee](https://www.buymeacoffee.com/TIjUvF1), [Patreon](https://www.patreon.com/daniash551), [PayPal](https://www.paypal.com/donate/?hosted_button_id=D7Y43PT9HUEUY)
+  * Support JohnHamwi (contributor):  
+    [GitHub](https://github.com/JohnHamwi)
 
-This possible project would need:  
-- **Developers**: Mainly python developers for Struture, GUI, Wine, config management, and more.  
-- **Wiki writers**: To create and maintain documentation for the rework.  
-- **Community testers**: To test features and provide valuable feedback.  
+For more help or to contribute:
+* Suggest improvements via [GitHub Discussions](https://github.com/DeckCheatz/wemod-launcher/discussions)
+* See the [Wiki Suggestions](https://github.com/DeckCheatz/wemod-launcher/wiki/Suggestions) and [Changes](https://github.com/DeckCheatz/wemod-launcher/wiki/Changes)
+* Report / Help solve issues or bugs by [filing / answering an Issue](https://github.com/DeckCheatz/wemod-launcher/issues)
 
-Interested in contributing? Join the [discussion](https://github.com/DeckCheatz/wemod-launcher/discussions), [file an issue](https://github.com/DeckCheatz/wemod-launcher/issues), or reach out directly!  
+## Rework Project (Led by shymega)
+
+The project has a **rework**, initiated by **shymega**.
+This rework focuses on **modular design, better maintainability, improved UX, and modern code practices**.
+
+We are calling for contributors to assist with:
+* **Python developers**: Help refactor or implement core modules (GUI, Wine prefix handling, config, launch logic).
+* **Testers**: Provide feedback, test new code, and report issues across different distros and devices (especially Steam Deck).
+* **Wiki writers & documenters**: Help write guides and technical documentation for the rework.
+
+Want to get involved?
+* [Join the Discussion on GitHub](https://github.com/DeckCheatz/wemod-launcher/discussions)
+* [Track the Rework Progress](https://github.com/DeckCheatz/wemod-launcher/issues?q=is%3Aissue+label%3Arework)
+* Or reach out to shymega directly via GitHub.
 
 ## Quick Guide
 ![Alert](https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=20&quality=lossless) **This guide only includes the most relevant info and might not be enough to run WeMod;**  
