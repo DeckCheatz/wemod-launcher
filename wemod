@@ -237,39 +237,54 @@ def syncwemod(
     log(
         f"Syncing WeMod data from '{WeModExtenal}' to launcher dir '{WeModData}'"
     )
-    if not os.path.isdir(WeModData):
-        os.makedirs(WeModData)  # Make WeMod data folder if missing
-    if not os.path.isdir(WeModExtenal):
-        os.makedirs(WeModExtenal)
-    if os.path.isdir(WeModExtenal) and not os.path.islink(
-        WeModExtenal
-    ):  # If the external data exist
-        if (
-            len(os.listdir(WeModData)) > 0
-            and len(os.listdir(WeModExtenal)) > 0
-        ):  # If WeMod folder and external folder are not empty
-            # We ask what files to use
 
+    # Ensure the launcher dir exists
+    if not os.path.isdir(WeModData):
+        os.makedirs(WeModData)
+
+    # If WeModExtenal exists but is a broken symlink, or any non-dir — remove it
+    if os.path.lexists(WeModExtenal) and not os.path.isdir(WeModExtenal):
+        log("Removing broken or invalid WeModExtenal path")
+        try:
+            os.remove(WeModExtenal)
+        except Exception as e:
+            log(f"Failed to remove existing path: {e}")
+
+    # Create the external folder if it's still missing
+    if not os.path.exists(WeModExtenal):
+        os.makedirs(WeModExtenal)
+
+    # If WeModExtenal is a real directory (not a symlink)
+    if os.path.isdir(WeModExtenal) and not os.path.islink(WeModExtenal):
+        wemod_data_not_empty = len(os.listdir(WeModData)) > 0
+        external_data_not_empty = len(os.listdir(WeModExtenal)) > 0
+
+        if wemod_data_not_empty and external_data_not_empty:
             response = show_message(
-                f"Warning: WeMod might have been installed previously.\nUse WeMod Launcher dir account (Yes) or\nUse WeMod prefix/game dir account (No)",
+                "Warning: WeMod might have been installed previously.\n"
+                "Use WeMod Launcher dir account (Yes) or\n"
+                "Use WeMod prefix/game dir account (No)",
                 title="Multiple accounts found",
                 yesno=True,
             )
-        if (response == "No" or len(os.listdir(WeModData)) == 0) and len(
-            os.listdir(WeModExtenal)
-        ) > 0:
+
+        # Overwrite launcher dir if user said No, or if it's empty
+        if (
+            not wemod_data_not_empty or response == "No"
+        ) and external_data_not_empty:
             log("The local WeMod data was requested to be overwritten")
             shutil.rmtree(WeModData)
-            shutil.copytree(
-                WeModExtenal, WeModData
-            )  # We copy from game if the user selects or if data is empty
-        shutil.rmtree(WeModExtenal)  # Remove WeMod data from game
-    if not os.path.isdir(WeModExtenal) and not os.path.islink(WeModExtenal):
-        os.symlink(
-            WeModData, WeModExtenal
-        )  # And symlink the data from the WeMod Launcher
+            shutil.copytree(WeModExtenal, WeModData)
+
+        # Now that we’ve synced, remove the external folder
+        shutil.rmtree(WeModExtenal)
+
+    # Now create the symlink if nothing is there
+    if not os.path.exists(WeModExtenal):
+        os.symlink(WeModData, WeModExtenal)
         log("Linked WeMod data to game prefix")
 
+    # Ensure main setup is done
     if not os.path.exists(
         os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
     ):
