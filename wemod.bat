@@ -27,6 +27,12 @@ start "" %wemodpath%
 
 echo Cheking for running WeMod pid
 set wemodPID=
+
+set retry_count=0
+:retry_pid
+set wemodPID=
+set retry_count=%retry_count%+1
+
 REM Get the wemod pid over Proton
 for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%" 2>NUL') do (
     set void=%%a
@@ -49,6 +55,16 @@ REM On fail try once more to get wemod pid over wine
 if not defined wemodPID (
     for /F "TOKENS=2 delims=," %%d in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%" 2>NUL') do (
         set wemodPID=%%d
+    )
+)
+
+if not defined wemodPID (
+    if %retry_count% leq 3 (
+        echo Attempting to find WeMod PID (attempt %retry_count% of 3)...
+        @ping localhost -n 1 > NUL 2>&1  REM Wait 1 second before retrying
+        goto :retry_pid
+    ) else (
+        echo Failed to find WeMod PID after multiple attempts. Continuing anyway.
     )
 )
 
