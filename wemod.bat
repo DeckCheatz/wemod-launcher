@@ -25,9 +25,7 @@ REM Start WeMod.exe and get its PID
 echo Starting WeMod by using %wemodname%.
 start "" %wemodpath%
 
-echo Cheking for running WeMod pid
-set wemodPID=
-
+echo Checking for running WeMod pid
 set retry_count=0
 :retry_pid
 set wemodPID=
