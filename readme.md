@@ -52,7 +52,7 @@ We are calling for contributors to assist with:
 
 Want to get involved?
 * [Join the Discussion on GitHub](https://github.com/DeckCheatz/wemod-launcher/discussions)
-* [Track the Rework Progress](https://github.com/DeckCheatz/wemod-launcher/issues?q=is%3Aissue+label%3Arework)
+* [Track the Rework Progress](https://github.com/DeckCheatz/wemod-launcher/pull/180))
 * Or reach out to shymega directly via GitHub.
 
 ## Quick Guide
@@ -62,39 +62,39 @@ in which case, check out the [Full Guide](https://github.com/DeckCheatz/wemod-la
 - **Optional:** If you have access to another PC and wish to control the Steam Deck remotely,  
 consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest)** for easier setup (the `.flatpak` is easiest).
 
-- **Info:** The Proposal to change the License of the wemod launcher from MIT to AGLP3  
-  was accepted by contributions and voters [(info here)](https://github.com/DeckCheatz/wemod-launcher/discussions/131) 
-  and was integrated into the project on 1st December 2024.
+- **Info:** [License Change](https://github.com/DeckCheatz/wemod-launcher/discussions/131)
 
-1. Python `virtualenv` (or `venv`) and `Tk` need to be installed.  
-	`venv` should already be integrated in your `python3` installation.
+- **Info:** Games no longer seem to be detected by **Wemod**. If anyone has info on how **Wemod** finds games please make a new issue. If you have no idea please **don't** make a bug report. We cant fix this if we don't know how. You will have to add the game manualy right now.
+
+1. Python `python-venv` (or `python3-venv` or `venv` or `virtualenv`; use first one found)  
+   and `Tk` need to be installed.  
 	Tk / Tkinter may be under a different name in your distribution's repos.  
 	If none of the below options work (or your distro is missing), search on the internet for `install Tkinter for YOURDISTRO`.
 	- Ubuntu/Debian: `sudo apt install python3-tk`
 	- Arch Linux: `sudo pacman -S tk`.
 	- Fedora: `sudo dnf install python3-tkinter`
-2. Install GE-Proton, which is necessary to run the game and WeMod with. Using Valve's own Proton seems to work, but using GE-Proton is recommended:  
+3. Install GE-Proton, which is necessary to run the game and WeMod with. Using Valve's own Proton seems to work, but using GE-Proton is recommended:  
 	1. Search for and install `ProtonUp-QT` via your distro's software center. If using Flatpak, command is: `flatpak install net.davidotek.pupgui2`.
 	2. Download the latest GE-Proton in `ProtonUp-QT`  
-3. Restart Steam/SteamOS.
-4. In a terminal session (Konsole if using KDE Plasma):
+4. Restart Steam/SteamOS.
+5. In a terminal session (Konsole if using KDE Plasma):
 	1. Change directory to a location of your choosing, then run `git clone https://github.com/DeckCheatz/wemod-launcher`.  
 	Make note of the directory obtained with `readlink -f wemod-launcher` (which will be labeled `{path/to/wemod-launcher}` for the rest of this guide).
 	2. Run `chmod -R ug+x wemod-launcher`.  
 	**NOTE:** To use this tool with the Flatpak version of Steam (not recomended), continue [here](https://github.com/DeckCheatz/wemod-launcher/wiki/Steam-Flatpak-Usage).
-5. In your Steam Library, open the game settings with which to run WeMod with. Make sure you ran the game once before doing this!
+6. In your Steam Library, open the game settings with which to run WeMod with. Make sure you ran the game once before doing this!
 	1. In the `Compatibility` tab, change the Proton version to the one picked in Step 2, or otherwise to the latest numbered Proton (e.g. Proton-9.0).
 	2. Under `Launch Options`, input `{path/to/wemod-launcher}/wemod %command%`.
-6. Start the game.
-7. Select "no" to the "copy prefix question" if it appears and says `might work`.  
+7. Start the game.
+8. Select "no" to the "copy prefix question" if it appears and says `might work`.  
    If it mentions `likely works` (or better) go to step 9 (accept all).
-8. Select download.
-9. Select Yes/Ok until no more windows appear.  
+9. Select download.
+10. Select Yes/Ok until no more windows appear.  
     All rundll32.exe errors can safely be ignored (by clicking `no`).  
 	WeMod should start with the game.
-10. (Only done once): Login to your WeMod account.
-11. Select the game you're running from the library, then click the Play to start the WeMod engine.   
-12. You may now set or switch mods. Closing the WeMod window will keep it running in the background.
+11. (Only done once): Login to your WeMod account.
+12. Select the game you're running from the library, then click the Play to start the WeMod engine.   
+13. You may now set or switch mods. Closing the WeMod window will keep it running in the background.
 
 wemod-launcher will automatically update if you installed it using step 5.  
 **But**: This will only work if you have [launcher version 1.092 or older](https://github.com/DeckCheatz/wemod-launcher/wiki/The-Self-Update).
