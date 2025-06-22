@@ -32,38 +32,35 @@ set wemodPID=
 set /a retry_count+=1
 
 REM Get the wemod pid over Proton
-for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%" 2>NUL') do (
-    set void=%%a
-    set wemodPID=%%b
-)
-REM On fail try once more to get the wemod pid over Proton
 if not defined wemodPID (
-    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%"') do (
+    for /F "TOKENS=1,2,*" %%a in ('tasklist /FI "IMAGENAME eq %wemodname%"') do (
         set void=%%a
         set wemodPID=%%b
     )
 )
 REM If still not set get wemod pid over wine
 if not defined wemodPID (
-    for /F "TOKENS=2 delims=," %%d in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%" 2>NUL') do (
+    for /F "TOKENS=2 delims=," %%d in ('tasklist /FI "IMAGENAME eq %wemodname%"') do (
         set wemodPID=%%d
     )
 )
-REM On fail try once more to get wemod pid over wine
-if not defined wemodPID (
-    for /F "TOKENS=2 delims=," %%d in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%"') do (
-        set wemodPID=%%d
-    )
+
+REM Addional attempt to get WeMod PID using tasklist
+for /f "skip=3 tokens=1,2,*" %%a in ('tasklist ^| findstr /I "%wemodname%"') do (
+    set wemodPID=%%b
 )
 
 if not defined wemodPID (
     echo Attempting to find WeMod PID (attempt %retry_count% of 3)...
     if %retry_count% leq 3 (
-        @ping localhost -n 1 > NUL
-        goto :retry_pid
+        @ping localhost -n 1 > NUL 2>&1
+        goto retry_pid
     )
     echo Failed to find WeMod PID after multiple attempts. Continuing anyway.
 )
+
+echo WeMod found with pid %wemodPID%
+echo.
 
 echo WeMod found with pid %wemodPID%
 echo.
