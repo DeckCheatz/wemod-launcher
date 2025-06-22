@@ -33,20 +33,20 @@ set /a retry_count+=1
 
 REM Get the wemod pid over Proton
 if not defined wemodPID (
-    for /F "TOKENS=1,2,*" %%a in ('tasklist /FI "IMAGENAME eq %wemodname%"') do (
+    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%"') do (
         set void=%%a
         set wemodPID=%%b
     )
 )
 REM If still not set get wemod pid over wine
 if not defined wemodPID (
-    for /F "TOKENS=2 delims=," %%d in ('tasklist /FI "IMAGENAME eq %wemodname%"') do (
+    for /F "TOKENS=2 delims=," %%d in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%"') do (
         set wemodPID=%%d
     )
 )
 
 REM Addional attempt to get WeMod PID using tasklist
-for /f "skip=3 tokens=1,2,*" %%a in ('tasklist ^| findstr /I "%wemodname%"') do (
+for /f "skip=3 tokens=1,2,*" %%a in ('C:/windows/system32/tasklist ^| findstr /I "%wemodname%"') do (
     set wemodPID=%%b
 )
 
