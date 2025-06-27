@@ -1,5 +1,5 @@
 name: Report Findings of the Launcher or components
-description: Share working or non-working setups and tips to help others
+description: Share Findings of the Wemod Launcher and/or their components
 title: '[REPORT]: The WeMod Launcher works with (fill in)'
 labels: ["report"]
 body:
@@ -35,7 +35,7 @@ body:
       placeholder: |
         * OS: [e.g. Arch Linux 2024.06.01]
         * Wine/Proton Version: [e.g. Proton GE 9.3]
-        * Launcher: [e.g. Lutris, Steam, Heroic]
+        * Launcher: [e.g. Lutris, Steam, Heroic, etc.]
         * Window Manager / Session: [e.g. KDE over Wayland, Gnome over X11]
         * GPU Vendor: [e.g. Nvidia, AMD, Intel]
         * Launcher running under: [e.g. System binaries (native), Flatpak (sandboxed), AppImage]
