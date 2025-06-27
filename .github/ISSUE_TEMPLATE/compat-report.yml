@@ -1,0 +1,66 @@
+name: Compatibility & Workaround Report
+description: Share working or non-working setups and tips to help others
+title: '[REPORT]: The WeMod Launcher works with (fill in)'
+labels: ["report"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary of Your Report
+      description: Briefly explain what worked or didn’t and in what setup.
+      placeholder: |
+        Example:
+        WeMod worked fine with GE-Proton 9.3 on Arch using Lutris.
+        But GE-Proton 9 and below its completely broken
+    validations:
+      required: true
+
+  - type: textarea
+    id: result-details
+    attributes:
+      label: Result / What Worked or Didn't
+      description: Detail what specifically worked or didn’t work. Include behaviors, stability, etc.
+      placeholder: |
+        - UI loaded but trainer did show up
+        - Games failed to be detected
+        - Worked flawlessly after runnig via kde x11
+    validations:
+      required: false
+
+  - type: textarea
+    id: system-setup
+    attributes:
+      label: System Setup
+      description: Provide information about your system and launcher configuration.
+      placeholder: |
+        * OS: [e.g. Arch Linux 2024.06.01]
+        * Wine/Proton Version: [e.g. Proton GE 9.3]
+        * Launcher: [e.g. Lutris, Steam, Heroic]
+        * Window Manager / Session: [e.g. KDE over Wayland, Gnome over X11]
+        * GPU Vendor: [e.g. Nvidia, AMD, Intel]
+        * Launcher running under: [e.g. System binaries (native), Flatpak (sandboxed), AppImage]
+    validations:
+      required: true
+
+  - type: textarea
+    id: workarounds
+    attributes:
+      label: Tips or Workarounds (if applicable)
+      description: |
+        Did you apply any environment variables, config tweaks, launch options, or scripts?
+        These can help other users replicate your setup.
+      placeholder: |
+        - Used `NO_EXE=True`
+        - Set config to `WeModLog = wemod.log`
+        - Custom Proton build or wine patch
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-notes
+    attributes:
+      label: Additional Notes
+      description: Any extra context, logs, or comments you’d like to include.
+      placeholder: Add anything else useful here.
+    validations:
+      required: false

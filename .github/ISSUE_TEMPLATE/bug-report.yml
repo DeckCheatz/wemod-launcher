@@ -66,8 +66,11 @@ body:
       description: Please provide system details for better debugging.
       placeholder: |
         * OS: [e.g. Arch Linux 2024.06.01]
-        * Wine/Proton Version: [e.g. GE-Proton 9.5]
-        * Launcher: [e.g. Steam, Lutris, Heroic, etc.]
+        * Wine/Proton Version: [e.g. Proton GE 9.3]
+        * Launcher: [e.g. Lutris, Steam, Heroic]
+        * Window Manager / Session: [e.g. KDE over Wayland, Gnome over X11]
+        * GPU Vendor: [e.g. Nvidia, AMD, Intel]
+        * Launcher running under: [e.g. System binaries (native), Flatpak (sandboxed), AppImage]
     validations:
       required: true
 

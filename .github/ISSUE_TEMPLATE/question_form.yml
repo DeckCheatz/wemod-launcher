@@ -18,9 +18,12 @@ body:
       label: Environment Details
       description: Provide details about your environment.
       placeholder: |
-        - Wine Version: [e.g. GE-Proton9.5]
-        - Script Version: [e.g. 1.477]
-        - OS: [e.g. Ubuntu, Arch 2024.xx.xx]
+        * OS: [e.g. Arch Linux 2024.06.01]
+        * Wine/Proton Version: [e.g. Proton GE 9.3]
+        * Launcher: [e.g. Lutris, Steam, Heroic]
+        * Window Manager / Session: [e.g. KDE over Wayland, Gnome over X11]
+        * GPU Vendor: [e.g. Nvidia, AMD, Intel]
+        * Launcher running under: [e.g. System binaries (native), Flatpak (sandboxed), AppImage]
     validations:
       required: true
 
