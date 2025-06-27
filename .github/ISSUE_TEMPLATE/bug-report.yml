@@ -1,13 +1,13 @@
 name: Bug report
 description: Create a bug report to help us improve
-title: '[BUG]: The WeMod launcher fails with error X'
+title: '[BUG]: The Wemod Launcher fails to (fill in)'
 labels: ["bug"]
 body:
   - type: textarea
     id: bug-description
     attributes:
       label: Describe the bug
-      description: A clear and concise description of what the bug is.
+      description: A clear and concise description of the issue you encountered.
       placeholder: I was trying to [...]
     validations:
       required: true
@@ -15,12 +15,12 @@ body:
   - type: textarea
     id: steps-to-reproduce
     attributes:
-      label: Steps to reproduce the behavior
-      description: Steps to reproduce the behavior
+      label: Steps to reproduce
+      description: List the exact steps to reproduce the issue.
       placeholder: |
-        1. Go to x
-        2. Press button y
-        3. Error comes up
+        1. Go to [...]
+        2. Press [...]
+        3. Observe the error [...]
     validations:
       required: true
 
@@ -28,30 +28,34 @@ body:
     id: expected-behavior
     attributes:
       label: Expected behavior
-      description: A clear and concise description of what you expected to happen.
+      description: What did you expect to happen instead?
       placeholder: I expected [...]
     validations:
       required: true
 
-
   - type: textarea
     id: any-logs
     attributes:
-      label: Logs
-      description: Any logfile or teminal error output
+      label: Logs or Terminal Output
+      description: |
+        Please provide logs to help us understand the issue.
+
+        - Preferred: Upload your `wemod.log` file.
+        - If unavailable:
+          - If using **Steam**, provide the terminal output from the `steam` command.
+          - If using **Lutris** or another launcher, provide that launcher's output.
       placeholder: |
-        Drag wemod.log on here, 
-        if missing use the teminal output of the 'steam' command.
+        - Drag and drop `wemod.log` here.
+        - If not available, paste the terminal output (e.g., from Steam or Lutris).
     validations:
       required: true
-      
 
   - type: textarea
     id: screenshots
     attributes:
       label: Screenshots
-      description: If applicable, add screenshots to help explain your problem.
-      placeholder: Drag screenshots in here if applicable
+      description: If applicable, add screenshots to help explain your issue.
+      placeholder: Drag and drop screenshots here.
     validations:
       required: false
 
@@ -59,10 +63,11 @@ body:
     id: system-information
     attributes:
       label: System Information
-      description: Plese provide more information about your system
+      description: Please provide system details for better debugging.
       placeholder: |
-         * OS: [e.g. Ubuntu 20.04, Arch 2022.02.01]
-         * Wine Version: [eg. GE-Proton9.5]
+        * OS: [e.g. Arch Linux 2024.06.01]
+        * Wine/Proton Version: [e.g. GE-Proton 9.5]
+        * Launcher: [e.g. Steam, Lutris, Heroic, etc.]
     validations:
       required: true
 
@@ -70,7 +75,7 @@ body:
     id: additional-context
     attributes:
       label: Additional context
-      description: Any other relevant information about the problem.
-      placeholder: Add any other context about the problem here.
+      description: Include any other relevant details or configuration quirks.
+      placeholder: Add any extra context about the problem here.
     validations:
       required: false
