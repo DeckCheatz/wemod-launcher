@@ -103,6 +103,17 @@ wemod-launcher will automatically update if you installed it using step 5.
 **Like**: Check how to [Use External Launchers](https://github.com/DeckCheatz/wemod-launcher/wiki/Using-External-Launchers) (Use The WeMod Launcher outside of Steam)  
 **OR**: Check out how to [Edit The Config](https://github.com/DeckCheatz/wemod-launcher/wiki/Config-Usage)
 
+## Common Issues
+
+### Dot Net Error
+* If you see a .net error in Wemod that means your prefix is messed up.  
+* After you close the game the troubleshooter should come up (close ingame not from steam).
+1. There select "delete prefix" or something like that.  
+2. Rerun the game, and when it asks you to use a already installed prefix, with some version, say no.  
+3. Then click Download.  
+4. After you managed to find and click download, a tested prefix will be downloaded.  
+5. After that it should work.  
+
 ## ![Heart](https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=20&quality=lossless) Additional
 
 ![WeModApp](https://cdn.discordapp.com/emojis/761419274945953842.webp?size=20&quality=lossless) **Video Tutorial:** [WeMod-launcher Setup Tutorial by Marvin1099](https://youtu.be/5UlVCZvIl1E)  
