@@ -1,5 +1,5 @@
 import re
-from pathlib import PureWindowsPath, PurePosixPath
+from pathlib import PureWindowsPath, PurePosixPath, PurePath
 
 
 class WineUtils:
@@ -10,3 +10,11 @@ class WineUtils:
             return PureWindowsPath(path)
 
         return PurePosixPath(path)
+
+    @staticmethod
+    def is_windows_path(path: PurePath) -> bool:
+        return isinstance(path, PureWindowsPath)
+
+    @staticmethod
+    def is_posix_path(path: PurePath) -> bool:
+        return isinstance(path, PurePosixPath)
