@@ -1,11 +1,17 @@
 from xdg.BaseDirectory import save_cache_path
-import FreeSimpleGUI as sg
 import requests
 import os
 import threading
 from pathlib import Path
 import signal
-import json # To store timestamp information
+import json
+import sys
+from PyQt6.QtWidgets import (
+    QApplication, QDialog, QVBoxLayout, QHBoxLayout, 
+    QLabel, QPushButton, QProgressBar, QMessageBox
+)
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
+from PyQt6.QtGui import QCloseEvent
 
 # Assuming utils.logger is available and correctly configured
 from ..utils.logger import LoggingHandler
@@ -28,11 +34,6 @@ class DownloadPopupGfx(object):
             self.__filename.parent.mkdir(parents=True, exist_ok=True)
 
         self.__logger.debug("DownloadPopupGfx initialized")
-        self.__download_thread = None
-        self.__cancel_event = threading.Event()
-        self.__status_message = ""
-        # New: Use a more robust system for outcome
-        self.__download_outcome = None # Can be 'success', 'cancelled', 'failed'
 
     def __get_cached_timestamp(self) -> str | None:
         """Reads the cached Last-Modified timestamp."""
@@ -51,202 +52,254 @@ class DownloadPopupGfx(object):
         with open(self.__timestamp_file, "w") as f:
             json.dump({"last_modified": timestamp}, f)
 
-    def __download(self, window):
-        self.__logger.debug("Starting download...")
-        window.write_event_value("-STATUS_UPDATE-", "Starting download...")
-        window.write_event_value("-SET_BUTTON_STATE-", {"retry_visible": False, "cancel_enabled": True})
-        
+    def run(self) -> Path | str:
+        """Display the download dialog and handle the download process."""
         try:
-            headers = {}
-            local_timestamp = self.__get_cached_timestamp()
-
-            if self.__filename.exists() and local_timestamp:
-                # Check if the local file's timestamp matches the remote's
-                head_response = requests.head(self.__dl_uri, allow_redirects=True)
-                head_response.raise_for_status()
-                remote_timestamp = head_response.headers.get("Last-Modified")
+            # Create QApplication if it doesn't exist
+            app = QApplication.instance()
+            if app is None:
+                self.__logger.debug("Creating new QApplication instance")
+                app = QApplication(sys.argv)
                 
-                if remote_timestamp == local_timestamp:
-                    self.__logger.info("File already up-to-date. Skipping download.")
-                    window.write_event_value("-PROGRESS-", 100)
-                    window.write_event_value("-DOWNLOAD COMPLETE-", f"File '{self.__filename.name}' is already up-to-date!")
-                    self.__download_outcome = 'success' # Mark outcome
-                    return
-                else:
-                    self.__logger.info("Remote file is newer, re-downloading.")
+                # Set application properties
+                app.setApplicationName("WeMod Launcher")
+                app.setApplicationVersion("1.503")
+                
+            # Check if we have a valid display
+            if not app.primaryScreen():
+                self.__logger.error("No display/screen available for Qt application")
+                return "No display available - cannot show GUI"
+            
+            # Show dialog
+            self.__logger.debug("Creating download dialog")
+            dialog = DownloadDialog(self.__filename.name)
+            dialog.start_download(self)
+            
+            self.__logger.debug("Executing dialog")
+            result = dialog.exec()
+            
+            if result == QDialog.DialogCode.Accepted:
+                self.__logger.info(f"Download completed successfully: {self.__filename}")
+                return self.__filename
+            elif result == QDialog.DialogCode.Rejected:
+                self.__logger.info("Download was cancelled by user")
+                return "Download cancelled by user"
+            else:
+                self.__logger.warning("Download dialog closed with unknown result")
+                return "Download cancelled or failed"
+                
+        except Exception as e:
+            self.__logger.error(f"Error in Qt GUI: {e}")
+            return f"GUI Error: {e}"
 
+    def __download_with_signals(self, worker):
+        """Download method that emits signals for Qt worker thread."""
+        try:
+            worker.status_updated.emit("Checking for cached file...")
+            
+            # Check if file exists and get timestamp
+            local_timestamp = self.__get_cached_timestamp()
+            headers = {}
+            if local_timestamp:
+                headers["If-Modified-Since"] = local_timestamp
+
+            worker.status_updated.emit("Contacting server...")
+            response = requests.head(self.__dl_uri, headers=headers)
+
+            if response.status_code == 304:
+                # File hasn't changed
+                worker.status_updated.emit("File is up-to-date!")
+                worker.download_finished.emit(True, f"File '{self.__filename.name}' is already up-to-date!")
+                return
+
+            # Download the file
+            worker.status_updated.emit("Starting download...")
             response = requests.get(self.__dl_uri, stream=True, headers=headers)
-            response.raise_for_status()  # Raise an exception for bad status codes
+            response.raise_for_status()
 
             total_size = int(response.headers.get("content-length", 0))
-            remote_timestamp = response.headers.get("Last-Modified")
-            downloaded_size = 0
+            downloaded = 0
 
             with open(self.__filename, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
-                    if self.__cancel_event.is_set():
-                        # Signal the main thread that the download was cancelled
-                        window.write_event_value("-DOWNLOAD ERROR-", "Download cancelled by user.")
-                        self.__download_outcome = 'cancelled' # Mark outcome
-                        return # Exit the download thread
-                    f.write(chunk)
-                    downloaded_size += len(chunk)
-                    progress = (
-                        (downloaded_size / total_size) * 100
-                        if total_size > 0
-                        else 0
-                    )
-                    window.write_event_value("-PROGRESS-", progress)
-            
-            if remote_timestamp:
-                self.__save_cached_timestamp(remote_timestamp)
+                    if worker.cancelled:
+                        worker.status_updated.emit("Download cancelled")
+                        worker.download_finished.emit(False, "Download cancelled by user")
+                        return
+                    
+                    if chunk:
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                        
+                        if total_size > 0:
+                            progress = int((downloaded / total_size) * 100)
+                            worker.progress_updated.emit(progress)
+                            worker.status_updated.emit(f"Downloaded {downloaded:,} / {total_size:,} bytes")
 
-            window.write_event_value("-DOWNLOAD COMPLETE-", f"Download of {self.__filename.name} complete!")
-            self.__download_outcome = 'success' # Mark outcome
+            # Save timestamp
+            last_modified = response.headers.get("Last-Modified")
+            if last_modified:
+                self.__save_cached_timestamp(last_modified)
+
+            worker.status_updated.emit("Download completed!")
+            worker.download_finished.emit(True, "Download completed successfully!")
 
         except requests.exceptions.RequestException as e:
-            self.__logger.error(f"Download error: {e}")
-            window.write_event_value("-DOWNLOAD ERROR-", f"Download error: {e}")
-            self.__download_outcome = 'failed' # Mark outcome
+            worker.status_updated.emit(f"Network error: {e}")
+            worker.download_finished.emit(False, f"Network error: {e}")
         except Exception as e:
-            self.__logger.error(f"Error during download: {e}")
-            window.write_event_value("-DOWNLOAD ERROR-", f"Error: {e}")
-            self.__download_outcome = 'failed' # Mark outcome
-        finally:
-            window.write_event_value("-DOWNLOAD_FINISHED-", None) # Signal that the download thread has finished
+            worker.status_updated.emit(f"Error: {e}")
+            worker.download_finished.emit(False, f"Error: {e}")
 
-    def __signal_handler(self, sig, frame):
-        self.__logger.info("Ctrl-C detected. Attempting to cancel download.")
-        self.__cancel_event.set()
-        # The main loop will now handle the outcome and window closure.
-
-    def run(self) -> Path | str: # Type hint for the return value
-        # Register the signal handler for Ctrl-C
-        signal.signal(signal.SIGINT, self.__signal_handler)
-
-        layout = [
-            [sg.Text("Downloading asset:", size=(30, 1)), sg.Text(self.__filename.name, size=(30, 1), key="-FILENAME-")],
-            [sg.ProgressBar(100, orientation="h", size=(40, 20), key="-PROGRESS_BAR-")],
-            [sg.Text("Status:", size=(8, 1)), sg.Text("", size=(50, 1), key="-STATUS-")],
-            [sg.Button("Cancel", key="-CANCEL-", disabled=False), sg.Button("Retry", key="-RETRY-", disabled=True, visible=False)],
-        ]
-
-        # Use (None, None) for FreeSimpleGUI to attempt intelligent centering,
-        # which often corresponds to the primary/focused monitor in most setups.
-        window = sg.Window("Asset Downloader", layout, finalize=True, location=(None, None))
-
-        # Start download immediately
-        self.__download_outcome = None # Reset outcome for a new run
-        self.__cancel_event.clear()
-        self.__download_thread = threading.Thread(
-            target=self.__download,
-            args=(window,),
-            daemon=True,
-        )
-        self.__download_thread.start()
-
-        while True:
-            event, values = window.read()
-
-            if event == sg.WIN_CLOSED:
-                self.__cancel_event.set() # Signal cancellation to the thread
-                # Do NOT break immediately, let the thread finish signaling its outcome
-                pass # Continue loop to process final events from the thread
-            elif event == "-CANCEL-":
-                self.__cancel_event.set()
-                window["-STATUS-"].update("Cancelling download...")
-                window["-CANCEL-"].update(disabled=True)
-                window["-RETRY-"].update(disabled=True, visible=False)
-            elif event == "-RETRY-":
-                window["-PROGRESS_BAR-"].update(0)
-                window["-STATUS-"].update("Retrying download...")
-                window["-CANCEL-"].update(disabled=False)
-                window["-RETRY-"].update(disabled=True, visible=False)
-                self.__cancel_event.clear()
-                self.__download_thread = threading.Thread(
-                    target=self.__download,
-                    args=(window,),
-                    daemon=True,
-                )
-                self.__download_thread.start()
-            elif event == "-PROGRESS-":
-                progress = values[event]
-                window["-PROGRESS_BAR-"].update(progress)
-                window["-STATUS-"].update(f"Downloading: {progress:.2f}%")
-            elif event == "-STATUS_UPDATE-":
-                window["-STATUS-"].update(values[event])
-            elif event == "-SET_BUTTON_STATE-":
-                window["-RETRY-"].update(visible=values[event]["retry_visible"])
-                window["-CANCEL-"].update(disabled=not values[event]["cancel_enabled"])
-            elif event == "-DOWNLOAD COMPLETE-":
-                message = values[event]
-                window["-STATUS-"].update(message)
-                window["-CANCEL-"].update(disabled=True)
-                window["-RETRY-"].update(disabled=True, visible=False)
-                sg.popup_ok("Download Complete!", title="Success")
-                window.close() # Close window after success popup
-                break # Exit the event loop
-            elif event == "-DOWNLOAD ERROR-":
-                error_message = values[event]
-                window["-STATUS-"].update(error_message)
-                window["-CANCEL-"].update(disabled=True)
-                window["-RETRY-"].update(disabled=False, visible=True)
-                
-                if "cancelled by user" in error_message.lower():
-                    # No popup for explicit cancellation from thread, just update status
-                    pass # Outcome already set in __download
-                else:
-                    sg.popup_error("Download Failed", error_message)
-                
-                # We don't break here immediately, as we wait for -DOWNLOAD_FINISHED-
-                # which will trigger the final state and window close if applicable.
-                pass 
-            
-            elif event == "-DOWNLOAD_FINISHED-":
-                # This event is triggered by the download thread when it finishes (success, error, or internal cancel)
-                # Ensure buttons are in appropriate state
-                if self.__download_outcome == 'success':
-                    # Already handled by -DOWNLOAD COMPLETE- which closes the window
-                    pass
-                elif self.__download_outcome == 'cancelled':
-                    # Explicitly handle cancellation here
-                    sg.popup_ok("Download cancelled by user.", title="Cancelled")
-                    window.close() # Close window after cancel popup
-                    break # Exit the event loop
-                elif self.__download_outcome == 'failed':
-                    # An error occurred and was not explicitly cancelled by user from UI
-                    # If sg.popup_error was already shown, just ensure window closes.
-                    if not window.is_closed(): # Only close if not already closed by a previous popup (e.g. success)
-                        window.close()
-                    break # Exit the event loop as download is truly finished with a failure
-                else: # Fallback for unexpected states, or just general cleanup
-                    window["-CANCEL-"].update(disabled=True)
-                    window["-RETRY-"].update(disabled=True, visible=False)
-                    if not window.is_closed(): # Ensure window is closed if it wasn't by specific outcomes
-                        window.close()
-                    break # Exit the event loop if the download thread has truly finished its work and reported
+class DownloadWorker(QThread):
+    """Worker thread for downloading files with progress updates."""
+    
+    progress_updated = pyqtSignal(int)  # Progress percentage
+    status_updated = pyqtSignal(str)   # Status message
+    download_finished = pyqtSignal(bool, str)  # Success, message
+    
+    def __init__(self, download_popup, parent=None):
+        super().__init__(parent)
+        self.download_popup = download_popup
+        self.cancelled = False
         
-        # Clean up the thread
-        if self.__download_thread and self.__download_thread.is_alive():
-            self.__cancel_event.set()
-            self.__download_thread.join(timeout=2) # Give it time to react to cancellation
+    def cancel(self):
+        """Cancel the download."""
+        self.cancelled = True
+        
+    def run(self):
+        """Run the download in the background thread."""
+        try:
+            self.download_popup._DownloadPopupGfx__download_with_signals(self)
+        except Exception as e:
+            self.download_finished.emit(False, str(e))
 
-        # The window is already closed by this point if it reached success, failure, or explicit cancellation.
-        # This final check ensures it's closed in all scenarios, especially if WIN_CLOSED was the trigger
-        # and no other specific outcome event fully processed.
-        if window and not window.is_closed():
-             window.close()
 
-        # Determine the final return value based on the download outcome
-        if self.__download_outcome == 'success':
-            return self.__filename
-        elif self.__download_outcome == 'cancelled':
-            return "cancelled" # Explicit string for cancellation
-        elif self.__download_outcome == 'failed':
-            return "failed" # Explicit string for failure
+class DownloadDialog(QDialog):
+    """Qt-based download progress dialog."""
+    
+    def __init__(self, filename: str, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Asset Downloader")
+        self.setModal(True)
+        self.setFixedSize(500, 200)
+        
+        # Center the dialog on screen
+        self.move(
+            QApplication.primaryScreen().geometry().center() - self.rect().center()
+        )
+        
+        self.filename = filename
+        self.download_worker = None
+        self.setup_ui()
+        
+    def setup_ui(self):
+        """Set up the UI elements."""
+        layout = QVBoxLayout()
+        layout.setSpacing(15)
+        layout.setContentsMargins(20, 20, 20, 20)
+        
+        # Filename label
+        filename_layout = QHBoxLayout()
+        filename_layout.addWidget(QLabel("Downloading asset:"))
+        self.filename_label = QLabel(self.filename)
+        self.filename_label.setStyleSheet("font-weight: bold;")
+        filename_layout.addWidget(self.filename_label)
+        filename_layout.addStretch()
+        layout.addLayout(filename_layout)
+        
+        # Progress bar
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        layout.addWidget(self.progress_bar)
+        
+        # Status label
+        status_layout = QHBoxLayout()
+        status_layout.addWidget(QLabel("Status:"))
+        self.status_label = QLabel("")
+        status_layout.addWidget(self.status_label)
+        status_layout.addStretch()
+        layout.addLayout(status_layout)
+        
+        # Buttons
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+        
+        self.cancel_button = QPushButton("Cancel")
+        self.cancel_button.clicked.connect(self.cancel_download)
+        
+        self.retry_button = QPushButton("Retry")
+        self.retry_button.clicked.connect(self.retry_download)
+        self.retry_button.setVisible(False)
+        
+        button_layout.addWidget(self.cancel_button)
+        button_layout.addWidget(self.retry_button)
+        
+        layout.addLayout(button_layout)
+        self.setLayout(layout)
+        
+    def start_download(self, download_popup):
+        """Start the download process."""
+        self.download_worker = DownloadWorker(download_popup, self)
+        self.download_worker.progress_updated.connect(self.update_progress)
+        self.download_worker.status_updated.connect(self.update_status)
+        self.download_worker.download_finished.connect(self.download_completed)
+        self.download_worker.start()
+        
+    def update_progress(self, percentage):
+        """Update the progress bar."""
+        self.progress_bar.setValue(percentage)
+        
+    def update_status(self, message):
+        """Update the status label."""
+        self.status_label.setText(message)
+        
+    def cancel_download(self):
+        """Cancel the current download."""
+        if self.cancel_button.text() == "Close":
+            # Dialog is showing error state, just close it
+            self.reject()
+            return
+            
+        if self.download_worker and self.download_worker.isRunning():
+            self.download_worker.cancel()
+            self.update_status("Cancelling download...")
+            self.cancel_button.setEnabled(False)
+            
+            # Wait briefly for the worker to cancel, then close dialog
+            QTimer.singleShot(500, self.reject)  # Close dialog after 500ms
         else:
-            # Fallback for unexpected termination (e.g., window forcefully closed,
-            # or program exited before a clear outcome was set). Treat as failed or
-            # a general non-success state.
-            self.__logger.warning("Download process ended without a clear success, cancelled, or failed outcome.")
-            return "failed" # Default to 'failed' for ambiguous non-success states
+            # No download running, just close the dialog
+            self.reject()
+            
+    def retry_download(self):
+        """Retry the download."""
+        self.retry_button.setVisible(False)
+        self.cancel_button.setEnabled(True)
+        self.progress_bar.setValue(0)
+        # The download_popup will restart the download
+        
+    def download_completed(self, success, message):
+        """Handle download completion."""
+        if success:
+            self.update_status("Download completed successfully!")
+            QTimer.singleShot(1000, self.accept)  # Close after 1 second
+        else:
+            # Check if this was a user cancellation
+            if "cancelled" in message.lower():
+                self.update_status("Download cancelled by user")
+                QTimer.singleShot(500, self.reject)  # Close dialog with rejection
+            else:
+                # This was an error, show retry option
+                self.update_status(f"Download failed: {message}")
+                self.cancel_button.setText("Close")
+                self.cancel_button.setEnabled(True)
+                self.retry_button.setVisible(True)
+            
+    def closeEvent(self, event: QCloseEvent):
+        """Handle window close event."""
+        if self.download_worker and self.download_worker.isRunning():
+            self.cancel_download()
+            self.download_worker.wait(3000)  # Wait up to 3 seconds
+        event.accept()
