@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=WeMod Launcher
+GenericName=Game Cheat Launcher
+Comment=Tool to launch WeMod with games on Steam Deck/Linux
+Keywords=gaming;steam-deck;wine;cheats;wemod;launcher;
+Exec=wemod-launcher
+Icon=org.deckcheatz.WemodLauncher
+StartupNotify=true
+NoDisplay=false
+Categories=Game;Utility;
+MimeType=application/x-wine-extension-msp;
+StartupWMClass=wemod-launcher

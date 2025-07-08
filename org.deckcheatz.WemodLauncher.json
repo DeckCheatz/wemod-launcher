@@ -1,0 +1,109 @@
+{
+  "app-id": "org.deckcheatz.WemodLauncher",
+  "runtime": "org.freedesktop.Platform",
+  "runtime-version": "24.08",
+  "sdk": "org.freedesktop.Sdk",
+  "command": "wemod-launcher",
+  "finish-args": [
+    "--share=ipc",
+    "--socket=x11",
+    "--socket=wayland",
+    "--device=dri",
+    "--share=network",
+    "--filesystem=home",
+    "--filesystem=/run/media",
+    "--filesystem=/media",
+    "--filesystem=/mnt",
+    "--filesystem=xdg-download",
+    "--env=QT_QPA_PLATFORM=wayland;x11",
+    "--talk-name=org.freedesktop.portal.Desktop",
+    "--talk-name=org.freedesktop.portal.FileChooser",
+    "--system-talk-name=org.freedesktop.login1",
+    "--system-talk-name=org.freedesktop.UPower"
+  ],
+  "modules": [
+    {
+      "name": "python3-requests",
+      "buildsystem": "simple",
+      "build-commands": [
+        "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"requests>=2.31.0\" --no-build-isolation"
+      ],
+      "sources": [
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/12/90/3c9ff0512038035f59d279fddeb79f5f1eccd8859f06d6163c58798b9d7/requests-2.32.3-py3-none-any.whl",
+          "sha256": "70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6"
+        },
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/63/09/c1bc53dab74b1816a00d8d030de5bf98f724c52c1635e07681d312f20be8/charset-normalizer-3.4.0.tar.gz",
+          "sha256": "223217c3d4f82c3ac5e29032b3f1c2eb0fb591b72161f86d93f5719079dae93e"
+        },
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/6d/54/12dc76448f74719d2520e7cd74e8f85b3eff71e1364d7d8d64b44af62e1f/urllib3-2.2.3-py3-none-any.whl",
+          "sha256": "ca899ca043dcb1bafa3e262d73aa25c465bfb49e0bd9dd5d59f1d0acba2f8fac"
+        },
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/de/ca/e5dbc4b4c87ac3a1c27e5bd7f8b3a2ac1c6dfe20c55cd82fb43bb9f22658/certifi-2024.8.30-py3-none-any.whl",
+          "sha256": "922820b53db7a7257ffbda3f597266d435245903d80737e34f8a45ff3e3230d8"
+        },
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/22/7e/d71db821f177828df9dea8c42ac46473366f191be53080e552e628aad37a2/idna-3.10-py3-none-any.whl",
+          "sha256": "946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3"
+        }
+      ]
+    },
+    {
+      "name": "python3-pyxdg",
+      "buildsystem": "simple",
+      "build-commands": [
+        "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"pyxdg>=0.28\" --no-build-isolation"
+      ],
+      "sources": [
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/b0/25/7998cd2dec731acbd438fbf91bc619603fc5188de0a9a17699a781840c2c8/pyxdg-0.28-py2.py3-none-any.whl",
+          "sha256": "bdaf595999a0178ecea4052b7f4195569c1ff4d344567bccdc12dfdf02d545ab"
+        }
+      ]
+    },
+    {
+      "name": "python3-click",
+      "buildsystem": "simple",
+      "build-commands": [
+        "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"click>=8.0.0\" --no-build-isolation"
+      ],
+      "sources": [
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/00/2e/d53fa4befbf2cfa713304affc7ca780ce4fc1fd8710527771b58311a3229/click-8.1.7-py3-none-any.whl",
+          "sha256": "ae74fb96c20a0277a1d615f1e4d73c8414f5a98db8b799a7931d1582f3390c28"
+        }
+      ]
+    },
+    {
+      "name": "wemod-launcher",
+      "buildsystem": "simple",
+      "build-commands": [
+        "python3 setup.py install --prefix=${FLATPAK_DEST}"
+      ],
+      "sources": [
+        {
+          "type": "git",
+          "url": "https://github.com/DeckCheatz/wemod-launcher.git",
+          "branch": "main"
+        }
+      ]
+    }
+  ],
+  "cleanup": [
+    "/include",
+    "/lib/pkgconfig",
+    "/share/man",
+    "*.la",
+    "*.a"
+  ]
+}
