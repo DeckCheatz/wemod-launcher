@@ -7,23 +7,23 @@ import stat
 import shutil
 import subprocess
 
-from coreutils import (
+from wemod_launcher.core_utils import (
     log,
     pip,
     exit_with_message,
 )
 
-from corenodep import (
+from wemod_launcher.core_nodeps import (
     load_conf_setting,
     save_conf_setting,
     check_dependencies,
 )
 
-from coreutils import (
+from wemod_launcher.core_utils import (
     show_message,
 )
 
-from mainutils import (
+from wemod_launcher.main_utils import (
     download_progress,
     is_flatpak,
 )
@@ -190,7 +190,7 @@ def tk_check() -> None:
 
 def venv_manager() -> List[Optional[str]]:
     requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
-    tk_check()
+    #    tk_check()
     if not check_dependencies(requirements_txt):
         pip_install = f"install -r '{requirements_txt}'"
         return_code = pip(pip_install)
@@ -332,9 +332,8 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
     return path
 
 
-def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
-    flatpak_start = []
-    if is_flatpak() and not os.getenv("FROM_FLATPAK"):
+def check_flatpak():
+    if "FLATPAK_ID" in os.environ or os.path.exists("/.flatpak-info"):
         flatpak_start = [
             "flatpak-spawn",
             "--host",

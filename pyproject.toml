@@ -1,0 +1,133 @@
+[project]
+name = "wemod-launcher"
+version = "1.503"
+description = "Tool made to launch the popular Game Trainer / Cheat tool WeMod along with your game (made for steam-runtime version in Linux)."
+authors = [
+    {name = "The DeckCheatz Team", email = "deckcheatz@noreply.github.com"},
+]
+dependencies = [
+    "requests>=2.31.0",
+    "pyxdg>=0.28",
+    "setuptools>=75.1.0.post0",
+    "click>=8.0.0",
+]
+requires-python = ">=3.11"
+readme = "README.md"
+license = {text = "MIT"}
+keywords = ["gaming", "steam-deck", "wine", "cheats", "wemod", "launcher"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Games/Entertainment",
+    "Topic :: System :: Emulators",
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm.scripts]
+# Development scripts
+dev-install = "pip install -e .[dev,qt,build]"
+test = "pytest tests/"
+lint = "flake8 src/"
+format = "black src/ tests/"
+type-check = "mypy src/"
+
+# Build scripts  
+build-qt = "pyinstaller wemod-launcher.spec"
+package-exe = {call = "wemod_launcher.pyinstaller:install"}
+clean = "rm -rf build/ dist/ *.egg-info/"
+
+# Combined workflows
+check = {composite = ["format", "lint", "type-check", "test"]}
+build-all = {composite = ["clean", "build-qt"]}
+
+[project.scripts]
+wemod-launcher = "wemod_launcher.cli:main"
+
+[tool.pdm]
+distribution = true
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=22.0.0",
+    "flake8>=4.0.0",
+    "mypy>=0.950",
+]
+build = [
+    "pyinstaller>=5.0.0",
+    "setuptools>=75.1.0.post0",
+]
+qt = [
+    "PyQt6>=6.4.0,<6.10.0",
+    "PyQt6-Qt6>=6.4.0,<6.10.0",  
+    "PyQt6-sip>=13.4.0,<14.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/DeckCheatz/wemod-launcher"
+Repository = "https://github.com/DeckCheatz/wemod-launcher.git"
+Issues = "https://github.com/DeckCheatz/wemod-launcher/issues"
+Documentation = "https://github.com/DeckCheatz/wemod-launcher/blob/main/README.md"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+    __pycache__
+    | \.git
+    | \.mypy_cache
+    | \.pytest_cache
+    | \.venv
+    | wemod_venv
+    | build
+    | dist
+)/
+'''
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers"
+testpaths = [
+    "tests",
+]
+pythonpath = [
+    "src",
+]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info",
+    ".venv",
+    "wemod_venv",
+]
