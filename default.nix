@@ -1,6 +1,6 @@
-# SPDX-FileCopyrightText: 2024 The DeckCheatz Developers
+# SPDX-FileCopyrightText: 2024-2025 The DeckCheatz Developers
 #
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 (
   import
   (
