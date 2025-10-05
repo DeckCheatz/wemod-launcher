@@ -44,9 +44,7 @@ def check_dependencies(requirements_file: str) -> bool:
 
 
 # Read a setting of the config file
-def load_conf_setting(
-    setting: str, section: str = DEF_SECTION
-) -> Optional[str]:
+def load_conf_setting(setting: str, section: str = DEF_SECTION) -> Optional[str]:
     if section in CONFIG and setting in CONFIG[section]:
         return CONFIG[section][setting]
     return None
@@ -133,9 +131,7 @@ def winpath(path: str, dobble: bool = True, addfront: str = "Z:") -> str:
         return addfront + path.replace(os.sep, "\\")
 
 
-def split_list_by_delimiter(
-    input_list: List[str], delimiter: str
-) -> List[List[str]]:
+def split_list_by_delimiter(input_list: List[str], delimiter: str) -> List[List[str]]:
     result = []
     current_sublist = []
     for item in input_list:
