@@ -5,9 +5,7 @@ from pathlib import Path
 
 class Consts:
     CFG = Configuration()
-    SCRIPT_RUNTIME_DIR: Path = Path(
-        os.path.dirname(os.path.realpath(__file__))
-    )
+    SCRIPT_RUNTIME_DIR: Path = Path(os.path.dirname(os.path.realpath(__file__)))
     SCRIPT_PATH: Path = Path(os.path.realpath(__file__))
     STEAM_COMPAT_DATA_DIR: Path = Path(
         os.getenv(

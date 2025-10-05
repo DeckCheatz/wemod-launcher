@@ -17,8 +17,7 @@ class LoggingHandler(object):
             print("This IS a bug, contact upstream devs.")
         try:
             if (
-                getenv("WEMOD_LAUNCHER_DEV_MODE", "false").lower()
-                in ("true", "1", "t")
+                getenv("WEMOD_LAUNCHER_DEV_MODE", "false").lower() in ("true", "1", "t")
                 and level == 0
             ):
                 level = logging.DEBUG

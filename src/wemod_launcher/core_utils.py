@@ -119,9 +119,7 @@ def exit_with_message(
     ask_for_log: bool = False,
 ) -> None:
     if ask_for_log:
-        exit_message += (
-            "\nDo you want to open the log for more info on the exit error?"
-        )
+        exit_message += "\nDo you want to open the log for more info on the exit error?"
     ret = show_message(
         exit_message,
         title,
@@ -153,9 +151,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
         venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))
     pos_pip = None
     if venv_path:
-        python_executable = os.path.join(
-            venv_path, os.path.basename(sys.executable)
-        )
+        python_executable = os.path.join(venv_path, os.path.basename(sys.executable))
         pos_pip = os.path.join(venv_path, "bin", "pip")
         if not os.path.isfile(pos_pip):
             pos_pip = None
@@ -269,9 +265,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
     return process.returncode
 
 
-def monitor_file(
-    ttfile: str, tout: int, responsefile: str, bout: Optional[int] = 60
-):
+def monitor_file(ttfile: str, tout: int, responsefile: str, bout: Optional[int] = 60):
     import time
 
     cout = os.getenv("WAIT_ON_GAMECLOSE")
@@ -333,9 +327,7 @@ def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
 
 
 # Function to handle caching of files
-def cache(
-    file_path: str, default: Callable[[str], None], simple: bool = False
-) -> str:
+def cache(file_path: str, default: Callable[[str], None], simple: bool = False) -> str:
     CACHE = "/tmp/wemod-launcher/.cache"
     if not os.path.isdir(CACHE):
         log("Cache dir not found. Creating...")
@@ -365,9 +357,7 @@ def popup_options(
     import FreeSimpleGUI as sg
 
     # Define the layout based on provided options
-    buttons_layout = [
-        [sg.Button(option) for option in row] for row in options
-    ]
+    buttons_layout = [[sg.Button(option) for option in row] for row in options]
     layout = [[sg.Text(message)]] + buttons_layout
 
     close = True
@@ -455,17 +445,13 @@ def script_manager() -> None:
     if last_version:
         try:
             if float(last_version) < float(script_version):
-                log(
-                    f"Config on version {last_version} updating to {script_version}"
-                )
+                log(f"Config on version {last_version} updating to {script_version}")
             elif float(last_version) > float(script_version):
                 log(
                     f"Warning: config on version {last_version}; downgrading to {script_version}"
                 )
         except Exception as e:
-            log(
-                f"Warning: config error '{e}'; changing version to {script_version}"
-            )
+            log(f"Warning: config error '{e}'; changing version to {script_version}")
     else:
         log("Adding script version to config")
 

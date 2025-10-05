@@ -34,8 +34,6 @@ class Configuration(object):
 
             return config
         except KeyError:
-            self.__log.debug(
-                "Unable to get configuration entry, returning None"
-            )
+            self.__log.debug("Unable to get configuration entry, returning None")
             self.__log.debug(f"Key: {keys}, config path: {self.__cfg_path}")
             return None

@@ -7,8 +7,14 @@ import signal
 import json
 import sys
 from PyQt6.QtWidgets import (
-    QApplication, QDialog, QVBoxLayout, QHBoxLayout, 
-    QLabel, QPushButton, QProgressBar, QMessageBox
+    QApplication,
+    QDialog,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QProgressBar,
+    QMessageBox,
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
 from PyQt6.QtGui import QCloseEvent
@@ -16,11 +22,14 @@ from PyQt6.QtGui import QCloseEvent
 # Assuming utils.logger is available and correctly configured
 from ..utils.logger import LoggingHandler
 
+
 class DownloadCancelledByUserException(Exception):
     """Custom exception raised when the user explicitly cancels the download process.
     This is primarily for internal thread communication, not for the run() method's final return.
     """
+
     pass
+
 
 class DownloadPopupGfx(object):
     def __init__(self, filename: str, dl_uri: str):
@@ -43,7 +52,9 @@ class DownloadPopupGfx(object):
                     data = json.load(f)
                     return data.get("last_modified")
             except json.JSONDecodeError:
-                self.__logger.warning(f"Could not decode JSON from {self.__timestamp_file}")
+                self.__logger.warning(
+                    f"Could not decode JSON from {self.__timestamp_file}"
+                )
                 return None
         return None
 
@@ -60,26 +71,28 @@ class DownloadPopupGfx(object):
             if app is None:
                 self.__logger.debug("Creating new QApplication instance")
                 app = QApplication(sys.argv)
-                
+
                 # Set application properties
                 app.setApplicationName("WeMod Launcher")
                 app.setApplicationVersion("1.503")
-                
+
             # Check if we have a valid display
             if not app.primaryScreen():
                 self.__logger.error("No display/screen available for Qt application")
                 return "No display available - cannot show GUI"
-            
+
             # Show dialog
             self.__logger.debug("Creating download dialog")
             dialog = DownloadDialog(self.__filename.name)
             dialog.start_download(self)
-            
+
             self.__logger.debug("Executing dialog")
             result = dialog.exec()
-            
+
             if result == QDialog.DialogCode.Accepted:
-                self.__logger.info(f"Download completed successfully: {self.__filename}")
+                self.__logger.info(
+                    f"Download completed successfully: {self.__filename}"
+                )
                 return self.__filename
             elif result == QDialog.DialogCode.Rejected:
                 self.__logger.info("Download was cancelled by user")
@@ -87,7 +100,7 @@ class DownloadPopupGfx(object):
             else:
                 self.__logger.warning("Download dialog closed with unknown result")
                 return "Download cancelled or failed"
-                
+
         except Exception as e:
             self.__logger.error(f"Error in Qt GUI: {e}")
             return f"GUI Error: {e}"
@@ -96,7 +109,7 @@ class DownloadPopupGfx(object):
         """Download method that emits signals for Qt worker thread."""
         try:
             worker.status_updated.emit("Checking for cached file...")
-            
+
             # Check if file exists and get timestamp
             local_timestamp = self.__get_cached_timestamp()
             headers = {}
@@ -109,7 +122,9 @@ class DownloadPopupGfx(object):
             if response.status_code == 304:
                 # File hasn't changed
                 worker.status_updated.emit("File is up-to-date!")
-                worker.download_finished.emit(True, f"File '{self.__filename.name}' is already up-to-date!")
+                worker.download_finished.emit(
+                    True, f"File '{self.__filename.name}' is already up-to-date!"
+                )
                 return
 
             # Download the file
@@ -124,17 +139,21 @@ class DownloadPopupGfx(object):
                 for chunk in response.iter_content(chunk_size=8192):
                     if worker.cancelled:
                         worker.status_updated.emit("Download cancelled")
-                        worker.download_finished.emit(False, "Download cancelled by user")
+                        worker.download_finished.emit(
+                            False, "Download cancelled by user"
+                        )
                         return
-                    
+
                     if chunk:
                         f.write(chunk)
                         downloaded += len(chunk)
-                        
+
                         if total_size > 0:
                             progress = int((downloaded / total_size) * 100)
                             worker.progress_updated.emit(progress)
-                            worker.status_updated.emit(f"Downloaded {downloaded:,} / {total_size:,} bytes")
+                            worker.status_updated.emit(
+                                f"Downloaded {downloaded:,} / {total_size:,} bytes"
+                            )
 
             # Save timestamp
             last_modified = response.headers.get("Last-Modified")
@@ -151,22 +170,23 @@ class DownloadPopupGfx(object):
             worker.status_updated.emit(f"Error: {e}")
             worker.download_finished.emit(False, f"Error: {e}")
 
+
 class DownloadWorker(QThread):
     """Worker thread for downloading files with progress updates."""
-    
+
     progress_updated = pyqtSignal(int)  # Progress percentage
-    status_updated = pyqtSignal(str)   # Status message
+    status_updated = pyqtSignal(str)  # Status message
     download_finished = pyqtSignal(bool, str)  # Success, message
-    
+
     def __init__(self, download_popup, parent=None):
         super().__init__(parent)
         self.download_popup = download_popup
         self.cancelled = False
-        
+
     def cancel(self):
         """Cancel the download."""
         self.cancelled = True
-        
+
     def run(self):
         """Run the download in the background thread."""
         try:
@@ -177,28 +197,28 @@ class DownloadWorker(QThread):
 
 class DownloadDialog(QDialog):
     """Qt-based download progress dialog."""
-    
+
     def __init__(self, filename: str, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Asset Downloader")
         self.setModal(True)
         self.setFixedSize(500, 200)
-        
+
         # Center the dialog on screen
         self.move(
             QApplication.primaryScreen().geometry().center() - self.rect().center()
         )
-        
+
         self.filename = filename
         self.download_worker = None
         self.setup_ui()
-        
+
     def setup_ui(self):
         """Set up the UI elements."""
         layout = QVBoxLayout()
         layout.setSpacing(15)
         layout.setContentsMargins(20, 20, 20, 20)
-        
+
         # Filename label
         filename_layout = QHBoxLayout()
         filename_layout.addWidget(QLabel("Downloading asset:"))
@@ -207,13 +227,13 @@ class DownloadDialog(QDialog):
         filename_layout.addWidget(self.filename_label)
         filename_layout.addStretch()
         layout.addLayout(filename_layout)
-        
+
         # Progress bar
         self.progress_bar = QProgressBar()
         self.progress_bar.setRange(0, 100)
         self.progress_bar.setValue(0)
         layout.addWidget(self.progress_bar)
-        
+
         # Status label
         status_layout = QHBoxLayout()
         status_layout.addWidget(QLabel("Status:"))
@@ -221,24 +241,24 @@ class DownloadDialog(QDialog):
         status_layout.addWidget(self.status_label)
         status_layout.addStretch()
         layout.addLayout(status_layout)
-        
+
         # Buttons
         button_layout = QHBoxLayout()
         button_layout.addStretch()
-        
+
         self.cancel_button = QPushButton("Cancel")
         self.cancel_button.clicked.connect(self.cancel_download)
-        
+
         self.retry_button = QPushButton("Retry")
         self.retry_button.clicked.connect(self.retry_download)
         self.retry_button.setVisible(False)
-        
+
         button_layout.addWidget(self.cancel_button)
         button_layout.addWidget(self.retry_button)
-        
+
         layout.addLayout(button_layout)
         self.setLayout(layout)
-        
+
     def start_download(self, download_popup):
         """Start the download process."""
         self.download_worker = DownloadWorker(download_popup, self)
@@ -246,40 +266,40 @@ class DownloadDialog(QDialog):
         self.download_worker.status_updated.connect(self.update_status)
         self.download_worker.download_finished.connect(self.download_completed)
         self.download_worker.start()
-        
+
     def update_progress(self, percentage):
         """Update the progress bar."""
         self.progress_bar.setValue(percentage)
-        
+
     def update_status(self, message):
         """Update the status label."""
         self.status_label.setText(message)
-        
+
     def cancel_download(self):
         """Cancel the current download."""
         if self.cancel_button.text() == "Close":
             # Dialog is showing error state, just close it
             self.reject()
             return
-            
+
         if self.download_worker and self.download_worker.isRunning():
             self.download_worker.cancel()
             self.update_status("Cancelling download...")
             self.cancel_button.setEnabled(False)
-            
+
             # Wait briefly for the worker to cancel, then close dialog
             QTimer.singleShot(500, self.reject)  # Close dialog after 500ms
         else:
             # No download running, just close the dialog
             self.reject()
-            
+
     def retry_download(self):
         """Retry the download."""
         self.retry_button.setVisible(False)
         self.cancel_button.setEnabled(True)
         self.progress_bar.setValue(0)
         # The download_popup will restart the download
-        
+
     def download_completed(self, success, message):
         """Handle download completion."""
         if success:
@@ -296,7 +316,7 @@ class DownloadDialog(QDialog):
                 self.cancel_button.setText("Close")
                 self.cancel_button.setEnabled(True)
                 self.retry_button.setVisible(True)
-            
+
     def closeEvent(self, event: QCloseEvent):
         """Handle window close event."""
         if self.download_worker and self.download_worker.isRunning():
