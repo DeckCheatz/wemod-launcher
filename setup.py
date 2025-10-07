@@ -80,8 +80,9 @@ def download_wemod(temp_dir: str) -> str:
         status.append(total)
 
     setup_file = os.path.join(temp_dir, "wemod_setup.exe")
-    download_func = lambda: download_progress(
-        "https://api.wemod.com/client/download",
+
+    def download_func(): return download_progress(
+        get_wemod_exe_url(),
         setup_file,
         lambda dl, total: update_log(status, dl, total),
     )
@@ -107,6 +108,20 @@ def download_wemod(temp_dir: str) -> str:
 
     window.close()
     return setup_file
+
+
+def get_wemod_exe_url():
+    import requests
+    SCOOP_METADATA_URL = ("https://raw.githubusercontent.com/"
+                          "Calinou/scoop-games/refs/heads/master/bucket/"
+                          "wemod.json")
+    raw = requests.get(SCOOP_METADATA_URL).content
+
+    if not raw["architecture"]["64bit"]["url"]:
+        exit_with_message("Unable to find WeMod EXE URL from Scoop",
+                          "Please raise on GitHub!", timeout=120)
+
+    return raw["architecture"]["64bit"]["url"]
 
 
 def unpack_wemod(
