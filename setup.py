@@ -80,8 +80,9 @@ def download_wemod(temp_dir: str) -> str:
         status.append(total)
 
     setup_file = os.path.join(temp_dir, "wemod_setup.exe")
-    download_func = lambda: download_progress(
-        "https://api.wemod.com/client/download",
+
+    def download_func(): return download_progress(
+        get_wemod_exe_url(),
         setup_file,
         lambda dl, total: update_log(status, dl, total),
     )
@@ -109,6 +110,20 @@ def download_wemod(temp_dir: str) -> str:
     return setup_file
 
 
+def get_wemod_exe_url():
+    import requests
+    SCOOP_METADATA_URL = ("https://raw.githubusercontent.com/"
+                          "Calinou/scoop-games/refs/heads/master/bucket/"
+                          "wemod.json")
+    raw = requests.get(SCOOP_METADATA_URL).content
+
+    if not raw["architecture"]["64bit"]["url"]:
+        exit_with_message("Unable to find WeMod EXE URL from Scoop",
+                          "Please raise on GitHub!", timeout=120)
+
+    return raw["architecture"]["64bit"]["url"]
+
+
 def unpack_wemod(
     setup_file: str, temp_dir: str, install_location: str
 ) -> bool:
@@ -117,17 +132,6 @@ def unpack_wemod(
         import tempfile
 
         archive = zipfile.ZipFile(setup_file, mode="r")
-        names = archive.filelist
-
-        nupkg = list(
-            filter(lambda name: str(name.filename).endswith(".nupkg"), names)
-        )[0]
-        tmp_nupkgd = tempfile.mktemp(prefix="wemod-nupkg-")
-        archive.extract(nupkg, tmp_nupkgd)
-        tmp_nupkg = os.path.join(tmp_nupkgd, nupkg.filename)
-        archive.close()
-
-        archive = zipfile.ZipFile(tmp_nupkg, mode="r")
 
         net = list(
             filter(
@@ -141,8 +145,6 @@ def unpack_wemod(
 
         shutil.move(os.path.join(tmp_net, net[0].filename), install_location)
         shutil.rmtree(tmp_net, ignore_errors=True)
-        shutil.rmtree(tmp_nupkgd, ignore_errors=True)
-        shutil.rmtree(tmp_nupkg, ignore_errors=True)
         shutil.rmtree(temp_dir, ignore_errors=True)
 
         return True
