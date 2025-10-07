@@ -132,17 +132,6 @@ def unpack_wemod(
         import tempfile
 
         archive = zipfile.ZipFile(setup_file, mode="r")
-        names = archive.filelist
-
-        nupkg = list(
-            filter(lambda name: str(name.filename).endswith(".nupkg"), names)
-        )[0]
-        tmp_nupkgd = tempfile.mktemp(prefix="wemod-nupkg-")
-        archive.extract(nupkg, tmp_nupkgd)
-        tmp_nupkg = os.path.join(tmp_nupkgd, nupkg.filename)
-        archive.close()
-
-        archive = zipfile.ZipFile(tmp_nupkg, mode="r")
 
         net = list(
             filter(
@@ -156,8 +145,6 @@ def unpack_wemod(
 
         shutil.move(os.path.join(tmp_net, net[0].filename), install_location)
         shutil.rmtree(tmp_net, ignore_errors=True)
-        shutil.rmtree(tmp_nupkgd, ignore_errors=True)
-        shutil.rmtree(tmp_nupkg, ignore_errors=True)
         shutil.rmtree(temp_dir, ignore_errors=True)
 
         return True
