@@ -80,8 +80,9 @@ def download_wemod(temp_dir: str) -> str:
         status.append(total)
 
     setup_file = os.path.join(temp_dir, "wemod_setup.exe")
-    download_func = lambda: download_progress(
-        "https://api.wemod.com/client/download",
+
+    def download_func(): return download_progress(
+        "https://storage-cdn.wemod.com/app/releases/stable/WeMod-11.6.0.exe",
         setup_file,
         lambda dl, total: update_log(status, dl, total),
     )
