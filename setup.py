@@ -120,7 +120,7 @@ def get_wemod_exe_url():
         "Calinou/scoop-games/refs/heads/master/bucket/"
         "wemod.json"
     )
-    raw = requests.get(SCOOP_METADATA_URL).content
+    raw = requests.get(SCOOP_METADATA_URL).json()
 
     if not raw["architecture"]["64bit"]["url"]:
         exit_with_message(
