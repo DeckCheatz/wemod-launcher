@@ -23,7 +23,7 @@ SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
 
 
 def getbatcmd():
-    batf = os.path.join(SCRIPT_PATH, "wemod.bat")
+    batf = os.path.join(SCRIPT_PATH, "wand.bat")
     if not os.path.isfile(batf):
         try:
             repo_user = load_conf_setting("RepoUser")
@@ -34,7 +34,7 @@ def getbatcmd():
 
             repo_name = load_conf_setting("RepoName")
             if not repo_name:
-                repo_name = "wemod-launcher"
+                repo_name = "wand-launcher"
                 # save_conf_setting("RepoName", repo_name)
                 log("RepoName not set in config. Using: " + repo_name)
 
@@ -48,17 +48,15 @@ def getbatcmd():
 
             repo_concat = repo_user + "/" + repo_name
 
-            url = f"https://raw.githubusercontent.com/{repo_concat}/refs/heads/main/wemod.bat"
-            response = http_get(url)
-            with open(batf, "wb") as f:
-                f.write(response.content)
+            url = f"https://raw.githubusercontent.com/{repo_concat}/refs/heads/main/wand.bat"
+            urllib.request.urlretrieve(url, batf)
 
         except Exception as e:
             pass
         if not os.path.isfile(batf):
             exit_with_message(
                 "Missing bat",
-                "The 'wemod.bat' file is missing and could not be downloaded. Exiting",
+                "The 'wand.bat' file is missing and could not be downloaded. Exiting",
             )
 
     return ["start", winpath(batf)]
@@ -141,4 +139,4 @@ def get_scan_folder():
 SCAN_FOLDER = get_scan_folder()
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
-INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")
+INIT_FILE = os.path.join(WINEPREFIX, ".wand_installer")
