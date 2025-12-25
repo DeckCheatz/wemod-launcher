@@ -1,7 +1,7 @@
 [project]
-name = "wemod-launcher"
+name = "wand-launcher"
 version = "1.503"
-description = "Tool made to launch the popular Game Trainer / Cheat tool WeMod along with your game (made for steam-runtime version in Linux)."
+description = "Tool made to launch the popular Game Trainer / Cheat tool: Wand along with your game (made for steam-runtime version in Linux)."
 authors = [
     {name = "The DeckCheatz Team", email = "deckcheatz@noreply.github.com"},
 ]
@@ -14,7 +14,7 @@ dependencies = [
 requires-python = ">=3.11"
 readme = "README.md"
 license = {text = "MIT"}
-keywords = ["gaming", "steam-deck", "wine", "cheats", "wemod", "launcher"]
+keywords = ["gaming", "steam-deck", "wine", "cheats", "wand", "launcher"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: End Users/Desktop",
@@ -40,8 +40,8 @@ format = "black src/ tests/"
 type-check = "mypy src/"
 
 # Build scripts  
-build-qt = "pyinstaller wemod-launcher.spec"
-package-exe = {call = "wemod_launcher.pyinstaller:install"}
+build-qt = "pyinstaller wand-launcher.spec"
+package-exe = {call = "wand_launcher.pyinstaller:install"}
 clean = "rm -rf build/ dist/ *.egg-info/"
 
 # Combined workflows
@@ -49,7 +49,7 @@ check = {composite = ["format", "lint", "type-check", "test"]}
 build-all = {composite = ["clean", "build-qt"]}
 
 [project.scripts]
-wemod-launcher = "wemod_launcher.cli:main"
+wand-launcher = "wand_launcher.cli:main"
 
 [tool.pdm]
 distribution = true
@@ -72,10 +72,10 @@ qt = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/DeckCheatz/wemod-launcher"
-Repository = "https://github.com/DeckCheatz/wemod-launcher.git"
-Issues = "https://github.com/DeckCheatz/wemod-launcher/issues"
-Documentation = "https://github.com/DeckCheatz/wemod-launcher/blob/main/README.md"
+Homepage = "https://github.com/DeckCheatz/wand-launcher"
+Repository = "https://github.com/DeckCheatz/wand-launcher.git"
+Issues = "https://github.com/DeckCheatz/wand-launcher/issues"
+Documentation = "https://github.com/DeckCheatz/wand-launcher/blob/main/README.md"
 
 [tool.black]
 line-length = 88
@@ -88,7 +88,7 @@ extend-exclude = '''
     | \.mypy_cache
     | \.pytest_cache
     | \.venv
-    | wemod_venv
+    | wand_venv
     | build
     | dist
 )/
@@ -129,5 +129,5 @@ exclude = [
     "dist",
     "*.egg-info",
     ".venv",
-    "wemod_venv",
+    "wand_venv",
 ]
