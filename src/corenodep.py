@@ -17,7 +17,7 @@ from typing import (
     Union,
 )
 
-CONFIG_PATH = os.path.join(SCRIPT_PATH, "wemod.conf")
+CONFIG_PATH = os.path.join(SCRIPT_PATH, "wand.conf")
 DEF_SECTION = "Settings"
 CONFIG = configparser.ConfigParser()
 CONFIG.optionxform = str
