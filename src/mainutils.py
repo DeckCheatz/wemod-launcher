@@ -76,9 +76,7 @@ def find_closest_compatible_release(
                     # Exact match
                     closest_release = release
                     closest_version = release_version_parts
-                    closest_release_url = release["assets"][0][
-                        "browser_download_url"
-                    ]
+                    closest_release_url = release["assets"][0]["browser_download_url"]
                     break
                 elif (
                     release_version_parts[0] == current_version_parts[0]
@@ -125,8 +123,7 @@ def find_closest_compatible_release(
                             or release_version_parts[0] > closest_version[0]
                             or (
                                 release_version_parts[0] == closest_version[0]
-                                and release_version_parts[1]
-                                > closest_version[1]
+                                and release_version_parts[1] > closest_version[1]
                             )
                         )
                     ):
@@ -145,8 +142,7 @@ def find_closest_compatible_release(
                             or release_version_parts[0] < closest_version[0]
                             or (
                                 release_version_parts[0] == closest_version[0]
-                                and release_version_parts[1]
-                                < closest_version[1]
+                                and release_version_parts[1] < closest_version[1]
                             )
                         )
                     ):
@@ -300,9 +296,7 @@ def popup_download(title: str, link: str, file_name: str) -> str:
 def get_dotnet48() -> str:
     # Newer if you like to test: "https://download.visualstudio.microsoft.com/download/pr/2d6bb6b2-226a-4baa-bdec-798822606ff1/8494001c276a4b96804cde7829c04d7f/ndp48-x86-x64-allos-enu.exe"
     LINK = "https://download.visualstudio.microsoft.com/download/pr/7afca223-55d2-470a-8edc-6a1739ae3252/abd170b4b0ec15ad0222a809b761a036/ndp48-x86-x64-allos-enu."
-    cache_func = lambda FILE: popup_download(
-        "Downloading dotnet48", LINK, FILE
-    )
+    cache_func = lambda FILE: popup_download("Downloading dotnet48", LINK, FILE)
 
     dotnet48 = cache("ndp48-x86-x64-allos-enu.exe", cache_func)
     return dotnet48
@@ -446,9 +440,7 @@ def copy_folder_with_progress(
         files = traverse_folders(source)
         copy = []
         for f in files:
-            rfile = os.path.relpath(
-                f, source
-            )  # get file path relative to source
+            rfile = os.path.relpath(f, source)  # get file path relative to source
             use = True  # by default, use the file
 
             # Check if the file is in one of the dirs to ignore
@@ -533,7 +525,11 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
 
     # Track errors during extraction
     extraction_errors = []
-    critical_files = ["pfx/.wand_installer", "pfx/.wemod_installer", "version"]
+    critical_files = [
+        "pfx/.wemod_installer",
+        "pfx/.wand_installer",
+        "version",
+    ]
 
     # Thread-safe status: [current, total, phase]
     # phase: 0 = reading zip, 1 = extracting
@@ -553,12 +549,14 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             for i, file in enumerate(files):
                 full_file = os.path.join(dest_path, file)
                 try:  # try to create folder if missing
-                    if len(
+                    if len(os.path.dirname(full_file)) > 0 and not os.path.isdir(
                         os.path.dirname(full_file)
-                    ) > 0 and not os.path.isdir(os.path.dirname(full_file)):
+                    ):
                         os.makedirs(os.path.dirname(full_file), exist_ok=True)
                 except Exception as e:
-                    error_msg = f"failed to make dir '{os.path.dirname(full_file)}': {e}"
+                    error_msg = (
+                        f"failed to make dir '{os.path.dirname(full_file)}': {e}"
+                    )
                     log(error_msg)
                     extraction_errors.append(error_msg)
                 try:  # try to delete old file
@@ -571,16 +569,12 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
                 try:
                     zip_ref.extract(file, dest_path)
                 except Exception as e:
-                    error_msg = (
-                        f"Failed to extract '{file}' to '{dest_path}': {e}"
-                    )
+                    error_msg = f"Failed to extract '{file}' to '{dest_path}': {e}"
                     log(error_msg)
                     extraction_errors.append(error_msg)
                     # If this is a critical file, track it separately
                     if file in critical_files:
-                        log(
-                            f"CRITICAL: Failed to extract required file '{file}'"
-                        )
+                        log(f"CRITICAL: Failed to extract required file '{file}'")
 
                 update_status(i + 1, total_files, 1)
 
@@ -651,17 +645,11 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
         log(f"Encountered {len(extraction_errors)} errors during extraction")
         # Check if critical files failed to extract
         critical_failures = [
-            err
-            for err in extraction_errors
-            if any(cf in err for cf in critical_files)
+            err for err in extraction_errors if any(cf in err for cf in critical_files)
         ]
         if critical_failures:
-            error_summary = "\n".join(
-                critical_failures[:5]
-            )  # Show first 5 errors
-            raise Exception(
-                f"Failed to extract critical files:\n{error_summary}"
-            )
+            error_summary = "\n".join(critical_failures[:5])  # Show first 5 errors
+            raise Exception(f"Failed to extract critical files:\n{error_summary}")
 
 
 def copytree_with_progress(
@@ -846,9 +834,7 @@ def flatpakrunner():
     save_conf_setting("FlatpakRunning", "new")
 
     time.sleep(2)
-    if load_conf_setting("FlatpakRunning") != "true" and os.path.isfile(
-        flatpakrunfile
-    ):
+    if load_conf_setting("FlatpakRunning") != "true" and os.path.isfile(flatpakrunfile):
         os.remove(flatpakrunfile)
 
     while not os.path.isfile(flatpakrunfile):
