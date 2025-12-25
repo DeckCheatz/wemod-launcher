@@ -1,5 +1,5 @@
 {
-  description = "wemod_launcher Flake";
+  description = "wand_launcher Flake";
 
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
@@ -32,8 +32,8 @@
         inherit (pkgs) lib;
       in {
         packages = {
-          wemod-launcher = pkgs.python3Packages.buildPythonApplication {
-            name = "wemod-launcher";
+          wand-launcher = pkgs.python3Packages.buildPythonApplication {
+            name = "wand-launcher";
             version = "unstable";
             pyproject = true;
 
@@ -67,20 +67,20 @@
               "--prefix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath (with pkgs; [qt6.qtbase qt6.qtwayland])}"
             ];
             doCheck = false;
-            pythonImportsCheck = ["wemod_launcher"];
+            pythonImportsCheck = ["wand_launcher"];
             meta = {
               description = "Tool to launch WeMod with games on Steam Deck/Linux";
-              homepage = "https://github.com/DeckCheatz/wemod-launcher";
+              homepage = "https://github.com/DeckCheatz/wand-launcher";
               license = lib.licenses.mit;
-              mainProgram = "wemod-launcher";
+              mainProgram = "wand-launcher";
               maintainers = with lib.maintainers; [shymega];
               platforms = lib.platforms.linux;
             };
           };
 
           # Real AppImage build - creates a proper .AppImage file
-          wemod-launcher-appimage = let
-            wrapped = self.packages.${pkgs.system}.wemod-launcher;
+          wand-launcher-appimage = let
+            wrapped = self.packages.${pkgs.stdenv.hostPlatform.system}.wand-launcher;
 
             # Get AppImage runtime from a known, deterministic source
             appimage-runtime = pkgs.fetchurl {
@@ -91,7 +91,7 @@
 
             # Create AppDir structure
             appDir = with pkgs;
-              pkgs.runCommand "wemod-launcher-appdir" {
+              pkgs.runCommand "wand-launcher-appdir" {
                 nativeBuildInputs = with pkgs; [
                   imagemagick
                   coreutils
@@ -112,7 +112,7 @@
                 # Copy the main executable
                 echo "Copying main executable..."
                 cp ${lib.getExe wrapped} $out/usr/bin/
-                chmod +x $out/usr/bin/wemod-launcher
+                chmod +x $out/usr/bin/wand-launcher
 
                 # Copy Python and its dependencies
                 echo "Copying Python runtime and dependencies..."
@@ -154,34 +154,34 @@
 
                 # Create desktop entry (required by AppImage spec)
                 echo "Creating desktop entry..."
-                cat > $out/wemod-launcher.desktop << 'EOF'
+                cat > $out/wand-launcher.desktop << 'EOF'
                 [Desktop Entry]
                 Type=Application
                 Name=WeMod Launcher
                 Comment=Tool to launch WeMod with games on Steam Deck/Linux
-                Exec=wemod-launcher
-                Icon=wemod-launcher
+                Exec=wand-launcher
+                Icon=wand-launcher
                 Categories=Game;Utility;
-                Keywords=gaming;steam-deck;wine;cheats;wemod;
+                Keywords=gaming;steam-deck;wine;cheats;wand;
                 StartupNotify=true
                 EOF
 
                 # Validate desktop file
-                desktop-file-validate $out/wemod-launcher.desktop || echo "Warning: Desktop file validation failed"
+                desktop-file-validate $out/wand-launcher.desktop || echo "Warning: Desktop file validation failed"
 
                 # Copy to standard location (AppImage spec requirement)
-                cp $out/wemod-launcher.desktop $out/usr/share/applications/
+                cp $out/wand-launcher.desktop $out/usr/share/applications/
 
                 # Create icon (required by AppImage spec)
                 echo "Creating icon..."
                 convert -size 256x256 xc:"#4A90E2" \
                   -pointsize 48 -fill white -gravity center \
                   -annotate +0+0 "WM" \
-                  $out/wemod-launcher.png || echo "Warning: Icon creation failed"
+                  $out/wand-launcher.png || echo "Warning: Icon creation failed"
 
                 # Copy icon to proper location
-                if [ -f "$out/wemod-launcher.png" ]; then
-                    cp $out/wemod-launcher.png $out/usr/share/icons/hicolor/256x256/apps/
+                if [ -f "$out/wand-launcher.png" ]; then
+                    cp $out/wand-launcher.png $out/usr/share/icons/hicolor/256x256/apps/
                 fi
 
                 # Create AppRun script (required by AppImage spec)
@@ -193,14 +193,14 @@
                 export QT_PLUGIN_PATH="$HERE/usr/lib/qt6/plugins"
                 export LD_LIBRARY_PATH="$HERE/usr/lib:$LD_LIBRARY_PATH"
                 export PYTHONPATH="$HERE/usr/lib:$PYTHONPATH"
-                exec "$HERE/usr/bin/wemod-launcher" "$@"
+                exec "$HERE/usr/bin/wand-launcher" "$@"
                 APPRUN_EOF
 
                 chmod +x $out/AppRun
               '';
           in
             # Create a real AppImage using deterministic tools
-            pkgs.runCommand "wemod-launcher.AppImage" {
+            pkgs.runCommand "wand-launcher.AppImage" {
               nativeBuildInputs = with pkgs; [
                 squashfsTools
                 file
@@ -242,7 +242,7 @@
             '';
 
           default = pkgs.stdenv.mkDerivation {
-            name = "wemod-launcher";
+            name = "wand-launcher";
 
             outputs = [
               "out"
@@ -253,19 +253,19 @@
             dontBuild = true;
 
             installPhase = let
-              wrapped = self.packages.${pkgs.system}.wemod-launcher-appimage;
+              wrapped = self.packages.${pkgs.stdenv.hostPlatform.system}.wand-launcher-appimage;
             in ''
               runHook preInstall
 
-              cp ${wrapped} wemod-launcher
+              cp ${wrapped} wand-launcher
 
-              install -Dt $out -m755 wemod-launcher
+              install -Dt $out -m755 wand-launcher
 
               runHook postInstall
             '';
           };
-          devenv-up = self.devShells.${pkgs.system}.default.config.procfileScript;
-          devenv-test = self.devShells.${pkgs.system}.default.config.test;
+          devenv-up = self.devShells.${pkgs.stdenv.hostPlatform.system}.default.config.procfileScript;
+          devenv-test = self.devShells.${pkgs.stdenv.hostPlatform.system}.default.config.test;
         };
 
         devShells.default = inputs.devenv.lib.mkShell {
@@ -312,8 +312,8 @@
       overlays.default = final: prev: {
         inherit
           (self.packages.${final.system})
-          wemod-launcher
-          wemod-launcher-appimage
+          wand-launcher
+          wand-launcher-appimage
           ;
       };
     };
