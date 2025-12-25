@@ -31,30 +31,32 @@ SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
 
 # Function for logging messages
 def log(message: Optional[str] = None, open_log: bool = False) -> None:
-    oswemodlog = os.getenv("WEMOD_LOG")
-    wemodlog = oswemodlog
-    cowemodlog = load_conf_setting("WeModLog")
-    if not wemodlog:
-        wemodlog = cowemodlog
-    if wemodlog != "":
+    oswandlog = os.getenv("WAND_LOG")
+    wandlog = oswandlog
+    cowandlog = load_conf_setting("WandLog")
+    if not wandlog:
+        wandlog = cowandlog
+    if wandlog != "":
         try:
-            if not wemodlog:
-                raise Exception("WeModLog unset")
-            elif os.path.isabs(wemodlog):
-                os.makedirs(os.path.dirname(wemodlog), exist_ok=True)
+            if not wandlog:
+                raise Exception("WandLog unset")
+            elif os.path.isabs(wandlog):
+                os.makedirs(os.path.dirname(wandlog), exist_ok=True)
             else:
                 os.makedirs(
                     os.path.dirname(
-                        os.path.abspath(os.path.join(SCRIPT_PATH, wemodlog))
+                        os.path.abspath(os.path.join(SCRIPT_PATH, wandlog))
                     ),
                     exist_ok=True,
                 )
         except:
-            wemodlog = "wemod.log"
-            if not oswemodlog:  # Only save if not a environment var
-                save_conf_setting("WeModLog", wemodlog)
+            wandlog = "wand.log"
+            if not oswandlog:  # Only save if not a environment var
+                save_conf_setting("WandLog", wandlog)
 
-            new_message = f"WeModLog path was not given or invalid using path '{wemodlog}'\nIf you don't want to generate a log file, use WEMOD_LOG='' or set the config to WeModLog=''"
+            new_message = f"WandLog path was not given or invalid using path '{
+                wandlog
+            }'\nIf you don't want to generate a log file, use WAND_LOG='' or set the config to WandLog=''"
             if message == None:
                 message = new_message
             else:
@@ -63,13 +65,13 @@ def log(message: Optional[str] = None, open_log: bool = False) -> None:
             message = str(message)
         if message and message[-1] != "\n":
             message += "\n"
-        if not os.path.isabs(wemodlog):
-            wemodlog = os.path.abspath(os.path.join(SCRIPT_PATH, wemodlog))
-        with open(wemodlog, "a") as f:
+        if not os.path.isabs(wandlog):
+            wandlog = os.path.abspath(os.path.join(SCRIPT_PATH, wandlog))
+        with open(wandlog, "a") as f:
             if message != None:
                 f.write(message)
         if open_log:
-            os.system(f"xdg-open '{wemodlog}'")
+            os.system(f"xdg-open '{wandlog}'")
 
 
 # Function to display a message
@@ -200,10 +202,12 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
             return 99
         else:
             show_message(
-                "The pip inside the virtual environment reported an error.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wemod_venv\nand is located inside the wemod-launcher folder"
+                "The pip inside the virtual environment reported an error.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wand_venv\nand is located inside the wand-launcher folder"
             )
             log(
-                f"A pip error occurred.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wemod_venv\nand is located inside the wemod-launcher folder.\nError message:\n\t{stdout}\n\t{stderr}"
+                f"A pip error occurred.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wand_venv\nand is located inside the wand-launcher folder.\nError message:\n\t{
+                    stdout
+                }\n\t{stderr}"
             )
 
     # Try to use the built-in pip
@@ -299,7 +303,7 @@ def monitor_file(
         log("Finished early game close detention")
     else:
         log(
-            "The game ran long enough, wemod is now allowed to close on game exit, therefore early game close detention is finished"
+            "The game ran long enough, wand is now allowed to close on game exit, therefore early game close detention is finished"
         )
 
 
@@ -310,23 +314,25 @@ def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
         if bout != None:
             batresp = show_message(
                 returnmessage
-                + f'\nYou can still use wemod by clicking "Yes",\nthis will keep wemod open in the backround\nIf you want to close WeMod click "No"\nWeMod will automaticly close in {bout} seconds, if nothing is done',
+                + f'\nYou can still use wand by clicking "Yes",\nthis will keep wand open in the backround\nIf you want to close Wand click "No"\nWand will automaticly close in {
+                    bout
+                } seconds, if nothing is done',
                 "BAT Warning",
                 bout,
                 True,
             )
             log(
-                f"The user selected {batresp} after being asked to wait longer for WeMod"
+                f"The user selected {batresp} after being asked to wait longer for Wand"
             )
         if bout == None or batresp == "Yes":
             show_message(
                 returnmessage
-                + '\nClick "OK" ONLY if you are ready to close WeMod\nTo KEEP it open, just minimize THIS message box.',
+                + '\nClick "OK" ONLY if you are ready to close Wand\nTo KEEP it open, just minimize THIS message box.',
                 "BAT Warning",
                 None,
                 False,
             )
-            log("The user accepted to close WeMod")
+            log("The user accepted to close Wand")
         os.remove(responsefile)
         return True
     return None
@@ -443,7 +449,7 @@ def get_user_input(
 
 
 def script_manager() -> None:
-    script_name = "wemod-launcher"
+    script_name = "wand-launcher"
     script_version = "1.539"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
@@ -460,7 +466,9 @@ def script_manager() -> None:
                 )
             elif float(last_version) > float(script_version):
                 log(
-                    f"Warning: config on version {last_version}; downgrading to {script_version}"
+                    f"Warning: config on version {last_version}; downgrading to {
+                        script_version
+                    }"
                 )
         except Exception as e:
             log(
@@ -473,6 +481,6 @@ def script_manager() -> None:
     save_conf_setting("Version", script_version)
     log(f"The script {script_name} is running on version {script_version}")
     print(
-        f"The WeMod script {script_name} is running on version {script_version}"
+        f"The Wand script {script_name} is running on version {script_version}"
     )
     return

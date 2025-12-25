@@ -1,12 +1,12 @@
-# WeMod Launcher (Wemod for Linux)
+# Wand Launcher (Wand for Linux)
 
-**The WeMod Launcher is currently on version 1.539.**
+**The Wand Launcher is currently on version 1.539.**
 
 ## DISCLAIMER
-This project is *NOT* affiliated with, funded by, or paid by WeMod.  
+This project is *NOT* affiliated with, funded by, or paid by Wand.  
 The work done here is purely from the contributors who donate their time and effort.  
-WeMod (the company) makes WeMod (the mod tool).  
-We (`wemod-launcher`) enable you to run it on Linux (and by extension, the Steam Deck).
+Wand (the company) makes Wand (the mod tool).  
+We (`wand-launcher`) enable you to run it on Linux (and by extension, the Steam Deck).
 
 ## Support & Contributions
 
@@ -36,9 +36,9 @@ If this tool helps you, please consider one or more of the following:
     [GitHub](https://github.com/JohnHamwi)
 
 For more help or to contribute:
-* Suggest improvements via [GitHub Discussions](https://github.com/DeckCheatz/wemod-launcher/discussions)
-* See the [Wiki Suggestions](https://github.com/DeckCheatz/wemod-launcher/wiki/Suggestions) and [Changes](https://github.com/DeckCheatz/wemod-launcher/wiki/Changes)
-* Report / Help solve issues or bugs by [filing / answering an Issue](https://github.com/DeckCheatz/wemod-launcher/issues)
+* Suggest improvements via [GitHub Discussions](https://github.com/DeckCheatz/wand-launcher/discussions)
+* See the [Wiki Suggestions](https://github.com/DeckCheatz/wand-launcher/wiki/Suggestions) and [Changes](https://github.com/DeckCheatz/wand-launcher/wiki/Changes)
+* Report / Help solve issues or bugs by [filing / answering an Issue](https://github.com/DeckCheatz/wand-launcher/issues)
 
 ## Rework Project (Led by shymega)
 
@@ -51,20 +51,20 @@ We are calling for contributors to assist with:
 * **Wiki writers & documenters**: Help write guides and technical documentation for the rework.
 
 Want to get involved?
-* [Join the Discussion on GitHub](https://github.com/DeckCheatz/wemod-launcher/discussions)
-* [Track the Rework Progress](https://github.com/DeckCheatz/wemod-launcher/pull/180))
+* [Join the Discussion on GitHub](https://github.com/DeckCheatz/wand-launcher/discussions)
+* [Track the Rework Progress](https://github.com/DeckCheatz/wand-launcher/pull/180))
 * Or reach out to shymega directly via GitHub.
 
 ## Quick Guide
-![Alert](https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=20&quality=lossless) **This guide only includes the most relevant info and might not be enough to run WeMod;**  
-in which case, check out the [Full Guide](https://github.com/DeckCheatz/wemod-launcher/wiki/Full-Guide) **OR** the [video tutorial by Marvin1099](https://youtu.be/5UlVCZvIl1E).
+![Alert](https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=20&quality=lossless) **This guide only includes the most relevant info and might not be enough to run Wand;**  
+in which case, check out the [Full Guide](https://github.com/DeckCheatz/wand-launcher/wiki/Full-Guide) **OR** the [video tutorial by Marvin1099](https://youtu.be/5UlVCZvIl1E).
 
 - **Optional:** If you have access to another PC and wish to control the Steam Deck remotely,  
 consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest)** for easier setup (the `.flatpak` is easiest).
 
-- **Info:** [License Change](https://github.com/DeckCheatz/wemod-launcher/discussions/131)
+- **Info:** [License Change](https://github.com/DeckCheatz/wand-launcher/discussions/131)
 
-- **Info:** Games no longer seem to be detected by **Wemod**. If anyone has info on how **Wemod** finds games please make a new issue. If you have no idea please **don't** make a bug report. We cant fix this if we don't know how. You will have to add the game manualy right now.
+- **Info:** Games no longer seem to be detected by **Wand**. If anyone has info on how **Wand** finds games please make a new issue. If you have no idea please **don't** make a bug report. We cant fix this if we don't know how. You will have to add the game manualy right now.
 
 1. Python `python-venv` (or `python3-venv` or `venv` or `virtualenv`; use first one found)  
    and `Tk` need to be installed.  
@@ -73,40 +73,40 @@ consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest
 	- Ubuntu/Debian: `sudo apt install python3-tk`
 	- Arch Linux: `sudo pacman -S tk`.
 	- Fedora: `sudo dnf install python3-tkinter`
-3. Install GE-Proton, which is necessary to run the game and WeMod with. Using Valve's own Proton seems to work, but using GE-Proton is recommended:  
+3. Install GE-Proton, which is necessary to run the game and Wand with. Using Valve's own Proton seems to work, but using GE-Proton is recommended:  
 	1. Search for and install `ProtonUp-QT` via your distro's software center. If using Flatpak, command is: `flatpak install net.davidotek.pupgui2`.
 	2. Download the latest GE-Proton in `ProtonUp-QT`  
 4. Restart Steam/SteamOS.
 5. In a terminal session (Konsole if using KDE Plasma):
-	1. Change directory to a location of your choosing, then run `git clone https://github.com/DeckCheatz/wemod-launcher`.  
-	Make note of the directory obtained with `readlink -f wemod-launcher` (which will be labeled `{path/to/wemod-launcher}` for the rest of this guide).
-	2. Run `chmod -R ug+x wemod-launcher`.  
-	**NOTE:** To use this tool with the Flatpak version of Steam (not recomended), continue [here](https://github.com/DeckCheatz/wemod-launcher/wiki/Steam-Flatpak-Usage).
-6. In your Steam Library, open the game settings with which to run WeMod with. Make sure you ran the game once before doing this!
+	1. Change directory to a location of your choosing, then run `git clone https://github.com/DeckCheatz/wand-launcher`.  
+	Make note of the directory obtained with `readlink -f wand-launcher` (which will be labeled `{path/to/wand-launcher}` for the rest of this guide).
+	2. Run `chmod -R ug+x wand-launcher`.  
+	**NOTE:** To use this tool with the Flatpak version of Steam (not recomended), continue [here](https://github.com/DeckCheatz/wand-launcher/wiki/Steam-Flatpak-Usage).
+6. In your Steam Library, open the game settings with which to run Wand with. Make sure you ran the game once before doing this!
 	1. In the `Compatibility` tab, change the Proton version to the one picked in Step 2, or otherwise to the latest numbered Proton (e.g. Proton-9.0).
-	2. Under `Launch Options`, input `{path/to/wemod-launcher}/wemod %command%`.
+	2. Under `Launch Options`, input `{path/to/wand-launcher}/wand %command%`.
 7. Start the game.
 8. Select "no" to the "copy prefix question" if it appears and says `might work`.  
    If it mentions `likely works` (or better) go to step 9 (accept all).
 9. Select download.
 10. Select Yes/Ok until no more windows appear.  
     All rundll32.exe errors can safely be ignored (by clicking `no`).  
-	WeMod should start with the game.
-11. (Only done once): Login to your WeMod account.
-12. Select the game you're running from the library, then click the Play to start the WeMod engine.   
-13. You may now set or switch mods. Closing the WeMod window will keep it running in the background.
+	Wand should start with the game.
+11. (Only done once): Login to your Wand account.
+12. Select the game you're running from the library, then click the Play to start the Wand engine.   
+13. You may now set or switch mods. Closing the Wand window will keep it running in the background.
 
-wemod-launcher will automatically update if you installed it using step 5.  
-**But**: This will only work if you have [launcher version 1.092 or older](https://github.com/DeckCheatz/wemod-launcher/wiki/The-Self-Update).
+wand-launcher will automatically update if you installed it using step 5.  
+**But**: This will only work if you have [launcher version 1.092 or older](https://github.com/DeckCheatz/wand-launcher/wiki/The-Self-Update).
 
-**Optionally**: Check out tutorials on how to use specific [WeMod Laucher features](https://github.com/DeckCheatz/wemod-launcher/wiki/Launcher-Tutorials)  
-**Like**: Check how to [Use External Launchers](https://github.com/DeckCheatz/wemod-launcher/wiki/Using-External-Launchers) (Use The WeMod Launcher outside of Steam)  
-**OR**: Check out how to [Edit The Config](https://github.com/DeckCheatz/wemod-launcher/wiki/Config-Usage)
+**Optionally**: Check out tutorials on how to use specific [Wand Laucher features](https://github.com/DeckCheatz/wand-launcher/wiki/Launcher-Tutorials)  
+**Like**: Check how to [Use External Launchers](https://github.com/DeckCheatz/wand-launcher/wiki/Using-External-Launchers) (Use The Wand Launcher outside of Steam)  
+**OR**: Check out how to [Edit The Config](https://github.com/DeckCheatz/wand-launcher/wiki/Config-Usage)
 
 ## Common Issues
 
 ### Dot Net Error
-* If you see a .net error in Wemod that means your prefix is messed up.  
+* If you see a .net error in Wand that means your prefix is messed up.  
 * After you close the game the troubleshooter should come up (close ingame not from steam).
 1. There select "delete prefix" or something like that.  
 2. Rerun the game, and when it asks you to use a already installed prefix, with some version, say no.  
@@ -116,16 +116,16 @@ wemod-launcher will automatically update if you installed it using step 5.
 
 ## ![Heart](https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=20&quality=lossless) Additional
 
-![WeModApp](https://cdn.discordapp.com/emojis/761419274945953842.webp?size=20&quality=lossless) **Video Tutorial:** [WeMod-launcher Setup Tutorial by Marvin1099](https://youtu.be/5UlVCZvIl1E)  
-![WeModApp](https://cdn.discordapp.com/emojis/1113579884749529198.gif?size=20&quality=lossless) **Guide was written by Trippin and updated by Marvin1099.**  
-![WeModApp](https://cdn.discordapp.com/emojis/1113579884749529198.gif?size=20&quality=lossless) **WeMod Linux is developed by DaniAsh551 with recent support by Marvin1099.**  
-![WeModApp](https://cdn.discordapp.com/emojis/999743709677633536.gif?size=20&quality=lossless) **If you find this guide to be helpful, we encourage you to star the project.**
+![WandApp](https://cdn.discordapp.com/emojis/761419274945953842.webp?size=20&quality=lossless) **Video Tutorial:** [Wand-launcher Setup Tutorial by Marvin1099](https://youtu.be/5UlVCZvIl1E)  
+![WandApp](https://cdn.discordapp.com/emojis/1113579884749529198.gif?size=20&quality=lossless) **Guide was written by Trippin and updated by Marvin1099.**  
+![WandApp](https://cdn.discordapp.com/emojis/1113579884749529198.gif?size=20&quality=lossless) **Wand Linux is developed by DaniAsh551 with recent support by Marvin1099.**  
+![WandApp](https://cdn.discordapp.com/emojis/999743709677633536.gif?size=20&quality=lossless) **If you find this guide to be helpful, we encourage you to star the project.**
 
 
-<a href="https://star-history.com/#DeckCheatz/wemod-launcher&Date">
+<a href="https://star-history.com/#DeckCheatz/wand-launcher&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=DeckCheatz/wemod-launcher&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=DeckCheatz/wemod-launcher&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=DeckCheatz/wemod-launcher&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=DeckCheatz/wand-launcher&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=DeckCheatz/wand-launcher&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=DeckCheatz/wand-launcher&type=Date" />
  </picture>
 </a>
