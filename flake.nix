@@ -3,16 +3,12 @@
 
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
-    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-unstable";
     flake-compat = {
       url = "github:edolstra/flake-compat";
       flake = false;
     };
     devenv.url = "github:cachix/devenv";
-    pyproject-nix = {
-      url = "github:nix-community/pyproject.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   nixConfig = {
@@ -116,7 +112,7 @@
 
                 # Copy Python and its dependencies
                 echo "Copying Python runtime and dependencies..."
-                cp -L ${python313}/bin/python* $out/usr/bin/ || true
+                cp -L ${python3}/bin/python* $out/usr/bin/ || true
 
                 # Copy the Python site-packages from our wrapped application
                 if [ -d "${wrapped}/lib" ]; then
@@ -296,7 +292,7 @@
                 nix.enable = true;
                 python = {
                   enable = true;
-                  package = pkgs.python313Full;
+                  package = pkgs.python3;
                 };
                 shell.enable = true;
               };
