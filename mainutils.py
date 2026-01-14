@@ -506,6 +506,10 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
     import subprocess
     import FreeSimpleGUI as sg
 
+    # Track errors during extraction
+    extraction_errors = []
+    critical_files = ["pfx/.wemod_installer", "version"]
+
     def update_progress(unzipped: int, total: int) -> None:
         """Update the GUI with the current progress."""
         percentage = int(100 * (unzipped / total)) if total > 0 else 0
@@ -529,23 +533,25 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
                     ) > 0 and not os.path.isdir(os.path.dirname(full_file)):
                         os.makedirs(os.path.dirname(full_file), exist_ok=True)
                 except Exception as e:
-                    log(
-                        "failed to make dir '"
-                        + os.path.dirname(full_file)
-                        + "':\n\t"
-                        + e
-                    )
+                    error_msg = f"failed to make dir '{os.path.dirname(full_file)}': {e}"
+                    log(error_msg)
+                    extraction_errors.append(error_msg)
                 try:  # try to delete old file
                     if os.path.isfile(full_file) or os.path.islink(full_file):
                         os.remove(full_file)
                 except Exception as e:
-                    log(f"failed to remove file '{full_file}':\n\t{e}")
+                    error_msg = f"failed to remove file '{full_file}': {e}"
+                    log(error_msg)
+                    extraction_errors.append(error_msg)
                 try:
                     zip_ref.extract(file, dest_path)
                 except Exception as e:
-                    log(
-                        f"Failed to extract '{file}' to '{dest_path}':\n\t{e}"
-                    )
+                    error_msg = f"Failed to extract '{file}' to '{dest_path}': {e}"
+                    log(error_msg)
+                    extraction_errors.append(error_msg)
+                    # If this is a critical file, track it separately
+                    if file in critical_files:
+                        log(f"CRITICAL: Failed to extract required file '{file}'")
 
                 update_progress(i + 1, total_files)
 
@@ -557,44 +563,6 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
     layout = [[extra], [progress], [text]]
     window = sg.Window("Unpacking Prefix", layout, finalize=True)
     window.refresh()
-
-    myuser = None
-    try:
-        myuser = os.getlogin()
-    except Exception as e:
-        pass
-    if not myuser:
-        try:
-            myuser = pwd.getpwuid(os.getuid()).pw_name
-        except Exception as e:
-            pass
-    if not myuser:
-        myuser = "steamuser"
-    try:  # try own dest folder
-        subprocess.run(
-            ["chown", "-R", myuser, dest_path],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-    except Exception as e:
-        log(
-            "failed to own folder as '"
-            + myuser
-            + "' for '"
-            + dest_path
-            + "':\n\t"
-            + str(e)
-        )
-    try:  # try to allow read and write on dest folder
-        subprocess.run(
-            ["chmod", "-R", "ug+rw", dest_path],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-    except Exception as e:
-        log("failed to allow rw on '" + dest_path + "':\n\t" + str(e))
 
     window.perform_long_operation(unpack_files, "-UNPACK DONE-")
 
@@ -610,6 +578,41 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             )
 
     window.close()
+
+    # Fix permissions after unpacking
+    myuser = None
+    try:
+        myuser = os.getlogin()
+    except Exception as e:
+        pass
+    if not myuser:
+        try:
+            myuser = pwd.getpwuid(os.getuid()).pw_name
+        except Exception as e:
+            pass
+    if not myuser:
+        myuser = "steamuser"
+
+    # Only try chmod (not chown which requires sudo)
+    try:
+        subprocess.run(
+            ["chmod", "-R", "u+rw", dest_path],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        log(f"Set read/write permissions on '{dest_path}'")
+    except Exception as e:
+        log(f"failed to set permissions on '{dest_path}': {str(e)}")
+
+    # Check for critical extraction errors
+    if extraction_errors:
+        log(f"Encountered {len(extraction_errors)} errors during extraction")
+        # Check if critical files failed to extract
+        critical_failures = [err for err in extraction_errors if any(cf in err for cf in critical_files)]
+        if critical_failures:
+            error_summary = "\n".join(critical_failures[:5])  # Show first 5 errors
+            raise Exception(f"Failed to extract critical files:\n{error_summary}")
 
 
 def is_flatpak() -> bool:
