@@ -550,7 +550,28 @@ def download_prefix(proton_dir: str) -> None:
     # Unpack the downloaded prefix
     log(f"Unpacking prefix file {prefix_path} into {BASE_STEAM_COMPAT}")
 
-    unpack_zip_with_progress(prefix_path, BASE_STEAM_COMPAT)
+    try:
+        unpack_zip_with_progress(prefix_path, BASE_STEAM_COMPAT)
+    except Exception as e:
+        log(f"Failed to unpack prefix: {e}")
+        exit_with_message(
+            "Prefix Extraction Failed",
+            f"Failed to extract the downloaded prefix:\n{str(e)}\n\nPlease check the log file for details.\nYou may need to manually download and extract the prefix.",
+            ask_for_log=True,
+        )
+
+    # Validate that critical files were extracted
+    if not os.path.exists(INIT_FILE):
+        log(f"CRITICAL: Init file missing after extraction: {INIT_FILE}")
+        exit_with_message(
+            "Incomplete Prefix",
+            f"The prefix was extracted but the initialization file is missing.\nExpected: {INIT_FILE}\n\nThis may indicate a corrupted download or permission issue.\nTry deleting the game prefix and running again.",
+            ask_for_log=True,
+        )
+
+    version_file = os.path.join(BASE_STEAM_COMPAT, "version")
+    if not os.path.exists(version_file):
+        log(f"WARNING: Version file missing after extraction: {version_file}")
 
     # Delete cache file since the prefix copier has been added there is no need to keep this file around
     if os.path.isfile(prefix_path):
