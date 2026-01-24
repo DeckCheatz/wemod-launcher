@@ -631,6 +631,91 @@ def is_flatpak() -> bool:
     return "FLATPAK_ID" in os.environ or os.path.exists("/.flatpak-info")
 
 
+def is_nixos() -> bool:
+    """Detect if the host system is running NixOS."""
+    import subprocess
+
+    # If we're in Flatpak, we need to check the host system
+    if is_flatpak():
+        try:
+            # Use flatpak-spawn to check the host filesystem
+            result = subprocess.run(
+                ["flatpak-spawn", "--host", "test", "-e", "/etc/NIXOS"],
+                capture_output=True,
+                timeout=2
+            )
+            if result.returncode == 0:
+                return True
+
+            result = subprocess.run(
+                ["flatpak-spawn", "--host", "test", "-e", "/run/current-system/nixos-version"],
+                capture_output=True,
+                timeout=2
+            )
+            return result.returncode == 0
+        except Exception:
+            # If flatpak-spawn fails, assume not NixOS
+            return False
+    else:
+        # Not in Flatpak, check locally
+        return os.path.exists("/etc/NIXOS") or os.path.exists("/run/current-system/nixos-version")
+
+
+def get_python_command(
+    python_args: Optional[List[str]] = None,
+    python_executable: Optional[str] = None,
+    use_nixos_wrapper: bool = True,
+    include_flatpak_spawn: bool = True
+) -> tuple[List[str], bool]:
+    """
+    Get the appropriate Python command, wrapped for NixOS if necessary.
+
+    Args:
+        python_args: Arguments to pass to Python (e.g., ["-m", "venv", "/path"])
+        python_executable: The Python executable path (defaults to sys.executable)
+        use_nixos_wrapper: Whether to wrap with nix-shell on NixOS (default True)
+        include_flatpak_spawn: Whether to include flatpak-spawn when in Flatpak (default True)
+
+    Returns:
+        Tuple of (command_list, use_shell) where use_shell indicates if shell=True is needed
+    """
+    if python_executable is None:
+        python_executable = sys.executable
+
+    if python_args is None:
+        python_args = []
+
+    # If we're on NixOS and should use the wrapper
+    if use_nixos_wrapper and is_nixos():
+        # Check if we're in a Flatpak sandbox (but not yet escaped to host)
+        in_flatpak = is_flatpak() and not os.getenv("FROM_FLATPAK")
+
+        # Build the full Python command string
+        import shlex
+        python_args_str = " ".join(shlex.quote(arg) for arg in python_args)
+        full_python_cmd = f"python {python_args_str}" if python_args else "python"
+
+        # Include pip in the nix-shell environment
+        nix_packages = "python3.withPackages (p: with p; [tkinter pip])"
+
+        if in_flatpak and include_flatpak_spawn:
+            # Inside Flatpak, we need to escape to the host to run nix-shell
+            return ([
+                "flatpak-spawn", "--host",
+                "nix-shell", "-p", nix_packages,
+                "--run", full_python_cmd
+            ], False)
+        else:
+            # On host NixOS (or Flatpak with include_flatpak_spawn=False), wrap Python with nix-shell
+            return ([
+                "nix-shell", "-p", nix_packages,
+                "--run", full_python_cmd
+            ], False)
+    else:
+        # Not on NixOS or wrapper disabled, use Python directly
+        return ([python_executable] + python_args, False)
+
+
 def flatpakrunner():
     import subprocess
     import time
