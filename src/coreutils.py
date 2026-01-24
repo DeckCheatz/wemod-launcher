@@ -183,13 +183,16 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
         venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))
     pos_pip = None
     if venv_path:
+        # When using venv, use the venv's Python directly
+        # On NixOS, the venv was created with --copies so it's self-contained
         python_executable = os.path.join(
-            venv_path, os.path.basename(sys.executable)
+            venv_path, "bin", os.path.basename(sys.executable)
         )
         pos_pip = os.path.join(venv_path, "bin", "pip")
         if not os.path.isfile(pos_pip):
             pos_pip = None
     else:
+        # When not using venv, use system Python directly
         python_executable = sys.executable
 
     # Try to use pip directly if possible
@@ -230,13 +233,15 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
             return 99
         else:
             show_message(
-                "The pip inside the virtual environment reported an error.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wemod_venv\nand is located inside the wemod-launcher folder"
+                "The pip inside the virtual environment reported an error.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wemod_venv\nand is located inside the wemod-launcher folder",
+                "Pip Error"
             )
             log(
                 f"A pip error occurred.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wemod_venv\nand is located inside the wemod-launcher folder.\nError message:\n\t{stdout}\n\t{stderr}"
             )
 
     # Try to use the built-in pip
+    # Use Python directly (venv has everything copied on NixOS)
     process = subprocess.Popen(
         f"'{python_executable}' -m pip {command}",
         shell=True,
@@ -279,6 +284,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
         log("Pip not installed. Using local pip.pyz")
 
     # Execute the pip command using pip.pyz
+    # Use Python directly (venv has everything copied on NixOS)
     process = subprocess.Popen(
         f"{python_executable} {pip_pyz} {command}",
         shell=True,
