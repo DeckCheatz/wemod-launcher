@@ -119,18 +119,15 @@ chmod +x "$WEMOD_DIR/wemod"
 "$WEMOD_DIR %command%" > $WEMOD_DIR/launch-command.txt
 
 #-----------------------------------
-#-------------- TODO ---------------
+#-------- SHOW NEXT STEPS ----------
 #-----------------------------------
-echo
-echo "TODO manually:"
-echo "1. Install 'ProtonPlus' (or 'ProtonUp-QT') and open the app"
-echo "2. From the app, install 'Proton-GE' (or 'GE-Proton')"
-echo "3. Restart Steam"
-echo "4. Set this profile to all your games (using a Proton GUI or Steam directly (right-click on a game > Manage > Compatibility > Force Proton version))"
-echo "5. If you did step 4 with a Proton GUI, restart Steam again"
-echo "6. Here there are two ways, for a single game (a), or multiple at once (b). Both on Steam's Library:"
-echo "  6.a. Right click at any game you want > Manage > General > Launch Options"
-echo "  6.b. In the list of games (at the left, not the one with posters), select your with left click your first game then with CTRL+left click others (CTRL+A for all). Once all you want are selected, right click > Manage > General > Launch Options"
-echo "7. Insert this command: $WEMOD_DIR %command%"
-echo "(launch command saved in $WEMOD_DIR/launch-command.txt)"
+# 1. Detects when `### Setup Automatically` starts
+# 2. Stops when `### Setup Manually` is reached
+# 3. Begins printing only after `#### Next`:
+awk '
+/^### Setup Automatically/ {in_auto=1; next}
+/^### Setup Manually/ {in_auto=0}
+in_auto && /^#### Next:/ {in_next=1}
+in_auto && in_next
+' readme.md
 
