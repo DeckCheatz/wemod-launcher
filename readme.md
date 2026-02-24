@@ -66,6 +66,12 @@ consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest
 
 - **Info:** Games no longer seem to be detected by **Wemod**. If anyone has info on how **Wemod** finds games please make a new issue. If you have no idea please **don't** make a bug report. We cant fix this if we don't know how. You will have to add the game manualy right now.
 
+### Setup Automatically
+1. Open your Terminal.
+2. **Optionnal:** go into the directory you want to install wemod-launcher to (using `cd`).
+3. Run: `curl https://raw.githubusercontent.com/DeckCheatz/wemod-launcher/refs/heads/main/setup.bash | bash`.
+
+### Setup Manually
 1. Python `python-venv` (or `python3-venv` or `venv` or `virtualenv`; use first one found)  
    and `Tk` need to be installed.  
 	Tk / Tkinter may be under a different name in your distribution's repos.  
