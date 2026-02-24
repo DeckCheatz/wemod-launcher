@@ -69,7 +69,9 @@ consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest
 ### Setup Automatically
 1. Open your Terminal.
 2. **Optionnal:** go into the directory you want to install wemod-launcher to (using `cd`).
-3. Run: `curl https://raw.githubusercontent.com/DeckCheatz/wemod-launcher/refs/heads/main/setup.bash | bash`.
+3. Download the script: `curl -o "wemod-setup.bash" https://raw.githubusercontent.com/DeckCheatz/wemod-launcher/refs/heads/main/setup.bash`.
+4. **Info:** Please review the script before running, you can use: `less wemod-setup.bash` to see the content of the file.
+5. Run the script: `bash wemod-setup.bash`.
 
 ### Setup Manually
 1. Python `python-venv` (or `python3-venv` or `venv` or `virtualenv`; use first one found)  
