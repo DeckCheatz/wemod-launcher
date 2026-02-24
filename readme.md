@@ -82,8 +82,8 @@ consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest
 6. Here there are two ways, for a single game (a), or multiple at once (b). Both on Steam's Library:
   6.a. Right click at any game you want > Manage > General > Launch Options
   6.b. In the list of games (at the left, not the one with posters), select your with left click your first game then with CTRL+left click others (CTRL+A for all). Once all you want are selected, right click > Manage > General > Launch Options
-7. Insert this command:  %command%
-(launch command saved in /launch-command.txt)
+7. Insert this command: `<REPO_PATH>/wemod %command%`
+(launch command saved in `<REPO_PATH>/launch-command.txt`)
 
 ### Setup Manually
 1. Python `python-venv` (or `python3-venv` or `venv` or `virtualenv`; use first one found)  

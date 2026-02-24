@@ -116,7 +116,7 @@ fi
 # Make wemod python script executable
 chmod +x "$WEMOD_DIR/wemod"
 # Add a txt file to always have the launch command at hand
-"$WEMOD_DIR %command%" > $WEMOD_DIR/launch-command.txt
+"$WEMOD_DIR/wemod %command%" > $WEMOD_DIR/launch-command.txt
 
 #-----------------------------------
 #-------- SHOW NEXT STEPS ----------
