@@ -105,7 +105,13 @@ if [ ! -d "$GIT_PROJECT_NAME" -a ! -d "../$GIT_PROJECT_NAME" ]; then
     fi
 else
     echo "'$GIT_PROJECT_NAME' directory already exists."
-    WEMOD_DIR="$(realpath $GIT_PROJECT_NAME)"
+
+    # If we are already inside the project directory
+    if [ "$(basename "$PWD")" = "$GIT_PROJECT_NAME" ]; then
+        WEMOD_DIR="$(realpath "$PWD")"
+    else
+        WEMOD_DIR="$(realpath "$GIT_PROJECT_NAME")"
+    fi
 fi
 # Make wemod python script executable
 chmod +x "$WEMOD_DIR/wemod"
