@@ -69,9 +69,9 @@ consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest
 ### Setup Automatically
 1. Open your Terminal.
 2. **Optionnal:** go into the directory you want to install wemod-launcher to (using `cd`).
-3. Download the script: `curl -o "wemod-setup.bash" https://raw.githubusercontent.com/DeckCheatz/wemod-launcher/refs/heads/main/setup.bash`.
-4. **Info:** Please review the script before running, you can use: `less wemod-setup.bash` to see the content of the file.
-5. Run the script: `bash wemod-setup.bash`.
+3. Download the script: `curl -o "wemod-setup" https://raw.githubusercontent.com/DeckCheatz/wemod-launcher/refs/heads/main/setup`.
+4. **Info:** Please review the script before running, you can use: `less wemod-setup` to see the content of the file.
+5. Run the script: `bash wemod-setup`.
 
 #### Next:
 1. Install 'ProtonPlus' (or 'ProtonUp-QT') and open the app
