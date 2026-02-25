@@ -121,9 +121,9 @@ chmod +x "$WEMOD_DIR/wemod"
 #-----------------------------------
 #-------- SHOW NEXT STEPS ----------
 #-----------------------------------
-# 1. Detects when `### Setup Automatically` starts
-# 2. Stops when `### Setup Manually` is reached
-# 3. Begins printing only after `#### Next`:
+# Extract and show the next steps from readme.md
+# 1. start the cursor at the 'Next' section (after the 'Setup Automatically' section)
+# 2. stop the cursor before the 'Setup Manually' section
 awk '
 /^### Setup Automatically/ {in_auto=1; next}
 /^### Setup Manually/ {in_auto=0}
