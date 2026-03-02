@@ -279,7 +279,7 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
 
     original_cwd = os.getcwd()
     try:
-        os.chdir(SCRIPT_PATH)
+        os.chdir(SCRIPT_BASE)
 
         # Check if we're in the main branch
         curr_branch = subprocess.run(
@@ -329,7 +329,7 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
 
             # Set executable permissions (replace with specific file names if needed)
             subprocess.run(
-                flatpak_cmd + ["chmod", "-R", "ug+x", "*.py", "wemod{,.bat}"],
+                flatpak_cmd + ["chmod", "-R", "ug+x", "*.py", "wemod.bat"],
                 text=True,
             )
 

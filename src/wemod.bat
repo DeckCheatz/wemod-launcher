@@ -5,7 +5,7 @@ SET mypath=%~dp0
 SET wemodname=WeMod.exe
 
 IF "%mypath:~-5%" == "\src\" (
-    SET wemodpath=%mypath:~0,-1%\..\wemod_data\wemod_bin\%wemodname%
+    SET wemodpath=%mypath:~0,-5%\wemod_data\wemod_bin\%wemodname%
 ) ELSE (
     SET wemodpath=%mypath:~0,-1%\wemod_data\wemod_bin\%wemodname%
 )

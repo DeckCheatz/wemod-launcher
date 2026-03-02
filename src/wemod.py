@@ -1,55 +1,54 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-only
 
-import os
-import sys
 import json
+import os
 import shutil
-import threading
 import subprocess
-
+import sys
+import threading
 from typing import Optional
 
 # Import core utils without download dependencies
 from corenodep import (
     join_lists_with_delimiter,
-    split_list_by_delimiter,
     load_conf_setting,
-    save_conf_setting,
     parse_version,
     read_file,
+    save_conf_setting,
+    split_list_by_delimiter,
     winpath,
 )
 
 # Import core utils
 from coreutils import (
-    exit_with_message,
-    script_manager,
-    popup_options,
-    show_message,
-    monitor_file,
     cache,
+    exit_with_message,
     log,
+    monitor_file,
+    popup_options,
+    script_manager,
+    show_message,
 )
 
 # Import main utils
 from mainutils import (
-    find_closest_compatible_release,
-    unpack_zip_with_progress,
-    get_github_releases,
-    flatpakrunner,
-    popup_execute,
-    popup_download,
-    get_dotnet48,
     deref,
+    find_closest_compatible_release,
+    flatpakrunner,
+    get_dotnet48,
+    get_github_releases,
+    popup_download,
+    popup_execute,
+    unpack_zip_with_progress,
 )
 
 # Import from setup
 from setup import (
     check_flatpak,
-    venv_manager,
     self_update,
     setup_main,
+    venv_manager,
 )
 
 if getattr(sys, "frozen", False):
@@ -115,21 +114,20 @@ if __name__ == "__main__":
 
 
 # Import utils that need constants
-from constutils import (
-    scanfolderforversions,
-    troubleshooter,
-    ensure_wine,
-    winetricks,
-    wine,
-)
-
 # Import consts
 from consts import (
     BASE_STEAM_COMPAT,
     BAT_COMMAND,
+    INIT_FILE,
     STEAM_COMPAT_FOLDER,
     WINEPREFIX,
-    INIT_FILE,
+)
+from constutils import (
+    ensure_wine,
+    scanfolderforversions,
+    troubleshooter,
+    wine,
+    winetricks,
 )
 
 
@@ -156,7 +154,9 @@ def syncwemod(
     if package_prefix and folder is None and package_prefix.lower() == "true":
         from mainutils import copy_folder_with_progress
 
-        log("Prefix packaging was requested with PACKAGEPREFIX=true in front of the command")
+        log(
+            "Prefix packaging was requested with PACKAGEPREFIX=true in front of the command"
+        )
         current_proton_version = read_file(os.path.join(BASE_STEAM_COMPAT, "version"))
         if not current_proton_version:
             log(f"Version is not set for {BASE_STEAM_COMPAT}, Error")
@@ -200,9 +200,7 @@ def syncwemod(
             os.remove(WINEPREFIX)
             waslink = True
 
-        copy_folder_with_progress(
-            BASE_STEAM_COMPAT, destfile, True, [None], [None]
-        )
+        copy_folder_with_progress(BASE_STEAM_COMPAT, destfile, True, [None], [None])
 
         if waslink:
             try:
@@ -213,9 +211,7 @@ def syncwemod(
         with open(INIT_FILE, "w") as init:
             init.write(initcont)
 
-        os.system(
-            "xdg-open '" + os.path.join(STEAM_COMPAT_FOLDER, "prefixes") + "'"
-        )
+        os.system("xdg-open '" + os.path.join(STEAM_COMPAT_FOLDER, "prefixes") + "'")
         log("Done creating Prefix zip")
         exit_with_message(
             "Prefix Packaged",
@@ -227,10 +223,14 @@ def syncwemod(
     if folder is None:
         folder = BASE_STEAM_COMPAT
 
-    WeModData = os.path.join(SCRIPT_BASE, "wemod_data", "wemod_login")  # Central launcher login data
-    WeModOldData = os.path.join(SCRIPT_BASE, "wemod_data")  # Central launcher login data in older versions
+    WeModData = os.path.join(
+        SCRIPT_BASE, "wemod_data", "wemod_login"
+    )  # Central launcher login data
+    WeModOldData = os.path.join(
+        SCRIPT_BASE, "wemod_data"
+    )  # Central launcher login data in older versions
     old_data_files = [
-        "SharedStorage" # can add more if we know what files are allways created by WeMod
+        "SharedStorage"  # can add more if we know what files are allways created by WeMod
     ]
 
     # Check if any old data files exist directly in WeModOldData
@@ -242,7 +242,9 @@ def syncwemod(
                 break
 
     if needs_migration:
-        log(f"Old WeMod data files detected in '{WeModOldData}'. Migrating to '{WeModData}'.")
+        log(
+            f"Old WeMod data files detected in '{WeModOldData}'. Migrating to '{WeModData}'."
+        )
         # Ensure the target WeModData directory (wemod_login) exists before moving
         os.makedirs(WeModData, exist_ok=True)
 
@@ -257,6 +259,14 @@ def syncwemod(
                     log(f"Moved '{source_path}' to '{destination_path}'")
                 except Exception as e:
                     log(f"Failed to move '{source_path}' to '{destination_path}': {e}")
+                    try:
+                        if os.path.isdir(source_path):
+                            shutil.rmtree(source_path)  # remove directory tree
+                        else:
+                            os.remove(source_path)  # delete the file
+                        log(f"Removed old dir/file at '{source_path}'")
+                    except Exception as e:
+                        log(f"Failed to remove old dir/file '{source_path}': {e}")
 
         # move wemod_bin as well
         old_dir = os.path.join(SCRIPT_BASE, "wemod_bin")
@@ -267,7 +277,10 @@ def syncwemod(
         except Exception as e:
             log(f"Failed to move '{old_dir}' to '{new_dir}': {e}")
             try:
-                shutil.rmtree(old_dir)
+                if os.path.isdir(old_dir):
+                    shutil.rmtree(old_dir)  # remove directory tree
+                else:
+                    os.remove(old_dir)  # delete the file
                 log(f"Removed old directory '{old_dir}'")
             except Exception as e:
                 log(f"Failed to remove old directory '{old_dir}': {e}")
@@ -285,7 +298,10 @@ def syncwemod(
                 except Exception as e:
                     log(f"Failed to move '{old_path}' to '{new_dir}': {e}")
                     try:
-                        shutil.rmtree(old_path)
+                        if os.path.isdir(old_path):
+                            shutil.rmtree(old_path)  # remove directory tree
+                        else:
+                            os.remove(old_path)  # delete the file
                         log(f"Removed old file '{old_path}'")
                     except Exception as e:
                         log(f"Failed to remove old file '{old_path}': {e}")
@@ -302,21 +318,28 @@ def syncwemod(
     os.makedirs(WeModData, exist_ok=True)
     wemod_data_has_content = len(os.listdir(WeModData)) > 0
 
+    action_needed = True
     # Handle the state of WeModExternal (the prefix-specific path)
     if os.path.islink(WeModExternal):
         print("Checking link ---")
         # WeModExternal is a symlink. Check if it's correct.
         current_target = os.path.realpath(WeModExternal)
         if current_target == WeModData:
-            log(f"Link '{WeModExternal}' is already a valid symlink to '{WeModData}'. Sync complete.")
-            return # Everything is set up correctly, no further action needed.
+            log(
+                f"Link '{WeModExternal}' is already a valid symlink to '{WeModData}'. Sync complete."
+            )
+            action_needed = False
         else:
-            log(f"Link '{WeModExternal}' is an invalid symlink pointing to '{current_target}', not '{WeModData}'. Removing it.")
-            os.remove(WeModExternal) # Remove the invalid symlink
+            log(
+                f"Link '{WeModExternal}' is an invalid symlink pointing to '{current_target}', not '{WeModData}'. Removing it."
+            )
+            os.remove(WeModExternal)  # Remove the invalid symlink
 
     elif os.path.exists(WeModExternal) and not os.path.isdir(WeModExternal):
         # WeModExternal exists but is a file or a broken link (not a directory or valid symlink)
-        log(f"File '{WeModExternal}' exists but is not a directory or a valid symlink. Removing it.")
+        log(
+            f"File '{WeModExternal}' exists but is not a directory or a valid symlink. Removing it."
+        )
         try:
             os.remove(WeModExternal)
         except Exception as e:
@@ -324,9 +347,11 @@ def syncwemod(
             # Do not exit, try to proceed and log the error.
 
     # At this point, WeModExternal is either a real directory or does not exist.
-    if os.path.isdir(WeModExternal):
+    if action_needed and os.path.isdir(WeModExternal):
         # WeModExternal is a real directory (not a symlink), so its content needs to be reconciled.
-        log(f"Directory '{WeModExternal}' is real and exists. Processing its content for synchronization.")
+        log(
+            f"Directory '{WeModExternal}' is real and exists. Processing its content for synchronization."
+        )
         wemod_external_has_content = len(os.listdir(WeModExternal)) > 0
 
         if wemod_data_has_content and wemod_external_has_content:
@@ -342,42 +367,58 @@ def syncwemod(
 
             if response == "No":
                 # User chose to use data from the external (prefix) directory.
-                log(f"User chose to use data from '{WeModExternal}'. Overwriting central data in '{WeModData}'.")
-                shutil.rmtree(WeModData) # Clear central directory
-                shutil.copytree(WeModExternal, WeModData) # Copy external data to central
-            else: # response is "Yes" or None (default to Yes)
+                log(
+                    f"User chose to use data from '{WeModExternal}'. Overwriting central data in '{WeModData}'."
+                )
+                shutil.rmtree(WeModData)  # Clear central directory
+                shutil.copytree(
+                    WeModExternal, WeModData
+                )  # Copy external data to central
+            else:  # response is "Yes" or None (default to Yes)
                 # User chose or defaulted to using data from the central directory.
-                log(f"User chose to use data from '{WeModData}'. Keeping central data, discarding external.")
+                log(
+                    f"User chose to use data from '{WeModData}'. Keeping central data, discarding external."
+                )
                 # WeModData is already preferred, no action needed on its content.
         elif not wemod_data_has_content and wemod_external_has_content:
             # Central directory is empty, but external directory has data. Move external data to central.
-            log(f"Directory '{WeModData}' is empty, but '{WeModExternal}' has data. Moving data from external to central.")
+            log(
+                f"Directory '{WeModData}' is empty, but '{WeModExternal}' has data. Moving data from external to central."
+            )
             # WeModData already exists (created earlier), so directly copy into it.
             shutil.copytree(WeModExternal, WeModData)
         else:
             # Either WeModExternal has no content, or WeModData already has content and is preferred.
-            log(f"Directory '{WeModExternal}' has no relevant content, or '{WeModData}' is already set up. No data transfer needed from external.")
+            log(
+                f"Directory '{WeModExternal}' has no relevant content, or '{WeModData}' is already set up. No data transfer needed from external."
+            )
 
         # After processing, remove the real WeModExternal directory to prepare for symlinking.
         log(f"Removing real directory '{WeModExternal}' to create symlink.")
         shutil.rmtree(WeModExternal, ignore_errors=True)
 
     # Create the symlink from WeModExternal to WeModData if it doesn't exist
-    if not os.path.exists(WeModExternal):
+    if action_needed and not os.path.exists(WeModExternal):
         log(f"Creating symlink from '{WeModData}' to '{WeModExternal}'.")
         try:
             os.symlink(WeModData, WeModExternal)
         except Exception as e:
-            log(f"Failed to create symlink '{WeModExternal}' -> '{WeModData}'\nYour login data won't be synchronized.\nReported error:\n{e}")
-    else:
+            log(
+                f"Failed to create symlink '{WeModExternal}' -> '{WeModData}'\nYour login data won't be synchronized.\nReported error:\n{e}"
+            )
+    elif action_needed:
         # This branch should ideally not be reached if the previous steps correctly handled WeModExternal.
         # It implies WeModExternal still exists but is not a correct symlink to WeModData.
-        log(f"Warning: '{WeModExternal}' still exists after initial processing and is not a link to '{WeModData}'. Attempting forceful recreation.")
+        log(
+            f"Warning: '{WeModExternal}' still exists after initial processing and is not a link to '{WeModData}'. Attempting forceful recreation."
+        )
         try:
-            shutil.rmtree(WeModExternal) # Forcefully remove
-            os.symlink(WeModData, WeModExternal) # Recreate symlink
+            shutil.rmtree(WeModExternal)  # Forcefully remove
+            os.symlink(WeModData, WeModExternal)  # Recreate symlink
         except Exception as e:
-            log(f"Failed to force-recreate symlink '{WeModExternal}' -> '{WeModData}': {e}")
+            log(
+                f"Failed to force-recreate symlink '{WeModExternal}' -> '{WeModData}': {e}"
+            )
             exit_with_message(
                 "Symlink Force-Creation Failed",
                 f"Failed to force-create the symlink for WeMod data synchronization:\n{e}",
@@ -390,7 +431,6 @@ def syncwemod(
         os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin", "WeMod.exe")
     ):
         setup_main()
-
 
 
 # Initialize the environment
@@ -411,9 +451,7 @@ def init(proton: str, iswine: bool = False) -> None:
                 text=True,
             )
         except Exception as e:
-            log(
-                f"Error grabbing the external wine version using file:\n\t{e}"
-            )
+            log(f"Error grabbing the external wine version using file:\n\t{e}")
             prefix_version_file = ensure_wine()
         else:
             prefix_version_file = ensure_wine(str(wver.stdout))
@@ -467,7 +505,6 @@ def init(proton: str, iswine: bool = False) -> None:
             and current_version_parts
             and closest_version[0] == current_version_parts[0]
         ):
-
             response = show_message(
                 f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have WeMod installed. Would you like to use the closest Proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is likely going to work?",
                 title="Likely compatible WeMod version detected",
@@ -486,15 +523,11 @@ def init(proton: str, iswine: bool = False) -> None:
                 yesno=True,
             )
         else:
-            log(
-                "No compatible Proton version found in the compatibility folder."
-            )
+            log("No compatible Proton version found in the compatibility folder.")
         if response == "Yes":
             # Copy the closest version's prefix to the game prefix
             log(f"Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}")
-            syncwemod(
-                closest_prefix_folder
-            )  # Sync WeMod data in closest version
+            syncwemod(closest_prefix_folder)  # Sync WeMod data in closest version
 
             copy_folder_with_progress(
                 closest_prefix_folder,
@@ -586,9 +619,7 @@ def download_prefix(proton_dir: str) -> None:
 
     repo_concat = repo_user + "/" + repo_name
 
-    current_proton_version = read_file(
-        os.path.join(BASE_STEAM_COMPAT, "version")
-    )
+    current_proton_version = read_file(os.path.join(BASE_STEAM_COMPAT, "version"))
     current_version_parts = parse_version(current_proton_version)
 
     closest_version = None
@@ -597,9 +628,7 @@ def download_prefix(proton_dir: str) -> None:
         closest_version, url = find_closest_compatible_release(
             releases, current_version_parts
         )
-        file_name = (
-            f"wemod_prefix{closest_version[0]}.{closest_version[1]}.zip"
-        )
+        file_name = f"wemod_prefix{closest_version[0]}.{closest_version[1]}.zip"
 
     if (
         closest_version
@@ -692,13 +721,7 @@ def build_prefix(proton_dir: str) -> None:
     import FreeSimpleGUI as sg
 
     # Set environment path
-    path = (
-        os.path.join(SCRIPT_PATH, "bin")
-        + ":"
-        + proton_dir
-        + ":"
-        + os.getenv("PATH")
-    )
+    path = os.path.join(SCRIPT_PATH, "bin") + ":" + proton_dir + ":" + os.getenv("PATH")
 
     # deref
     winfolder = os.path.join(WINEPREFIX, "drive_c", "windows")
@@ -738,16 +761,10 @@ def build_prefix(proton_dir: str) -> None:
         wine("winecfg -v win7", path)
         dotnet48_result = wine(dotnet48, path)
 
-        if (
-            dotnet48_result != 0
-            and dotnet48_result != 194
-            and dotnet48_result != -15
-        ):
+        if dotnet48_result != 0 and dotnet48_result != 194 and dotnet48_result != -15:
             exit_with_message(
                 "dotnet48 install error",
-                "dotnet48 installation exited with code '{}'".format(
-                    dotnet48_result
-                ),
+                "dotnet48 installation exited with code '{}'".format(dotnet48_result),
                 ask_for_log=True,
             )
 
@@ -773,8 +790,20 @@ def run(skip_init: bool = False) -> str:
     # Get passed args
     ARGS = sys.argv[1:]
 
-    tools = os.getenv("STEAM_COMPAT_TOOL_PATHS").split(os.pathsep)
+    # Initialize variables for Proton path and its index
+    PROTON = ""
     fnr = -1
+
+    # Original logic for finding the Proton tool path if delimiter is present
+    tools = os.getenv("STEAM_COMPAT_TOOL_PATHS").split(os.pathsep)
+    if fnr <= 0 and tools:
+        for tool in tools:
+            for nr, aarg in enumerate(ARGS):
+                if aarg and len(aarg) > 2 and aarg[0] == os.sep:
+                    if tool == os.path.dirname(aarg):
+                        if nr > fnr:
+                            fnr = nr
+                            break
     # find the first argument that has the Proton tool path
     if tools:
         for tool in tools:
@@ -784,6 +813,38 @@ def run(skip_init: bool = False) -> str:
                         if nr > fnr:
                             fnr = nr
                             break
+
+    # If no delimiter is found and no Wine tool was found, check for common Wine names
+    if fnr <= 0:
+        # Count the occurrences of the delimiter '--'
+        delimiter_count = ARGS.count("--")
+        if delimiter_count == 0:
+            # If no delimiter is found, check for common Wine names
+            common_wine_names = [
+                "wine",
+                "umu-run",
+                "proton",
+            ]  # Add more if you can think of them
+            found_wine_name = None
+            for i, arg in enumerate(ARGS):
+                for wine_name in common_wine_names:
+                    if (
+                        wine_name in os.path.basename(arg).lower()
+                    ):  # Case-insensitive check
+                        # Heuristic: assume the first Wine name found is the one to use
+                        fnr = i
+                        found_wine_name = wine_name
+                        break
+                if found_wine_name:
+                    break
+
+            if not found_wine_name:
+                # If no common Wine names are found, log a warning and continue
+                log(
+                    "Warning: No '--' delimiter found and no common Wine names detected. Proceeding with original argument parsing."
+                )
+            else:
+                log(f"Detected common Wine name '{found_wine_name}' at index {fnr}.")
 
     verb = ["waitforexitandrun"]
     tout = 90
@@ -811,7 +872,8 @@ def run(skip_init: bool = False) -> str:
 
         # Add more args at the end
         LAUNCH_OPTIONS = ARGS[(fnr + 3) :]
-    else:
+    # If fnr was set by fallback, we directly use it. Otherwise, proceed with the delimiter logic.
+    else:  # Only proceed with delimiter split if fallback didn't set fnr
         # Subdivide the list into multiple lists based on delimiter
         AARGS = split_list_by_delimiter(ARGS, "--")
         # Log the args for future improvement
@@ -827,24 +889,32 @@ def run(skip_init: bool = False) -> str:
         # Take the Proton path
         PROTON = PROTON_CMD[0]
 
-        fnr = 0
+        fnr_p = (
+            0  # Use a different variable for index within PROTON_CMD to avoid confusion
+        )
         # If there is a file then it's a custom runner so don't use a verb
-        if PROTON[(fnr + 1)].find(".") >= 0:
-            fnr -= 1
+        if PROTON[(fnr_p + 1)].find(".") >= 0:
+            fnr_p -= 1
             verb = []
             tout = 60
 
         # Get the game exe
         if os.getenv("NO_EXE") or load_conf_setting("NoEXE"):
-            GAME_EXE = PROTON_CMD[fnr + 2]
+            GAME_EXE = PROTON_CMD[fnr_p + 2]
         else:
-            GAME_EXE = os.path.realpath(PROTON_CMD[fnr + 2])
+            GAME_EXE = os.path.realpath(PROTON_CMD[fnr_p + 2])
 
         # Add more args at the end
-        LAUNCH_OPTIONS = PROTON_CMD[(fnr + 3) :]
+        LAUNCH_OPTIONS = PROTON_CMD[(fnr_p + 3) :]
 
     # Initialize environment if not skipped
     if not skip_init:
+        # Ensure proton is set before calling init
+        if not PROTON:
+            exit_with_message(
+                "Proton Path Not Set",
+                "Could not determine the Proton path. Please ensure it is correctly set.",
+            )
         init(PROTON, not bool(verb))
 
     # Get working dir
@@ -971,9 +1041,7 @@ def run(skip_init: bool = False) -> str:
                 warn = fwf.read()
                 os.remove(warnfile)
                 if warn:
-                    log(
-                        f"Error while loading the wine server waiter:\n\t{warn}"
-                    )
+                    log(f"Error while loading the wine server waiter:\n\t{warn}")
 
         log("Finished flatpak mode code")
     else:
@@ -1002,9 +1070,7 @@ def run(skip_init: bool = False) -> str:
             try:
                 if os.path.isdir(os.path.join(WINEPREFIX, "drive_c")):
                     os.environ["WINEPREFIX"] = WINEPREFIX
-                elif os.path.isdir(
-                    os.path.join(BASE_STEAM_COMPAT, "drive_c")
-                ):
+                elif os.path.isdir(os.path.join(BASE_STEAM_COMPAT, "drive_c")):
                     os.environ["WINEPREFIX"] = BASE_STEAM_COMPAT
                 else:
                     os.environ["WINEPREFIX"] = WINEPREFIX
@@ -1046,9 +1112,7 @@ if __name__ == "__main__":
         RESPONCE = run()
     except Exception as e:
         RESPONCE = "ERR:\n" + str(e)
-        logy = show_message(
-            "Error occurred. Open the log?", "Error occurred", 30, True
-        )
+        logy = show_message("Error occurred. Open the log?", "Error occurred", 30, True)
 
     # Log final response or error
     log(str(RESPONCE))
