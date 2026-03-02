@@ -39,7 +39,10 @@ if getattr(sys, "frozen", False):
 else:
     SCRIPT_IMP_FILE = os.path.realpath(__file__)
 SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
-
+if os.path.basename(SCRIPT_PATH) == "src":
+    SCRIPT_BASE = os.path.dirname(SCRIPT_PATH)
+else:
+    SCRIPT_BASE = SCRIPT_PATH
 
 def welcome() -> bool:
     import FreeSimpleGUI as sg
@@ -392,7 +395,7 @@ def setup_main() -> None:
         print("Installation cancelled by user")
         return
 
-    install_location = os.path.join(SCRIPT_PATH, "wemod_bin")
+    install_location = os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin")
     winetricks = os.path.join(SCRIPT_PATH, "winetricks")
 
     if os.getenv("FORCE_UPDATE_WEMOD", "0") == "1" or not os.path.isfile(

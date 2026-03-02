@@ -1,6 +1,5 @@
-.cache/
 .vscode/
-wemod_bin/
+.cache/
 wemod_data/
 wemod_venv/
 __pycache__/

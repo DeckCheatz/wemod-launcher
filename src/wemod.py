@@ -57,6 +57,10 @@ if getattr(sys, "frozen", False):
 else:
     SCRIPT_FILE = os.path.realpath(__file__)
 SCRIPT_PATH = os.path.dirname(SCRIPT_FILE)
+if os.path.basename(SCRIPT_PATH) == "src":
+    SCRIPT_BASE = os.path.dirname(SCRIPT_PATH)
+else:
+    SCRIPT_BASE = SCRIPT_PATH
 
 
 # Fist main block of two
@@ -133,32 +137,27 @@ from consts import (
 def syncwemod(
     folder: Optional[str] = None,
 ) -> None:
-    response = None
-    package_prefix = os.getenv(
-        "PACKAGEPREFIX"
-    )  # use PACKAGEPREFIX=true in front of the command to generate a ge-proton-prefix zip and exit
+    # This section handles prefix packaging and is kept as-is, as it's a separate concern
+    # from the core WeMod data synchronization logic and includes an intentional exit.
+    package_prefix = os.getenv("PACKAGEPREFIX")
     if not package_prefix:
         package_prefix = load_conf_setting("PackagePrefix")
         if package_prefix:
             if package_prefix.lower() != "true":
                 try:
                     package_prefix = int(package_prefix)
-                except Exception as e:
+                except Exception:
                     package_prefix = "false"
                 else:
                     if package_prefix > 0:
                         package_prefix -= 1
                         save_conf_setting("PackagePrefix", package_prefix)
                         package_prefix = "true"
-    if package_prefix and folder == None and package_prefix.lower() == "true":
+    if package_prefix and folder is None and package_prefix.lower() == "true":
         from mainutils import copy_folder_with_progress
 
-        log(
-            "Prefix packaging was requested with PACKAGEPREFIX=true in front of the command"
-        )
-        current_proton_version = read_file(
-            os.path.join(BASE_STEAM_COMPAT, "version")
-        )
+        log("Prefix packaging was requested with PACKAGEPREFIX=true in front of the command")
+        current_proton_version = read_file(os.path.join(BASE_STEAM_COMPAT, "version"))
         if not current_proton_version:
             log(f"Version is not set for {BASE_STEAM_COMPAT}, Error")
             exit_with_message(
@@ -208,7 +207,7 @@ def syncwemod(
         if waslink:
             try:
                 os.symlink(BASE_STEAM_COMPAT, WINEPREFIX)
-            except Exception as e:
+            except Exception:
                 pass
 
         with open(INIT_FILE, "w") as init:
@@ -224,69 +223,174 @@ def syncwemod(
             timeout=5,
         )
 
-    if folder == None:
+    # WeMod login data synchronization logic starts here
+    if folder is None:
         folder = BASE_STEAM_COMPAT
 
-    WeModData = os.path.join(SCRIPT_PATH, "wemod_data")  # link source
-    WeModExtenal = os.path.join(
-        folder, "pfx/drive_c/users/steamuser/AppData/Roaming/WeMod"
-    )  # link dest
+    WeModData = os.path.join(SCRIPT_BASE, "wemod_data", "wemod_login")  # Central launcher login data
+    WeModOldData = os.path.join(SCRIPT_BASE, "wemod_data")  # Central launcher login data in older versions
+    old_data_files = [
+        "SharedStorage" # can add more if we know what files are allways created by WeMod
+    ]
 
-    log(
-        f"Syncing WeMod data from '{WeModExtenal}' to launcher dir '{WeModData}'"
-    )
+    # Check if any old data files exist directly in WeModOldData
+    needs_migration = False
+    if os.path.isdir(WeModOldData):
+        for filename in old_data_files:
+            if os.path.exists(os.path.join(WeModOldData, filename)):
+                needs_migration = True
+                break
 
-    # Ensure the launcher dir exists
-    if not os.path.isdir(WeModData):
-        os.makedirs(WeModData)
+    if needs_migration:
+        log(f"Old WeMod data files detected in '{WeModOldData}'. Migrating to '{WeModData}'.")
+        # Ensure the target WeModData directory (wemod_login) exists before moving
+        os.makedirs(WeModData, exist_ok=True)
 
-    # If WeModExtenal exists but is a broken symlink, or any non-dir — remove it
-    if os.path.lexists(WeModExtenal) and not os.path.isdir(WeModExtenal):
-        log("Removing broken or invalid WeModExtenal path")
+        # Iterate through items in WeModOldData and move them to WeModData, excluding specific folders
+        for item_name in os.listdir(WeModOldData):
+            # Exclude the 'wemod_login' (which is WeModData itself) and 'wemod_bin' directories
+            if item_name not in ["wemod_login", "wemod_bin"]:
+                source_path = os.path.join(WeModOldData, item_name)
+                destination_path = os.path.join(WeModData, item_name)
+                try:
+                    shutil.move(source_path, destination_path)
+                    log(f"Moved '{source_path}' to '{destination_path}'")
+                except Exception as e:
+                    log(f"Failed to move '{source_path}' to '{destination_path}': {e}")
+
+        # move wemod_bin as well
+        old_dir = os.path.join(SCRIPT_BASE, "wemod_bin")
+        new_dir = os.path.join(WeModOldData, "wemod_bin")
         try:
-            os.remove(WeModExtenal)
+            shutil.move(old_dir, new_dir)
+            log(f"Moved '{old_dir}' to '{new_dir}'")
         except Exception as e:
-            log(f"Failed to remove existing path: {e}")
+            log(f"Failed to move '{old_dir}' to '{new_dir}': {e}")
+            try:
+                shutil.rmtree(old_dir)
+                log(f"Removed old directory '{old_dir}'")
+            except Exception as e:
+                log(f"Failed to remove old directory '{old_dir}': {e}")
 
-    # Create the external folder if it's still missing
-    if not os.path.exists(WeModExtenal):
-        os.makedirs(WeModExtenal)
+        # If migration was needed some old files are in the main folder and need to be moved or cleaned up
+        old_files_in_base = ["wemod.conf", "wemod_venv", "winetricks", "pip.pyz"]
+        old_dir = SCRIPT_BASE
+        new_dir = os.path.join(SCRIPT_BASE, "src")
+        for old_file in old_files_in_base:
+            old_path = os.path.join(old_dir, old_file)
+            if os.path.exists(old_path):
+                try:
+                    shutil.move(old_path, new_dir)
+                    log(f"Moved '{old_path}' to '{new_dir}'")
+                except Exception as e:
+                    log(f"Failed to move '{old_path}' to '{new_dir}': {e}")
+                    try:
+                        shutil.rmtree(old_path)
+                        log(f"Removed old file '{old_path}'")
+                    except Exception as e:
+                        log(f"Failed to remove old file '{old_path}': {e}")
 
-    # If WeModExtenal is a real directory (not a symlink)
-    if os.path.isdir(WeModExtenal) and not os.path.islink(WeModExtenal):
-        wemod_data_not_empty = len(os.listdir(WeModData)) > 0
-        external_data_not_empty = len(os.listdir(WeModExtenal)) > 0
+        log("Old WeMod data migration complete.")
 
-        if wemod_data_not_empty and external_data_not_empty:
+    WeModExternal = os.path.join(
+        folder, "pfx/drive_c/users/steamuser/AppData/Roaming/WeMod"
+    )  # WeMod's expected data location within the Wine prefix
+
+    log(f"Starting WeMod data sync. Central: '{WeModData}', Prefix: '{WeModExternal}'")
+
+    # Ensure the central WeModData directory exists
+    os.makedirs(WeModData, exist_ok=True)
+    wemod_data_has_content = len(os.listdir(WeModData)) > 0
+
+    # Handle the state of WeModExternal (the prefix-specific path)
+    if os.path.islink(WeModExternal):
+        print("Checking link ---")
+        # WeModExternal is a symlink. Check if it's correct.
+        current_target = os.path.realpath(WeModExternal)
+        if current_target == WeModData:
+            log(f"Link '{WeModExternal}' is already a valid symlink to '{WeModData}'. Sync complete.")
+            return # Everything is set up correctly, no further action needed.
+        else:
+            log(f"Link '{WeModExternal}' is an invalid symlink pointing to '{current_target}', not '{WeModData}'. Removing it.")
+            os.remove(WeModExternal) # Remove the invalid symlink
+
+    elif os.path.exists(WeModExternal) and not os.path.isdir(WeModExternal):
+        # WeModExternal exists but is a file or a broken link (not a directory or valid symlink)
+        log(f"File '{WeModExternal}' exists but is not a directory or a valid symlink. Removing it.")
+        try:
+            os.remove(WeModExternal)
+        except Exception as e:
+            log(f"Failed to remove invalid path '{WeModExternal}': {e}")
+            # Do not exit, try to proceed and log the error.
+
+    # At this point, WeModExternal is either a real directory or does not exist.
+    if os.path.isdir(WeModExternal):
+        # WeModExternal is a real directory (not a symlink), so its content needs to be reconciled.
+        log(f"Directory '{WeModExternal}' is real and exists. Processing its content for synchronization.")
+        wemod_external_has_content = len(os.listdir(WeModExternal)) > 0
+
+        if wemod_data_has_content and wemod_external_has_content:
+            # Both central and external directories contain data, prompt the user for preference.
             response = show_message(
-                "Warning: WeMod might have been installed previously.\n"
-                "Use WeMod Launcher dir account (Yes) or\n"
-                "Use WeMod prefix/game dir account (No)",
-                title="Multiple accounts found",
+                "Warning: WeMod login data found in both the launcher's central directory "
+                "and the game prefix directory.\nWhich account would you like to use?\n\n"
+                "  Yes: Use the account from the Launcher's central directory (recommended).\n"
+                "  No: Use the account from the game prefix directory (this will overwrite the central data).",
+                title="Multiple WeMod accounts found",
                 yesno=True,
             )
 
-        # Overwrite launcher dir if user said No, or if it's empty
-        if (
-            not wemod_data_not_empty or response == "No"
-        ) and external_data_not_empty:
-            log("The local WeMod data was requested to be overwritten")
-            shutil.rmtree(WeModData)
-            shutil.copytree(WeModExtenal, WeModData)
+            if response == "No":
+                # User chose to use data from the external (prefix) directory.
+                log(f"User chose to use data from '{WeModExternal}'. Overwriting central data in '{WeModData}'.")
+                shutil.rmtree(WeModData) # Clear central directory
+                shutil.copytree(WeModExternal, WeModData) # Copy external data to central
+            else: # response is "Yes" or None (default to Yes)
+                # User chose or defaulted to using data from the central directory.
+                log(f"User chose to use data from '{WeModData}'. Keeping central data, discarding external.")
+                # WeModData is already preferred, no action needed on its content.
+        elif not wemod_data_has_content and wemod_external_has_content:
+            # Central directory is empty, but external directory has data. Move external data to central.
+            log(f"Directory '{WeModData}' is empty, but '{WeModExternal}' has data. Moving data from external to central.")
+            # WeModData already exists (created earlier), so directly copy into it.
+            shutil.copytree(WeModExternal, WeModData)
+        else:
+            # Either WeModExternal has no content, or WeModData already has content and is preferred.
+            log(f"Directory '{WeModExternal}' has no relevant content, or '{WeModData}' is already set up. No data transfer needed from external.")
 
-        # Now that we’ve synced, remove the external folder
-        shutil.rmtree(WeModExtenal)
+        # After processing, remove the real WeModExternal directory to prepare for symlinking.
+        log(f"Removing real directory '{WeModExternal}' to create symlink.")
+        shutil.rmtree(WeModExternal, ignore_errors=True)
 
-    # Now create the symlink if nothing is there
-    if not os.path.exists(WeModExtenal):
-        os.symlink(WeModData, WeModExtenal)
-        log("Linked WeMod data to game prefix")
+    # Create the symlink from WeModExternal to WeModData if it doesn't exist
+    if not os.path.exists(WeModExternal):
+        log(f"Creating symlink from '{WeModData}' to '{WeModExternal}'.")
+        try:
+            os.symlink(WeModData, WeModExternal)
+        except Exception as e:
+            log(f"Failed to create symlink '{WeModExternal}' -> '{WeModData}'\nYour login data won't be synchronized.\nReported error:\n{e}")
+    else:
+        # This branch should ideally not be reached if the previous steps correctly handled WeModExternal.
+        # It implies WeModExternal still exists but is not a correct symlink to WeModData.
+        log(f"Warning: '{WeModExternal}' still exists after initial processing and is not a link to '{WeModData}'. Attempting forceful recreation.")
+        try:
+            shutil.rmtree(WeModExternal) # Forcefully remove
+            os.symlink(WeModData, WeModExternal) # Recreate symlink
+        except Exception as e:
+            log(f"Failed to force-recreate symlink '{WeModExternal}' -> '{WeModData}': {e}")
+            exit_with_message(
+                "Symlink Force-Creation Failed",
+                f"Failed to force-create the symlink for WeMod data synchronization:\n{e}",
+                ask_for_log=True,
+            )
 
-    # Ensure main setup is done
+    log("WeMod data synchronization complete.")
+
     if not os.path.exists(
-        os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
+        os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin", "WeMod.exe")
     ):
         setup_main()
+
 
 
 # Initialize the environment
@@ -577,7 +681,7 @@ def download_prefix(proton_dir: str) -> None:
 
     syncwemod()
     if not os.path.isfile(
-        os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe")
+        os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin", "WeMod.exe")
     ):
         setup_main()
 
