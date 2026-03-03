@@ -39,7 +39,10 @@ if getattr(sys, "frozen", False):
 else:
     SCRIPT_IMP_FILE = os.path.realpath(__file__)
 SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
-
+if os.path.basename(SCRIPT_PATH) == "src":
+    SCRIPT_BASE = os.path.dirname(SCRIPT_PATH)
+else:
+    SCRIPT_BASE = SCRIPT_PATH
 
 def welcome() -> bool:
     import FreeSimpleGUI as sg
@@ -276,7 +279,7 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
 
     original_cwd = os.getcwd()
     try:
-        os.chdir(SCRIPT_PATH)
+        os.chdir(SCRIPT_BASE)
 
         # Check if we're in the main branch
         curr_branch = subprocess.run(
@@ -326,7 +329,7 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
 
             # Set executable permissions (replace with specific file names if needed)
             subprocess.run(
-                flatpak_cmd + ["chmod", "-R", "ug+x", "*.py", "wemod{,.bat}"],
+                flatpak_cmd + ["chmod", "-R", "ug+x", "*.py", "wemod.bat"],
                 text=True,
             )
 
@@ -392,7 +395,7 @@ def setup_main() -> None:
         print("Installation cancelled by user")
         return
 
-    install_location = os.path.join(SCRIPT_PATH, "wemod_bin")
+    install_location = os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin")
     winetricks = os.path.join(SCRIPT_PATH, "winetricks")
 
     if os.getenv("FORCE_UPDATE_WEMOD", "0") == "1" or not os.path.isfile(

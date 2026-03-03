@@ -51,6 +51,10 @@ if getattr(sys, "frozen", False):
 else:
     SCRIPT_IMP_FILE = os.path.realpath(__file__)
 SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
+if os.path.basename(SCRIPT_PATH) == "src":
+    SCRIPT_BASE = os.path.dirname(SCRIPT_PATH)
+else:
+    SCRIPT_BASE = SCRIPT_PATH
 
 
 # Ensure that wine is installed
@@ -389,7 +393,7 @@ def troubleshooter() -> None:
                 init.write("true")
         elif ret == "Delete WeMod.exe":
             try:
-                os.remove(os.path.join(SCRIPT_PATH, "wemod_bin", "WeMod.exe"))
+                os.remove(os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin", "WeMod.exe"))
             except Exception as e:
                 pass
         elif ret == "Delete game prefix":
