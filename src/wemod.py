@@ -340,7 +340,6 @@ def syncwemod(
     action_needed = True
     # Handle the state of WeModExternal (the prefix-specific path)
     if os.path.islink(WeModExternal):
-        print("Checking link ---")
         # WeModExternal is a symlink. Check if it's correct.
         current_target = os.path.realpath(WeModExternal)
         if current_target == WeModData:
