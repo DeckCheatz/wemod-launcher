@@ -990,7 +990,7 @@ def run(skip_init: bool = False) -> str:
     # Get working dir
     WORK_DIR = os.path.realpath(os.getcwd())
 
-    if os.getenv("NO_EXE") or load_conf_setting("NoEXE"):
+    if not is_exe_or_forced(GAME_EXE):
         REL_EXE = GAME_EXE
         WIN_CMD = REL_EXE
     else:
