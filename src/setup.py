@@ -44,6 +44,7 @@ if os.path.basename(SCRIPT_PATH) == "src":
 else:
     SCRIPT_BASE = SCRIPT_PATH
 
+
 def welcome() -> bool:
     import FreeSimpleGUI as sg
     import requests

@@ -9,7 +9,6 @@ import sys
 import threading
 from typing import Optional
 
-
 # Import core utils without download dependencies
 from corenodep import (
     join_lists_with_delimiter,
@@ -158,7 +157,9 @@ def syncwemod(
         log(
             "Prefix packaging was requested with PACKAGEPREFIX=true in front of the command"
         )
-        current_proton_version = read_file(os.path.join(BASE_STEAM_COMPAT, "version"))
+        current_proton_version = read_file(
+            os.path.join(BASE_STEAM_COMPAT, "version")
+        )
         if not current_proton_version:
             log(f"Version is not set for {BASE_STEAM_COMPAT}, Error")
             exit_with_message(
@@ -201,7 +202,9 @@ def syncwemod(
             os.remove(WINEPREFIX)
             waslink = True
 
-        copy_folder_with_progress(BASE_STEAM_COMPAT, destfile, True, [None], [None])
+        copy_folder_with_progress(
+            BASE_STEAM_COMPAT, destfile, True, [None], [None]
+        )
 
         if waslink:
             try:
@@ -212,7 +215,9 @@ def syncwemod(
         with open(INIT_FILE, "w") as init:
             init.write(initcont)
 
-        os.system("xdg-open '" + os.path.join(STEAM_COMPAT_FOLDER, "prefixes") + "'")
+        os.system(
+            "xdg-open '" + os.path.join(STEAM_COMPAT_FOLDER, "prefixes") + "'"
+        )
         log("Done creating Prefix zip")
         exit_with_message(
             "Prefix Packaged",
@@ -259,15 +264,21 @@ def syncwemod(
                     shutil.move(source_path, destination_path)
                     log(f"Moved '{source_path}' to '{destination_path}'")
                 except Exception as e:
-                    log(f"Failed to move '{source_path}' to '{destination_path}': {e}")
+                    log(
+                        f"Failed to move '{source_path}' to '{destination_path}': {e}"
+                    )
                     try:
                         if os.path.isdir(source_path):
-                            shutil.rmtree(source_path)  # remove directory tree
+                            shutil.rmtree(
+                                source_path
+                            )  # remove directory tree
                         else:
                             os.remove(source_path)  # delete the file
                         log(f"Removed old dir/file at '{source_path}'")
                     except Exception as e:
-                        log(f"Failed to remove old dir/file '{source_path}': {e}")
+                        log(
+                            f"Failed to remove old dir/file '{source_path}': {e}"
+                        )
 
         # move wemod_bin as well
         old_dir = os.path.join(SCRIPT_BASE, "wemod_bin")
@@ -287,7 +298,12 @@ def syncwemod(
                 log(f"Failed to remove old directory '{old_dir}': {e}")
 
         # If migration was needed some old files are in the main folder and need to be moved or cleaned up
-        old_files_in_base = ["wemod.conf", "wemod_venv", "winetricks", "pip.pyz"]
+        old_files_in_base = [
+            "wemod.conf",
+            "wemod_venv",
+            "winetricks",
+            "pip.pyz",
+        ]
         old_dir = SCRIPT_BASE
         new_dir = os.path.join(SCRIPT_BASE, "src")
         for old_file in old_files_in_base:
@@ -313,7 +329,9 @@ def syncwemod(
         folder, "pfx/drive_c/users/steamuser/AppData/Roaming/WeMod"
     )  # WeMod's expected data location within the Wine prefix
 
-    log(f"Starting WeMod data sync. Central: '{WeModData}', Prefix: '{WeModExternal}'")
+    log(
+        f"Starting WeMod data sync. Central: '{WeModData}', Prefix: '{WeModExternal}'"
+    )
 
     # Ensure the central WeModData directory exists
     os.makedirs(WeModData, exist_ok=True)
@@ -452,7 +470,9 @@ def init(proton: str, iswine: bool = False) -> None:
                 text=True,
             )
         except Exception as e:
-            log(f"Error grabbing the external wine version using file:\n\t{e}")
+            log(
+                f"Error grabbing the external wine version using file:\n\t{e}"
+            )
             prefix_version_file = ensure_wine()
         else:
             prefix_version_file = ensure_wine(str(wver.stdout))
@@ -524,11 +544,15 @@ def init(proton: str, iswine: bool = False) -> None:
                 yesno=True,
             )
         else:
-            log("No compatible Proton version found in the compatibility folder.")
+            log(
+                "No compatible Proton version found in the compatibility folder."
+            )
         if response == "Yes":
             # Copy the closest version's prefix to the game prefix
             log(f"Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}")
-            syncwemod(closest_prefix_folder)  # Sync WeMod data in closest version
+            syncwemod(
+                closest_prefix_folder
+            )  # Sync WeMod data in closest version
 
             copy_folder_with_progress(
                 closest_prefix_folder,
@@ -620,7 +644,9 @@ def download_prefix(proton_dir: str) -> None:
 
     repo_concat = repo_user + "/" + repo_name
 
-    current_proton_version = read_file(os.path.join(BASE_STEAM_COMPAT, "version"))
+    current_proton_version = read_file(
+        os.path.join(BASE_STEAM_COMPAT, "version")
+    )
     current_version_parts = parse_version(current_proton_version)
 
     closest_version = None
@@ -629,7 +655,9 @@ def download_prefix(proton_dir: str) -> None:
         closest_version, url = find_closest_compatible_release(
             releases, current_version_parts
         )
-        file_name = f"wemod_prefix{closest_version[0]}.{closest_version[1]}.zip"
+        file_name = (
+            f"wemod_prefix{closest_version[0]}.{closest_version[1]}.zip"
+        )
 
     if (
         closest_version
@@ -722,7 +750,13 @@ def build_prefix(proton_dir: str) -> None:
     import FreeSimpleGUI as sg
 
     # Set environment path
-    path = os.path.join(SCRIPT_PATH, "bin") + ":" + proton_dir + ":" + os.getenv("PATH")
+    path = (
+        os.path.join(SCRIPT_PATH, "bin")
+        + ":"
+        + proton_dir
+        + ":"
+        + os.getenv("PATH")
+    )
 
     # deref
     winfolder = os.path.join(WINEPREFIX, "drive_c", "windows")
@@ -762,10 +796,16 @@ def build_prefix(proton_dir: str) -> None:
         wine("winecfg -v win7", path)
         dotnet48_result = wine(dotnet48, path)
 
-        if dotnet48_result != 0 and dotnet48_result != 194 and dotnet48_result != -15:
+        if (
+            dotnet48_result != 0
+            and dotnet48_result != 194
+            and dotnet48_result != -15
+        ):
             exit_with_message(
                 "dotnet48 install error",
-                "dotnet48 installation exited with code '{}'".format(dotnet48_result),
+                "dotnet48 installation exited with code '{}'".format(
+                    dotnet48_result
+                ),
                 ask_for_log=True,
             )
 
@@ -845,7 +885,9 @@ def run(skip_init: bool = False) -> str:
                     "Warning: No '--' delimiter found and no common Wine names detected. Proceeding with original argument parsing."
                 )
             else:
-                log(f"Detected common Wine name '{found_wine_name}' at index {fnr}.")
+                log(
+                    f"Detected common Wine name '{found_wine_name}' at index {fnr}."
+                )
 
     verb = ["waitforexitandrun"]
     tout = 90
@@ -890,9 +932,7 @@ def run(skip_init: bool = False) -> str:
         # Take the Proton path
         PROTON = PROTON_CMD[0]
 
-        fnr_p = (
-            0  # Use a different variable for index within PROTON_CMD to avoid confusion
-        )
+        fnr_p = 0  # Use a different variable for index within PROTON_CMD to avoid confusion
         # If there is a file then it's a custom runner so don't use a verb
         if PROTON[(fnr_p + 1)].find(".") >= 0:
             fnr_p -= 1
@@ -1042,7 +1082,9 @@ def run(skip_init: bool = False) -> str:
                 warn = fwf.read()
                 os.remove(warnfile)
                 if warn:
-                    log(f"Error while loading the wine server waiter:\n\t{warn}")
+                    log(
+                        f"Error while loading the wine server waiter:\n\t{warn}"
+                    )
 
         log("Finished flatpak mode code")
     else:
@@ -1071,7 +1113,9 @@ def run(skip_init: bool = False) -> str:
             try:
                 if os.path.isdir(os.path.join(WINEPREFIX, "drive_c")):
                     os.environ["WINEPREFIX"] = WINEPREFIX
-                elif os.path.isdir(os.path.join(BASE_STEAM_COMPAT, "drive_c")):
+                elif os.path.isdir(
+                    os.path.join(BASE_STEAM_COMPAT, "drive_c")
+                ):
                     os.environ["WINEPREFIX"] = BASE_STEAM_COMPAT
                 else:
                     os.environ["WINEPREFIX"] = WINEPREFIX
@@ -1113,7 +1157,9 @@ if __name__ == "__main__":
         RESPONCE = run()
     except Exception as e:
         RESPONCE = "ERR:\n" + str(e)
-        logy = show_message("Error occurred. Open the log?", "Error occurred", 30, True)
+        logy = show_message(
+            "Error occurred. Open the log?", "Error occurred", 30, True
+        )
 
     # Log final response or error
     log(str(RESPONCE))
