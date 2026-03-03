@@ -15,13 +15,13 @@ SET returnfile=%mypath:~0,-1%\.cache\return.tmp
 
 echo Hello from the WeMod Launcher, the WeMod bat was started successfully.
 echo.
-echo WEMOD EXE:
-echo "%wemodpath%"
+echo WeMod EXE path:
+echo %wemodpath%
 echo.
-echo PWD:
-echo "%cd%"
+echo CWD:
+echo %cd%
 echo.
-echo command:
+echo Command:
 echo %*
 
 echo.
@@ -31,85 +31,60 @@ REM Start WeMod.exe and get its PID
 echo Starting WeMod by using %wemodname%.
 start "" %wemodpath%
 
-echo Checking for running WeMod pid
-set retry_count=0
-:retry_pid
 set wemodPID=
-set /a retry_count+=1
 
-REM Get the wemod pid over Proton
-if not defined wemodPID (
-    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%"') do (
-        set void=%%a
-        set wemodPID=%%b
-    )
-)
-REM Retry to get the wemod pid over Proton
-if not defined wemodPID (
-    for /F "TOKENS=1,2,*" %%a in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%"') do (
-        set void=%%a
-        set wemodPID=%%b
-    )
-)
-REM If still not set get wemod pid over wine
-if not defined wemodPID (
-    for /F "TOKENS=2 delims=," %%d in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%"') do (
-        set wemodPID=%%d
-    )
-)
-REM And If still not set retry getting the wemod pid over wine
-if not defined wemodPID (
-    for /F "TOKENS=2 delims=," %%d in ('C:/windows/system32/tasklist /FI "IMAGENAME eq %wemodname%"') do (
-        set wemodPID=%%d
-    )
-)
+REM Get the WeMod launcher PID, loop until found, and exit subroutine when found.
+set wemodPIDCounter=0
 
-if not defined wemodPID (
-    echo Attempting to find WeMod PID (attempt %retry_count% of 3)...
-    if %retry_count% leq 3 (
-        @ping localhost -n 1 > NUL 2>&1
-        goto retry_pid
-    )
-    echo Failed to find WeMod PID after multiple attempts. Continuing anyway.
+:search
+echo Searching for WeMod PID...
+REM Check we haven't run this more than 3 times.
+if %wemodPIDCounter% GTR 3 (
+	echo WeMod not found in process list, defaulting to prevent infinite loop... > %returnfile%
+    type %returnfile%
+	pause
+    goto :discovered
 )
+for /F "TOKENS=1,2 delims=," %%a in ('C:/windows/system32/tasklist /FO CSV /NH /FI "IMAGENAME eq %wemodname%"') do (
+  set wemodPID=%%b
+)
+if defined wemodPID goto :discovered
+echo Continue search for WeMod PID...
+set /A wemodPIDCounter+=1
+@ping localhost -n 6 >NUL
+goto :search
+
+:discovered
 
 echo WeMod found with pid %wemodPID%
 echo.
 
-echo WeMod found with pid %wemodPID%
-echo.
-
-REM Start the game and wait for exit
-echo Running game "%~1" and waiting for close
+REM start the game and wait for exit
+echo Running game "%~1" and waiting for closure..
 echo The full command is: %*
 start /wait "" %*
 echo.
-echo The game was closed
+echo The game was closed.
 
 if defined wemodPID (
     if exist %temptime% (
         del %temptime%
-        echo Game closed to fast, Game detection may have failed. > %returnfile%
-        echo Keep in mind the wemod-launcher usualy can`t detect game launchers. >> %returnfile%
-        echo THIS IS NOT A BUG, its not possible with the current project structure. >> %returnfile%
-        echo Only open a Issue if the game (launcher) did not start, >> %returnfile%
-        echo or if the game crashed, or if wemod won't closes unexpectedly. >> %returnfile%
-        echo.
-        echo Game closed to fast, Game detection may have failed, sending problem to python script and waiting for awnser
+        echo Game closed too fast, Game detection may have failed. > %returnfile%
+        echo Keep in mind that wemod-launcher usually can`t detect game launchers. >> %returnfile%
+        echo Only open an issue IF the game did not start, >> %returnfile%
+        echo or IF the game crashed, or IF WeMod exits unexpectedly. >> %returnfile%
+        type %returnfile%
         :WaitUser
-        @ping localhost -n 1 > NUL 2>&1
-        if exist %returnfile% (
-            goto WaitUser
-        )
+        @ping localhost -n 2 >NUL
+        if exist %returnfile% GOTO WaitUser
     )
-    echo Closing WeMod
-    C:/windows/system32/taskkill.exe /PID %wemodPID% /F 2>NUL
-    C:/windows/system32/taskkill.exe /PID %wemodPID% /F 2>NUL
-    echo.
+    echo Closing WeMod..
+    C:/windows/system32/taskkill.exe /PID %wemodPID% /F >NUL
+    C:/windows/system32/taskkill.exe /PID %wemodPID% /F >NUL
     echo Killed %wemodname% with pid %wemodPID%
 )
 
 echo.
 echo Done running bat, closing in 1 second
-@ping localhost -n 1 > NUL 2>&1
+@ping localhost -n 2 >NUL
 echo.
