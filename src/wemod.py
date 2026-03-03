@@ -825,6 +825,37 @@ def build_prefix(proton_dir: str) -> None:
             ask_for_log=True,
         )
 
+# Check if a string contains a url protocol
+def contains_url_protocol(s: str) -> bool:
+    parts = s.split("://")
+    if len(parts) < 2:
+        return False
+
+    protocol = parts[0]
+    return protocol.isalnum() and len(protocol) > 1
+
+
+def is_exe_or_forced(s: str) -> bool:
+    env_val = os.getenv("NO_EXE")
+    if env_val: #check env
+        if env_val.lower() == "false":
+            return True # we want game exe, so true
+        elif env_val.lower() == "none":
+            pass # none is to just ignore
+        else:
+            return False # assume since set, user wanted to NO exe
+
+    cfg_val = load_conf_setting("NoEXE")
+    if cfg_val: #same check with conf
+        if cfg_val.lower() == "false":
+            return True
+        elif cfg_val.lower() == "none":
+            pass
+        else:
+            return False
+
+    # final check if not url its a exe
+    return not contains_url_protocol(s)
 
 # Main run function
 def run(skip_init: bool = False) -> str:
@@ -907,11 +938,9 @@ def run(skip_init: bool = False) -> str:
             verb = []
             tout = 60
 
-        # Get the game exe
-        if os.getenv("NO_EXE") or load_conf_setting("NoEXE"):
-            GAME_EXE = ARGS[(fnr + 2)]
-        else:
-            GAME_EXE = os.path.realpath(ARGS[(fnr + 2)])
+        GAME_EXE = ARGS[(fnr + 2)]
+        if is_exe_or_forced(GAME_EXE):
+            GAME_EXE = os.path.realpath(GAME_EXE)    
 
         # Add more args at the end
         LAUNCH_OPTIONS = ARGS[(fnr + 3) :]
@@ -940,10 +969,9 @@ def run(skip_init: bool = False) -> str:
             tout = 60
 
         # Get the game exe
-        if os.getenv("NO_EXE") or load_conf_setting("NoEXE"):
-            GAME_EXE = PROTON_CMD[fnr_p + 2]
-        else:
-            GAME_EXE = os.path.realpath(PROTON_CMD[fnr_p + 2])
+        GAME_EXE = PROTON_CMD[fnr_p + 2]
+        if is_exe_or_forced(GAME_EXE):
+            GAME_EXE = os.path.realpath(GAME_EXE)
 
         # Add more args at the end
         LAUNCH_OPTIONS = PROTON_CMD[(fnr_p + 3) :]
