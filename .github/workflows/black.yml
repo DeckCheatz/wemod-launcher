@@ -67,7 +67,7 @@ jobs:
             new_ver = ver + 0.001;
             printf("    script_version = \"%.3f\"\n", new_ver);
           }
-          !/script_version = "/ { print $0 }' src/coreutils.py > scr/coreutils.py.tmp && mv src/coreutils.py.tmp src/coreutils.py
+          !/script_version = "/ { print $0 }' src/coreutils.py > src/coreutils.py.tmp && mv src/coreutils.py.tmp src/coreutils.py
   
       - name: Update version in README
         if: steps.run_black.outcome == 'success'
