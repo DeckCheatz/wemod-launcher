@@ -72,7 +72,7 @@ jobs:
       - name: Update version in README
         if: steps.run_black.outcome == 'success'
         run: |
-          current_ver=$(awk '/script_version = "/ {print $3}' coreutils.py | tr -d '"')
+          current_ver=$(awk '/script_version = "/ {print $3}' src/coreutils.py | tr -d '"')
           awk -v ver="$current_ver" '/The WeMod Launcher is currently on version / {
             printf("**The WeMod Launcher is currently on version %.3f.**\n", ver);
           }
