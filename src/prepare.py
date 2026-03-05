@@ -7,23 +7,23 @@ import stat
 import shutil
 import subprocess
 
-from coreutils import (
+from core_utils import (
     log,
     pip,
     exit_with_message,
 )
 
-from corenodep import (
+from core_nodeps import (
     load_conf_setting,
     save_conf_setting,
     check_dependencies,
 )
 
-from coreutils import (
+from core_utils import (
     show_message,
 )
 
-from mainutils import (
+from main_utils import (
     download_progress,
     is_flatpak,
 )
@@ -328,7 +328,7 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
 
             # Set executable permissions (replace with specific file names if needed)
             subprocess.run(
-                flatpak_cmd + ["chmod", "-R", "ug+x", "*.py", "wand{,.bat}"],
+                flatpak_cmd + ["chmod", "-R", "ug+x", "*.py", "wemod.bat"],
                 text=True,
             )
 
@@ -394,7 +394,7 @@ def setup_main() -> None:
         print("Installation cancelled by user")
         return
 
-    install_location = os.path.join(SCRIPT_PATH, "wand_bin")
+    install_location = os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin")
     winetricks = os.path.join(SCRIPT_PATH, "winetricks")
 
     if os.getenv("FORCE_UPDATE_WAND", "0") == "1" or not os.path.isfile(

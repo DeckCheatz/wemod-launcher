@@ -15,11 +15,11 @@ from typing import (
 )
 
 
-from corenodep import (
+from core_nodeps import (
     parse_version,
 )
 
-from coreutils import (
+from core_utils import (
     exit_with_message,
     save_conf_setting,
     load_conf_setting,
@@ -508,11 +508,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
 
     # Track errors during extraction
     extraction_errors = []
-    critical_files = [
-        "pfx/.wemod_installer",
-        "pfx/.wand_installer",
-        "version",
-    ]
+    critical_files = ["pfx/.wemod_installer", "version"]
 
     def update_progress(unzipped: int, total: int) -> None:
         """Update the GUI with the current progress."""

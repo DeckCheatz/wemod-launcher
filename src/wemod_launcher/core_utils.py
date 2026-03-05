@@ -15,7 +15,7 @@ from typing import (
     Any,
 )
 
-from corenodep import (
+from wemod_launcher.core_nodeps import (
     join_lists_with_delimiter,
     load_conf_setting,
     save_conf_setting,
@@ -54,9 +54,7 @@ def log(message: Optional[str] = None, open_log: bool = False) -> None:
             if not oswandlog:  # Only save if not a environment var
                 save_conf_setting("WandLog", wandlog)
 
-            new_message = f"WandLog path was not given or invalid using path '{
-                wandlog
-            }'\nIf you don't want to generate a log file, use WAND_LOG='' or set the config to WandLog=''"
+            new_message = f"WandLog path was not given or invalid using path '{wandlog}'\nIf you don't want to generate a log file, use WAND_LOG='' or set the config to WandLog=''"
             if message == None:
                 message = new_message
             else:
@@ -121,9 +119,7 @@ def exit_with_message(
     ask_for_log: bool = False,
 ) -> None:
     if ask_for_log:
-        exit_message += (
-            "\nDo you want to open the log for more info on the exit error?"
-        )
+        exit_message += "\nDo you want to open the log for more info on the exit error?"
     ret = show_message(
         exit_message,
         title,
@@ -155,9 +151,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
         venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))
     pos_pip = None
     if venv_path:
-        python_executable = os.path.join(
-            venv_path, os.path.basename(sys.executable)
-        )
+        python_executable = os.path.join(venv_path, os.path.basename(sys.executable))
         pos_pip = os.path.join(venv_path, "bin", "pip")
         if not os.path.isfile(pos_pip):
             pos_pip = None
@@ -205,9 +199,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
                 "The pip inside the virtual environment reported an error.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wand_venv\nand is located inside the wand-launcher folder"
             )
             log(
-                f"A pip error occurred.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wand_venv\nand is located inside the wand-launcher folder.\nError message:\n\t{
-                    stdout
-                }\n\t{stderr}"
+                f"A pip error occurred.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wand_venv\nand is located inside the wand-launcher folder.\nError message:\n\t{stdout}\n\t{stderr}"
             )
 
     # Try to use the built-in pip
@@ -273,9 +265,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
     return process.returncode
 
 
-def monitor_file(
-    ttfile: str, tout: int, responsefile: str, bout: Optional[int] = 60
-):
+def monitor_file(ttfile: str, tout: int, responsefile: str, bout: Optional[int] = 60):
     import time
 
     cout = os.getenv("WAIT_ON_GAMECLOSE")
@@ -314,9 +304,7 @@ def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
         if bout != None:
             batresp = show_message(
                 returnmessage
-                + f'\nYou can still use wand by clicking "Yes",\nthis will keep wand open in the backround\nIf you want to close Wand click "No"\nWand will automaticly close in {
-                    bout
-                } seconds, if nothing is done',
+                + f'\nYou can still use wand by clicking "Yes",\nthis will keep wand open in the backround\nIf you want to close Wand click "No"\nWand will automaticly close in {bout} seconds, if nothing is done',
                 "BAT Warning",
                 bout,
                 True,
@@ -339,10 +327,8 @@ def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
 
 
 # Function to handle caching of files
-def cache(
-    file_path: str, default: Callable[[str], None], simple: bool = False
-) -> str:
-    CACHE = os.path.join(SCRIPT_PATH, ".cache")
+def cache(file_path: str, default: Callable[[str], None], simple: bool = False) -> str:
+    CACHE = "/tmp/wemod-launcher/.cache"
     if not os.path.isdir(CACHE):
         log("Cache dir not found. Creating...")
         os.mkdir(CACHE)
@@ -371,9 +357,7 @@ def popup_options(
     import FreeSimpleGUI as sg
 
     # Define the layout based on provided options
-    buttons_layout = [
-        [sg.Button(option) for option in row] for row in options
-    ]
+    buttons_layout = [[sg.Button(option) for option in row] for row in options]
     layout = [[sg.Text(message)]] + buttons_layout
 
     close = True
@@ -449,8 +433,8 @@ def get_user_input(
 
 
 def script_manager() -> None:
-    script_name = "wand-launcher"
-    script_version = "1.539"
+    script_name = "wemod-launcher"
+    script_version = "1.537"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 
@@ -461,19 +445,13 @@ def script_manager() -> None:
     if last_version:
         try:
             if float(last_version) < float(script_version):
-                log(
-                    f"Config on version {last_version} updating to {script_version}"
-                )
+                log(f"Config on version {last_version} updating to {script_version}")
             elif float(last_version) > float(script_version):
                 log(
-                    f"Warning: config on version {last_version}; downgrading to {
-                        script_version
-                    }"
+                    f"Warning: config on version {last_version}; downgrading to {script_version}"
                 )
         except Exception as e:
-            log(
-                f"Warning: config error '{e}'; changing version to {script_version}"
-            )
+            log(f"Warning: config error '{e}'; changing version to {script_version}")
     else:
         log("Adding script version to config")
 
