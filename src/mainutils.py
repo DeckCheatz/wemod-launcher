@@ -415,6 +415,10 @@ def copy_folder_with_progress(
 
     log(f"ignoring: {ignore}\nincluding anyway: {include_override}")
 
+    # Thread-safe status: [current, total, phase]
+    # phase: 0 = scanning, 1 = copying/zipping
+    status = [0, 0, 0]
+
     def traverse_folders(path: str) -> List[str]:
         import pathlib
 
@@ -425,12 +429,10 @@ def copy_folder_with_progress(
                 allf.append(item)
         return allf
 
-    def update_progress(copied: int, total: int) -> None:
-        """Update the GUI with the current progress."""
-        percentage = int(100 * (copied / total)) if total > 0 else 0
-        text.update(f"{percentage}% ({copied}/{total})")
-        progress.update(percentage)
-        window.refresh()
+    def update_status(current: int, total: int, phase: int) -> None:
+        status[0] = current
+        status[1] = total
+        status[2] = phase
 
     def copy_files() -> None:
         files = traverse_folders(source)
@@ -457,18 +459,14 @@ def copy_folder_with_progress(
                 copy.append(rfile)
 
         total_files = len(copy)
-        if zipup:
-            extra.update("Zipping file, please be patient...")
-        else:
-            extra.update("Copying prefix, please be patient...")
-        window.refresh()
+        update_status(0, total_files, 1)
 
         if zipup:
             with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as zipf:
                 for i, f in enumerate(copy):
                     arcname = f
                     zipf.write(os.path.join(source, f), arcname)
-                    update_progress(i + 1, total_files)
+                    update_status(i + 1, total_files, 1)
         else:
             for i, f in enumerate(copy):
                 src_path = os.path.join(source, f)
@@ -476,27 +474,27 @@ def copy_folder_with_progress(
                 try:
                     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
                     shutil.copy2(src_path, dest_path, follow_symlinks=False)
-                    update_progress(i + 1, total_files)
+                    update_status(i + 1, total_files, 1)
                 except Exception as e:
                     log(f"Failed to copy {src_path} to {dest_path}: {e}")
 
     sg.theme("systemdefault")
 
     progress = sg.ProgressBar(100, orientation="h", s=(50, 10))
-    text = sg.Text("0% (0/?)")
-    extra = sg.Text("Reading prefix directory, please wait...")
+    text = sg.Text("0% (0/?)", size=(20, 1))
+    extra = sg.Text("Reading directory, please wait...")
     layout = [[extra], [progress], [text]]
 
     if zipup:
-        window = sg.Window("Copying Prefix", layout, finalize=True)
+        window = sg.Window("Zipping Prefix", layout, finalize=True)
     else:
-        window = sg.Window("Zipping File", layout, finalize=True)
+        window = sg.Window("Copying Prefix", layout, finalize=True)
 
     window.refresh()
     window.perform_long_operation(copy_files, "-COPY DONE-")
 
     while True:
-        event, values = window.read(timeout=1000)
+        event, values = window.read(timeout=100)
         if event == "-COPY DONE-":
             break
         elif event is None:
@@ -505,6 +503,16 @@ def copy_folder_with_progress(
                 "The window was closed. Exiting...",
                 timeout=5,
             )
+        else:
+            current, total, phase = status
+            if phase == 1 and total > 0:
+                perc = int(100 * current / total)
+                if zipup:
+                    extra.update("Zipping files, please be patient...")
+                else:
+                    extra.update("Copying files, please be patient...")
+                text.update(f"{perc}% ({current}/{total} files)")
+                progress.update(perc)
 
     window.close()
 
@@ -518,20 +526,20 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
     extraction_errors = []
     critical_files = ["pfx/.wemod_installer", "version"]
 
-    def update_progress(unzipped: int, total: int) -> None:
-        """Update the GUI with the current progress."""
-        percentage = int(100 * (unzipped / total)) if total > 0 else 0
-        text.update(f"{percentage}% ({unzipped}/{total})")
-        progress.update(percentage)
-        window.refresh()
+    # Thread-safe status: [current, total, phase]
+    # phase: 0 = reading zip, 1 = extracting
+    status = [0, 0, 0]
+
+    def update_status(current: int, total: int, phase: int) -> None:
+        status[0] = current
+        status[1] = total
+        status[2] = phase
 
     def unpack_files() -> None:
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             files = zip_ref.namelist()
             total_files = len(files)
-
-            extra.update("Unpacking prefix, please be patient...")
-            window.refresh()
+            update_status(0, total_files, 1)
 
             for i, file in enumerate(files):
                 full_file = os.path.join(dest_path, file)
@@ -565,12 +573,12 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
                             f"CRITICAL: Failed to extract required file '{file}'"
                         )
 
-                update_progress(i + 1, total_files)
+                update_status(i + 1, total_files, 1)
 
     sg.theme("systemdefault")
 
     progress = sg.ProgressBar(100, orientation="h", s=(50, 10))
-    text = sg.Text("0% (0/?)")
+    text = sg.Text("0% (0/?)", size=(20, 1))
     extra = sg.Text("Reading ZIP file, please wait...")
     layout = [[extra], [progress], [text]]
     window = sg.Window("Unpacking Prefix", layout, finalize=True)
@@ -579,7 +587,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
     window.perform_long_operation(unpack_files, "-UNPACK DONE-")
 
     while True:
-        event, values = window.read(timeout=1000)
+        event, values = window.read(timeout=100)
         if event == "-UNPACK DONE-":
             break
         elif event is None:
@@ -588,6 +596,13 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
                 "The window was closed. Exiting...",
                 timeout=5,
             )
+        else:
+            current, total, phase = status
+            if phase == 1 and total > 0:
+                perc = int(100 * current / total)
+                extra.update("Extracting files, please be patient...")
+                text.update(f"{perc}% ({current}/{total} files)")
+                progress.update(perc)
 
     window.close()
 
