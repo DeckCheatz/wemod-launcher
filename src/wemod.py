@@ -33,6 +33,7 @@ from coreutils import (
 
 # Import main utils
 from mainutils import (
+    copytree_with_progress,
     deref,
     find_closest_compatible_release,
     flatpakrunner,
@@ -389,8 +390,8 @@ def syncwemod(
                     f"User chose to use data from '{WeModExternal}'. Overwriting central data in '{WeModData}'."
                 )
                 shutil.rmtree(WeModData)  # Clear central directory
-                shutil.copytree(
-                    WeModExternal, WeModData
+                copytree_with_progress(
+                    WeModExternal, WeModData, title="Copying WeMod Data"
                 )  # Copy external data to central
             else:  # response is "Yes" or None (default to Yes)
                 # User chose or defaulted to using data from the central directory.
@@ -404,7 +405,9 @@ def syncwemod(
                 f"Directory '{WeModData}' is empty, but '{WeModExternal}' has data. Moving data from external to central."
             )
             # WeModData already exists (created earlier), so directly copy into it.
-            shutil.copytree(WeModExternal, WeModData)
+            copytree_with_progress(
+                WeModExternal, WeModData, title="Copying WeMod Data"
+            )
         else:
             # Either WeModExternal has no content, or WeModData already has content and is preferred.
             log(
