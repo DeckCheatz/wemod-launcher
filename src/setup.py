@@ -11,6 +11,7 @@ from coreutils import (
     log,
     pip,
     exit_with_message,
+    get_mouse_location,
 )
 
 from corenodep import (
@@ -61,6 +62,7 @@ def welcome() -> bool:
         title="WeMod Launcher Setup",
         image=wemod_logo.content,
         icon=wemod_logo.content,
+        location=get_mouse_location(),
     )
     return ret == "OK"
 
@@ -76,7 +78,9 @@ def download_wemod(temp_dir: str) -> str:
     text = sg.Text("0%")
     # text = sg.Multiline(str.join("", log), key="-LOG-", autoscroll=True, size=(50,50), disabled=True)
     layout = [[progress], [text]]
-    window = sg.Window("Downloading WeMod", layout, finalize=True)
+    window = sg.Window(
+        "Downloading WeMod", layout, finalize=True, location=get_mouse_location()
+    )
 
     def update_log(status: list[int], dl: int, total: int) -> None:
         status.clear()
