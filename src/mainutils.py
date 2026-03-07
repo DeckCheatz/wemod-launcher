@@ -233,6 +233,14 @@ def download_progress(
 def popup_download(title: str, link: str, file_name: str) -> str:
     import FreeSimpleGUI as sg
 
+    def format_size(bytes_val: int) -> str:
+        """Format bytes to human readable string."""
+        for unit in ["B", "KB", "MB", "GB"]:
+            if bytes_val < 1024:
+                return f"{bytes_val:.1f} {unit}"
+            bytes_val /= 1024
+        return f"{bytes_val:.1f} TB"
+
     sg.theme("systemdefault")
 
     status = [0, 0]
@@ -242,11 +250,11 @@ def popup_download(title: str, link: str, file_name: str) -> str:
         os.makedirs(cache)
 
     progress = sg.ProgressBar(100, orientation="h", s=(50, 10))
-    text = sg.Text("0%")
+    text = sg.Text("0%", size=(30, 1))
     layout = [[progress], [text]]
     window = sg.Window(title, layout, finalize=True)
 
-    def update_log(status: list[int], dl: int, total: int) -> None:
+    def update_status(status: list[int], dl: int, total: int) -> None:
         status.clear()
         status.append(dl)
         status.append(total)
@@ -257,13 +265,13 @@ def popup_download(title: str, link: str, file_name: str) -> str:
         os.remove(file_path)
 
     download_func = lambda: download_progress(
-        link, file_path, lambda dl, total: update_log(status, dl, total)
+        link, file_path, lambda dl, total: update_status(status, dl, total)
     )
 
     window.perform_long_operation(download_func, "-DL COMPLETE-")
 
     while True:
-        event, values = window.read(timeout=1000)
+        event, values = window.read(timeout=100)
         if event == "-DL COMPLETE-":
             os.rename(file_path, file_path_end)
             break
@@ -278,7 +286,7 @@ def popup_download(title: str, link: str, file_name: str) -> str:
                 continue
             dl, total = status
             perc = int(100 * (dl / total)) if total > 0 else 0
-            text.update(f"{perc}% ({dl}/{total})")
+            text.update(f"{perc}% ({format_size(dl)} / {format_size(total)})")
             progress.update(perc)
 
     window.close()
