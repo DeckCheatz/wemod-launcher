@@ -650,6 +650,83 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             )
 
 
+def copytree_with_progress(
+    source: str, dest: str, title: str = "Copying Files"
+) -> None:
+    """Copy a directory tree with a GUI progress bar."""
+    import FreeSimpleGUI as sg
+    import pathlib
+
+    # Thread-safe status: [current, total, phase]
+    # phase: 0 = scanning, 1 = copying
+    status = [0, 0, 0]
+
+    def update_status(current: int, total: int, phase: int) -> None:
+        status[0] = current
+        status[1] = total
+        status[2] = phase
+
+    def copy_tree() -> None:
+        # First, count all files
+        files_to_copy = []
+        source_path = pathlib.Path(source)
+        for item in source_path.rglob("*"):
+            if item.is_file():
+                files_to_copy.append(item)
+
+        total_files = len(files_to_copy)
+        update_status(0, total_files, 1)
+
+        # Create destination directory if it doesn't exist
+        os.makedirs(dest, exist_ok=True)
+
+        # Copy each file
+        for i, src_file in enumerate(files_to_copy):
+            rel_path = src_file.relative_to(source_path)
+            dest_file = os.path.join(dest, rel_path)
+
+            # Create parent directories if needed
+            os.makedirs(os.path.dirname(dest_file), exist_ok=True)
+
+            try:
+                shutil.copy2(src_file, dest_file, follow_symlinks=False)
+            except Exception as e:
+                log(f"Failed to copy {src_file} to {dest_file}: {e}")
+
+            update_status(i + 1, total_files, 1)
+
+    sg.theme("systemdefault")
+
+    progress = sg.ProgressBar(100, orientation="h", s=(50, 10))
+    text = sg.Text("0% (0/?)", size=(20, 1))
+    extra = sg.Text("Scanning directory...")
+    layout = [[extra], [progress], [text]]
+    window = sg.Window(title, layout, finalize=True)
+    window.refresh()
+
+    window.perform_long_operation(copy_tree, "-COPY DONE-")
+
+    while True:
+        event, values = window.read(timeout=100)
+        if event == "-COPY DONE-":
+            break
+        elif event is None:
+            exit_with_message(
+                "Window Closed",
+                "The window was closed. Exiting...",
+                timeout=5,
+            )
+        else:
+            current, total, phase = status
+            if phase == 1 and total > 0:
+                perc = int(100 * current / total)
+                extra.update("Copying files...")
+                text.update(f"{perc}% ({current}/{total} files)")
+                progress.update(perc)
+
+    window.close()
+
+
 def is_flatpak() -> bool:
     return "FLATPAK_ID" in os.environ or os.path.exists("/.flatpak-info")
 
