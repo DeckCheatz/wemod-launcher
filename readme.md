@@ -67,23 +67,7 @@ consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest
 - **Info:** Games no longer seem to be detected by **Wemod**. If anyone has info on how **Wemod** finds games please make a new issue. If you have no idea please **don't** make a bug report. We cant fix this if we don't know how. You will have to add the game manualy right now.
 
 ### Setup Automatically
-1. Open your Terminal.
-2. **Optionnal:** go into the directory you want to install wemod-launcher to (using `cd`).
-3. Download the script: `curl -o "wemod-setup" https://raw.githubusercontent.com/DeckCheatz/wemod-launcher/refs/heads/main/setup`.
-4. **Info:** Please review the script before running, you can use: `less wemod-setup` to see the content of the file.
-5. Run the script: `bash wemod-setup`.
-
-#### Next:
-1. Install 'ProtonPlus' (or 'ProtonUp-QT') and open the app
-2. From the app, install 'Proton-GE' (or 'GE-Proton')
-3. Restart Steam
-4. Set this profile to all your games (using a Proton GUI or Steam directly (right-click on a game > Manage > Compatibility > Force Proton version))
-5. If you did step 4 with a Proton GUI, restart Steam again
-6. Here there are two ways, for a single game (a), or multiple at once (b). Both on Steam's Library:
-  6.a. Right click at any game you want > Manage > General > Launch Options
-  6.b. In the list of games (at the left, not the one with posters), select your with left click your first game then with CTRL+left click others (CTRL+A for all). Once all you want are selected, right click > Manage > General > Launch Options
-7. Insert this command: `<REPO_PATH>/wemod %command%`
-(launch command saved in `<REPO_PATH>/launch-command.txt`)
+Read `USAGE.md`
 
 ### Setup Manually
 1. Python `python-venv` (or `python3-venv` or `venv` or `virtualenv`; use first one found)  
