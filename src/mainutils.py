@@ -383,7 +383,6 @@ def copy_folder_with_progress(
         ignore.remove(None)
         ignore = list(ignore) + [
             "pfx/drive_c/users",
-            "pfx/dosdevices",
             "pfx/drive_c/Program Files (x86)",
             "pfx/drive_c/Program Files",
             "pfx/drive_c/ProgramData",

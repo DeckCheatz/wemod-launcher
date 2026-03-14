@@ -560,6 +560,17 @@ def init(proton: str, iswine: bool = False) -> None:
                 [None],
                 [None],
             )
+            # Ensure dosdevices exists and `drive_c`/`drive_z` are correctly symlinked.
+            dosdevices = os.path.join(WINEPREFIX, "dosdevices")
+            if not os.path.isdir(dosdevices):
+                os.makedirs(dosdevices)
+                c_drive = os.path.join(dosdevices, "c:")
+                z_drive = os.path.join(dosdevices, "z:")
+                if not os.path.exists(c_drive):
+                    os.symlink("../drive_c", c_drive)
+                if not os.path.exists(z_drive):
+                    os.symlink("/", z_drive)
+
             syncwemod()  # Sync WeMod data
             log(
                 f"Copied Proton version {cut_version[0]}.{cut_version[1]} prefix to game prefix that was on version {current_version_parts[0]}.{current_version_parts[1]}"
