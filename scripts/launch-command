@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+WEMOD_DIR=$(realpath "${1:-$SCRIPT_DIR/../}")
+echo
+echo "Launch command:"
+echo "$WEMOD_DIR/wemod %command%"
