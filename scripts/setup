@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -e
+
+#-----------------------------------
+#----------- CLONE REPO ------------
+#-----------------------------------
+echo
+echo "# Checking project directory..."
+# Clone if not already present (or current folder)
+WEMOD_DIR=""
+GIT_PROJECT_NAME="wemod-launcher"
+if [ ! -d "$GIT_PROJECT_NAME" -a ! -d "../$GIT_PROJECT_NAME" -a ! -d "../../$GIT_PROJECT_NAME" ]; then
+  echo "'$GIT_PROJECT_NAME' directory not found."
+  REPO_URL="https://github.com/DeckCheatz/wemod-launcher.git"
+
+  read -rp "Enter installation path (leave empty to clone here): " install_path
+  if [ -z "$install_path" ]; then
+    echo "Cloning repository into current directory..."
+    git clone "$REPO_URL"
+    WEMOD_DIR="$(realpath $GIT_PROJECT_NAME)"
+  else
+    echo "Cloning repository into $install_path..."
+    mkdir -p "$install_path"
+    git clone "$REPO_URL" "$install_path/$GIT_PROJECT_NAME"
+    WEMOD_DIR="$(realpath $install_path/$GIT_PROJECT_NAME)"
+  fi
+else
+  echo "'$GIT_PROJECT_NAME' directory already exists."
+
+  # If we are already inside the project directory
+  if [ "$(basename "$PWD")" = "$GIT_PROJECT_NAME" ]; then
+    WEMOD_DIR="$(realpath "$PWD")"
+  else
+    WEMOD_DIR="$(realpath "$GIT_PROJECT_NAME")"
+  fi
+fi
+chmod +x "$WEMOD_DIR/wemod"
+
+source "$WEMOD_DIR/scripts/install-dependencies"
+echo && cat "$WEMOD_DIR/USAGE.md"
+source "$WEMOD_DIR/scripts/launch-command" $WEMOD_DIR
