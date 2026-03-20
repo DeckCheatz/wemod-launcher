@@ -124,14 +124,14 @@ def ensure_wine(verstr: Optional[str] = None) -> str:
     else:
         exit_with_message(
             "Missing Prefix",
-            "Error: wine prefix is missing.\nMake sure you run the game without wemod-launcher once",
+            "Error: wine prefix is missing.\nMake sure you run the game without wand-launcher once",
             ask_for_log=True,
         )
 
 
-# Scan the steam compat folder for WeMod installed prefixes
+# Scan the steam compat folder for Wand installed prefixes
 def scanfolderforversions(
-    current_version_parts: List[Union[int, None]] = [None, None]
+    current_version_parts: List[Union[int, None]] = [None, None],
 ) -> List[Union[Optional[List[int]], Optional[str]]]:
     # At default, we don't know of any available version
     closest_version_folder = None
@@ -143,12 +143,12 @@ def scanfolderforversions(
 
     # For all folders in steam compat
     for folder in os.listdir(SCAN_FOLDER):
-        # Get the version file, folder path and check if WeMod is installed
+        # Get the version file, folder path and check if Wand is installed
         folder_path = os.path.join(SCAN_FOLDER, folder)
         version_file = os.path.join(folder_path, "version")
 
         if os.path.isdir(folder_path) and os.path.exists(
-            os.path.join(folder_path, "pfx", ".wemod_installer")
+            os.path.join(folder_path, "pfx", ".wand_installer")
         ):
             folder_version_str = read_file(version_file)
             folder_version_parts = parse_version(folder_version_str)
@@ -269,14 +269,14 @@ def scanfolderforversions(
         )
         # ask the user to upload the prefix if they have one
         prresp = show_message(
-            f"In your scan folder, the online missing prefix version with GE-Proton 7 (.{protonconfminor}) was found.\nPlease, be so kind and click yes to zip the prefix\nand that upload it to something like https://www.sendgb.com/; \nlastly, paste the link in a WeMod-Launcher issue on GitHub",
+            f"In your scan folder, the online missing prefix version with GE-Proton 7 (.{protonconfminor}) was found.\nPlease, be so kind and click yes to zip the prefix\nand that upload it to something like https://www.sendgb.com/; \nlastly, paste the link in a Wand-Launcher issue on GitHub",
             "GE-Proton7 found",
             60,
             True,
         )
         if prresp == "Yes":
             sevenpfx = os.path.join(prefix_path_seven, "pfx")
-            seveninit = os.path.join(sevenpfx, ".wemod_installer")
+            seveninit = os.path.join(sevenpfx, ".wand_installer")
 
             initcont = read_file(seveninit)
             with open(seveninit, "w") as init:
@@ -365,7 +365,7 @@ def troubleshooter() -> None:
         log("Troubleshooter start loop")
         ret = popup_options(
             "Troubleshooter",
-            "Did WeMod work as expected?\nIf not, troubleshoot common problems with WeMod.\nDeleting the game prefix usually helps.\nDeleting Wemod.exe helps if wemod updates their program.\nTo use the Troubleshooter after it was disabled,\nyou can add TROUBLESHOOT=true in front of the launch command",
+            "Did Wand work as expected?\nIf not, troubleshoot common problems with Wand.\nDeleting the game prefix usually helps.\nDeleting Wand.exe helps if wand updates their program.\nTo use the Troubleshooter after it was disabled,\nyou can add TROUBLESHOOT=true in front of the launch command",
             [
                 [
                     "Disable troubleshooter globally",
@@ -375,8 +375,8 @@ def troubleshooter() -> None:
                     "Enable troubleshooter globally",
                     "Enable troubleshooter for this game",
                 ],
-                ["Delete game prefix", "Delete WeMod.exe"],
-                ["Close wemod-launcher"],
+                ["Delete game prefix", "Delete Wand.exe"],
+                ["Close wand-launcher"],
             ],
             120,
         )
@@ -391,13 +391,9 @@ def troubleshooter() -> None:
         elif ret == "Enable troubleshooter for this game":
             with open(INIT_FILE, "w") as init:
                 init.write("true")
-        elif ret == "Delete WeMod.exe":
+        elif ret == "Delete Wand.exe":
             try:
-                os.remove(
-                    os.path.join(
-                        SCRIPT_BASE, "wemod_data", "wemod_bin", "WeMod.exe"
-                    )
-                )
+                os.remove(os.path.join(SCRIPT_PATH, "wand_bin", "Wand.exe"))
             except Exception as e:
                 pass
         elif ret == "Delete game prefix":
@@ -405,6 +401,6 @@ def troubleshooter() -> None:
                 shutil.rmtree(BASE_STEAM_COMPAT)
             except Exception as e:
                 pass
-        elif not ret or ret == "Close wemod-launcher":
+        elif not ret or ret == "Close wand-launcher":
             runtro = False
             log("Closing troubleshooter as requested")

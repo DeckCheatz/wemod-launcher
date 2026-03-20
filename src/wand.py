@@ -1,54 +1,55 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-only
 
-import json
 import os
-import shutil
-import subprocess
 import sys
+import json
+import shutil
 import threading
+import subprocess
+
 from typing import Optional
 
 # Import core utils without download dependencies
 from corenodep import (
     join_lists_with_delimiter,
+    split_list_by_delimiter,
     load_conf_setting,
+    save_conf_setting,
     parse_version,
     read_file,
-    save_conf_setting,
-    split_list_by_delimiter,
     winpath,
 )
 
 # Import core utils
 from coreutils import (
-    cache,
     exit_with_message,
-    log,
-    monitor_file,
-    popup_options,
     script_manager,
+    popup_options,
     show_message,
+    monitor_file,
+    cache,
+    log,
 )
 
 # Import main utils
 from mainutils import (
-    deref,
     find_closest_compatible_release,
-    flatpakrunner,
-    get_dotnet48,
-    get_github_releases,
-    popup_download,
-    popup_execute,
     unpack_zip_with_progress,
+    get_github_releases,
+    flatpakrunner,
+    popup_execute,
+    popup_download,
+    get_dotnet48,
+    deref,
 )
 
 # Import from setup
 from setup import (
     check_flatpak,
+    venv_manager,
     self_update,
     setup_main,
-    venv_manager,
 )
 
 if getattr(sys, "frozen", False):
@@ -56,10 +57,6 @@ if getattr(sys, "frozen", False):
 else:
     SCRIPT_FILE = os.path.realpath(__file__)
 SCRIPT_PATH = os.path.dirname(SCRIPT_FILE)
-if os.path.basename(SCRIPT_PATH) == "src":
-    SCRIPT_BASE = os.path.dirname(SCRIPT_PATH)
-else:
-    SCRIPT_BASE = SCRIPT_PATH
 
 
 # Fist main block of two
@@ -76,13 +73,13 @@ if __name__ == "__main__":
     # On venv path restart the script
     if 0 < len(if_flatpak_list):
         # Use environment variable to protect the script from re-running forever
-        inf_protect = os.getenv("WeModInfProtect", "1")
+        inf_protect = os.getenv("WandInfProtect", "1")
         if int(inf_protect) > 4:
             exit_with_message(
                 "Infinite rerun",
-                "Infinite script reruns were detected\nThe script was stopped\nCreate an issue on the wemod_laucher GitHub\nand attach this file",
+                "Infinite script reruns were detected\nThe script was stopped\nCreate an issue on the wand_laucher GitHub\nand attach this file",
             )
-        os.environ["WeModInfProtect"] = str(int(inf_protect) + 1)
+        os.environ["WandInfProtect"] = str(int(inf_protect) + 1)
 
         # if we are in a flatpak we wait for a command to be passed back into the script in a thread
         if len(if_flatpak_list) > 1:
@@ -114,44 +111,46 @@ if __name__ == "__main__":
 
 
 # Import utils that need constants
+from constutils import (
+    scanfolderforversions,
+    troubleshooter,
+    ensure_wine,
+    winetricks,
+    wine,
+)
+
 # Import consts
 from consts import (
     BASE_STEAM_COMPAT,
     BAT_COMMAND,
-    INIT_FILE,
     STEAM_COMPAT_FOLDER,
     WINEPREFIX,
-)
-from constutils import (
-    ensure_wine,
-    scanfolderforversions,
-    troubleshooter,
-    wine,
-    winetricks,
+    INIT_FILE,
 )
 
 
-# Symlink WeMod data to make all WeMod prefixes use the same WeMod data
-def syncwemod(
+# Symlink Wand data to make all Wand prefixes use the same Wand data
+def syncwand(
     folder: Optional[str] = None,
 ) -> None:
-    # This section handles prefix packaging and is kept as-is, as it's a separate concern
-    # from the core WeMod data synchronization logic and includes an intentional exit.
-    package_prefix = os.getenv("PACKAGEPREFIX")
+    response = None
+    package_prefix = os.getenv(
+        "PACKAGEPREFIX"
+    )  # use PACKAGEPREFIX=true in front of the command to generate a ge-proton-prefix zip and exit
     if not package_prefix:
         package_prefix = load_conf_setting("PackagePrefix")
         if package_prefix:
             if package_prefix.lower() != "true":
                 try:
                     package_prefix = int(package_prefix)
-                except Exception:
+                except Exception as e:
                     package_prefix = "false"
                 else:
                     if package_prefix > 0:
                         package_prefix -= 1
                         save_conf_setting("PackagePrefix", package_prefix)
                         package_prefix = "true"
-    if package_prefix and folder is None and package_prefix.lower() == "true":
+    if package_prefix and folder == None and package_prefix.lower() == "true":
         from mainutils import copy_folder_with_progress
 
         log(
@@ -164,7 +163,7 @@ def syncwemod(
             log(f"Version is not set for {BASE_STEAM_COMPAT}, Error")
             exit_with_message(
                 "Prefix Version unknown",
-                "The prefix version is unknown. Please make sure the prefix works with WeMod before trying to zip it",
+                "The prefix version is unknown. Please make sure the prefix works with Wand before trying to zip it",
                 timeout=20,
             )
         cut_proton_version = parse_version(current_proton_version)
@@ -179,10 +178,10 @@ def syncwemod(
         )
 
         if not os.path.isfile(INIT_FILE):
-            log(f"WeMod is not installed in {BASE_STEAM_COMPAT}, error")
+            log(f"Wand is not installed in {BASE_STEAM_COMPAT}, error")
             exit_with_message(
-                "WeMod not installed",
-                "WeMod is not installed in the active prefix, exiting",
+                "Wand not installed",
+                "Wand is not installed in the active prefix, exiting",
                 timeout=20,
             )
 
@@ -209,7 +208,7 @@ def syncwemod(
         if waslink:
             try:
                 os.symlink(BASE_STEAM_COMPAT, WINEPREFIX)
-            except Exception:
+            except Exception as e:
                 pass
 
         with open(INIT_FILE, "w") as init:
@@ -225,229 +224,66 @@ def syncwemod(
             timeout=5,
         )
 
-    # WeMod login data synchronization logic starts here
-    if folder is None:
+    if folder == None:
         folder = BASE_STEAM_COMPAT
 
-    WeModData = os.path.join(
-        SCRIPT_BASE, "wemod_data", "wemod_login"
-    )  # Central launcher login data
-    WeModOldData = os.path.join(
-        SCRIPT_BASE, "wemod_data"
-    )  # Central launcher login data in older versions
-    old_data_files = [
-        "SharedStorage"  # can add more if we know what files are allways created by WeMod
-    ]
-
-    # Check if any old data files exist directly in WeModOldData
-    needs_migration = False
-    if os.path.isdir(WeModOldData):
-        for filename in old_data_files:
-            if os.path.exists(os.path.join(WeModOldData, filename)):
-                needs_migration = True
-                break
-
-    if needs_migration:
-        log(
-            f"Old WeMod data files detected in '{WeModOldData}'. Migrating to '{WeModData}'."
-        )
-        # Ensure the target WeModData directory (wemod_login) exists before moving
-        os.makedirs(WeModData, exist_ok=True)
-
-        # Iterate through items in WeModOldData and move them to WeModData, excluding specific folders
-        for item_name in os.listdir(WeModOldData):
-            # Exclude the 'wemod_login' (which is WeModData itself) and 'wemod_bin' directories
-            if item_name not in ["wemod_login", "wemod_bin"]:
-                source_path = os.path.join(WeModOldData, item_name)
-                destination_path = os.path.join(WeModData, item_name)
-                try:
-                    shutil.move(source_path, destination_path)
-                    log(f"Moved '{source_path}' to '{destination_path}'")
-                except Exception as e:
-                    log(
-                        f"Failed to move '{source_path}' to '{destination_path}': {e}"
-                    )
-                    try:
-                        if os.path.isdir(source_path):
-                            shutil.rmtree(
-                                source_path
-                            )  # remove directory tree
-                        else:
-                            os.remove(source_path)  # delete the file
-                        log(f"Removed old dir/file at '{source_path}'")
-                    except Exception as e:
-                        log(
-                            f"Failed to remove old dir/file '{source_path}': {e}"
-                        )
-
-        # move wemod_bin as well
-        old_dir = os.path.join(SCRIPT_BASE, "wemod_bin")
-        new_dir = os.path.join(WeModOldData, "wemod_bin")
-        try:
-            shutil.move(old_dir, new_dir)
-            log(f"Moved '{old_dir}' to '{new_dir}'")
-        except Exception as e:
-            log(f"Failed to move '{old_dir}' to '{new_dir}': {e}")
-            try:
-                if os.path.isdir(old_dir):
-                    shutil.rmtree(old_dir)  # remove directory tree
-                else:
-                    os.remove(old_dir)  # delete the file
-                log(f"Removed old directory '{old_dir}'")
-            except Exception as e:
-                log(f"Failed to remove old directory '{old_dir}': {e}")
-
-        # If migration was needed some old files are in the main folder and need to be moved or cleaned up
-        old_files_in_base = [
-            "wemod.conf",
-            "wemod_venv",
-            "winetricks",
-            "pip.pyz",
-        ]
-        old_dir = SCRIPT_BASE
-        new_dir = os.path.join(SCRIPT_BASE, "src")
-        for old_file in old_files_in_base:
-            old_path = os.path.join(old_dir, old_file)
-            if os.path.exists(old_path):
-                try:
-                    shutil.move(old_path, new_dir)
-                    log(f"Moved '{old_path}' to '{new_dir}'")
-                except Exception as e:
-                    log(f"Failed to move '{old_path}' to '{new_dir}': {e}")
-                    try:
-                        if os.path.isdir(old_path):
-                            shutil.rmtree(old_path)  # remove directory tree
-                        else:
-                            os.remove(old_path)  # delete the file
-                        log(f"Removed old file '{old_path}'")
-                    except Exception as e:
-                        log(f"Failed to remove old file '{old_path}': {e}")
-
-        log("Old WeMod data migration complete.")
-
-    WeModExternal = os.path.join(
-        folder, "pfx/drive_c/users/steamuser/AppData/Roaming/WeMod"
-    )  # WeMod's expected data location within the Wine prefix
+    WandData = os.path.join(SCRIPT_PATH, "wand_data")  # link source
+    WandExtenal = os.path.join(
+        folder, "pfx/drive_c/users/steamuser/AppData/Roaming/Wand"
+    )  # link dest
 
     log(
-        f"Starting WeMod data sync. Central: '{WeModData}', Prefix: '{WeModExternal}'"
+        f"Syncing Wand data from '{WandExtenal}' to launcher dir '{WandData}'"
     )
 
-    # Ensure the central WeModData directory exists
-    os.makedirs(WeModData, exist_ok=True)
-    wemod_data_has_content = len(os.listdir(WeModData)) > 0
+    # Ensure the launcher dir exists
+    if not os.path.isdir(WandData):
+        os.makedirs(WandData)
 
-    action_needed = True
-    # Handle the state of WeModExternal (the prefix-specific path)
-    if os.path.islink(WeModExternal):
-        # WeModExternal is a symlink. Check if it's correct.
-        current_target = os.path.realpath(WeModExternal)
-        if current_target == WeModData:
-            log(
-                f"Link '{WeModExternal}' is already a valid symlink to '{WeModData}'. Sync complete."
-            )
-            action_needed = False
-        else:
-            log(
-                f"Link '{WeModExternal}' is an invalid symlink pointing to '{current_target}', not '{WeModData}'. Removing it."
-            )
-            os.remove(WeModExternal)  # Remove the invalid symlink
-
-    elif os.path.exists(WeModExternal) and not os.path.isdir(WeModExternal):
-        # WeModExternal exists but is a file or a broken link (not a directory or valid symlink)
-        log(
-            f"File '{WeModExternal}' exists but is not a directory or a valid symlink. Removing it."
-        )
+    # If WandExtenal exists but is a broken symlink, or any non-dir — remove it
+    if os.path.lexists(WandExtenal) and not os.path.isdir(WandExtenal):
+        log("Removing broken or invalid WandExtenal path")
         try:
-            os.remove(WeModExternal)
+            os.remove(WandExtenal)
         except Exception as e:
-            log(f"Failed to remove invalid path '{WeModExternal}': {e}")
-            # Do not exit, try to proceed and log the error.
+            log(f"Failed to remove existing path: {e}")
 
-    # At this point, WeModExternal is either a real directory or does not exist.
-    if action_needed and os.path.isdir(WeModExternal):
-        # WeModExternal is a real directory (not a symlink), so its content needs to be reconciled.
-        log(
-            f"Directory '{WeModExternal}' is real and exists. Processing its content for synchronization."
-        )
-        wemod_external_has_content = len(os.listdir(WeModExternal)) > 0
+    # Create the external folder if it's still missing
+    if not os.path.exists(WandExtenal):
+        os.makedirs(WandExtenal)
 
-        if wemod_data_has_content and wemod_external_has_content:
-            # Both central and external directories contain data, prompt the user for preference.
+    # If WandExtenal is a real directory (not a symlink)
+    if os.path.isdir(WandExtenal) and not os.path.islink(WandExtenal):
+        wand_data_not_empty = len(os.listdir(WandData)) > 0
+        external_data_not_empty = len(os.listdir(WandExtenal)) > 0
+
+        if wand_data_not_empty and external_data_not_empty:
             response = show_message(
-                "Warning: WeMod login data found in both the launcher's central directory "
-                "and the game prefix directory.\nWhich account would you like to use?\n\n"
-                "  Yes: Use the account from the Launcher's central directory (recommended).\n"
-                "  No: Use the account from the game prefix directory (this will overwrite the central data).",
-                title="Multiple WeMod accounts found",
+                "Warning: Wand might have been installed previously.\n"
+                "Use Wand Launcher dir account (Yes) or\n"
+                "Use Wand prefix/game dir account (No)",
+                title="Multiple accounts found",
                 yesno=True,
             )
 
-            if response == "No":
-                # User chose to use data from the external (prefix) directory.
-                log(
-                    f"User chose to use data from '{WeModExternal}'. Overwriting central data in '{WeModData}'."
-                )
-                shutil.rmtree(WeModData)  # Clear central directory
-                shutil.copytree(
-                    WeModExternal, WeModData
-                )  # Copy external data to central
-            else:  # response is "Yes" or None (default to Yes)
-                # User chose or defaulted to using data from the central directory.
-                log(
-                    f"User chose to use data from '{WeModData}'. Keeping central data, discarding external."
-                )
-                # WeModData is already preferred, no action needed on its content.
-        elif not wemod_data_has_content and wemod_external_has_content:
-            # Central directory is empty, but external directory has data. Move external data to central.
-            log(
-                f"Directory '{WeModData}' is empty, but '{WeModExternal}' has data. Moving data from external to central."
-            )
-            # WeModData already exists (created earlier), so directly copy into it.
-            shutil.copytree(WeModExternal, WeModData)
-        else:
-            # Either WeModExternal has no content, or WeModData already has content and is preferred.
-            log(
-                f"Directory '{WeModExternal}' has no relevant content, or '{WeModData}' is already set up. No data transfer needed from external."
-            )
+        # Overwrite launcher dir if user said No, or if it's empty
+        if (
+            not wand_data_not_empty or response == "No"
+        ) and external_data_not_empty:
+            log("The local Wand data was requested to be overwritten")
+            shutil.rmtree(WandData)
+            shutil.copytree(WandExtenal, WandData)
 
-        # After processing, remove the real WeModExternal directory to prepare for symlinking.
-        log(f"Removing real directory '{WeModExternal}' to create symlink.")
-        shutil.rmtree(WeModExternal, ignore_errors=True)
+        # Now that we’ve synced, remove the external folder
+        shutil.rmtree(WandExtenal)
 
-    # Create the symlink from WeModExternal to WeModData if it doesn't exist
-    if action_needed and not os.path.exists(WeModExternal):
-        log(f"Creating symlink from '{WeModData}' to '{WeModExternal}'.")
-        try:
-            os.symlink(WeModData, WeModExternal)
-        except Exception as e:
-            log(
-                f"Failed to create symlink '{WeModExternal}' -> '{WeModData}'\nYour login data won't be synchronized.\nReported error:\n{e}"
-            )
-    elif action_needed:
-        # This branch should ideally not be reached if the previous steps correctly handled WeModExternal.
-        # It implies WeModExternal still exists but is not a correct symlink to WeModData.
-        log(
-            f"Warning: '{WeModExternal}' still exists after initial processing and is not a link to '{WeModData}'. Attempting forceful recreation."
-        )
-        try:
-            shutil.rmtree(WeModExternal)  # Forcefully remove
-            os.symlink(WeModData, WeModExternal)  # Recreate symlink
-        except Exception as e:
-            log(
-                f"Failed to force-recreate symlink '{WeModExternal}' -> '{WeModData}': {e}"
-            )
-            exit_with_message(
-                "Symlink Force-Creation Failed",
-                f"Failed to force-create the symlink for WeMod data synchronization:\n{e}",
-                ask_for_log=True,
-            )
+    # Now create the symlink if nothing is there
+    if not os.path.exists(WandExtenal):
+        os.symlink(WandData, WandExtenal)
+        log("Linked Wand data to game prefix")
 
-    log("WeMod data synchronization complete.")
-
-    if not os.path.exists(
-        os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin", "WeMod.exe")
-    ):
+    # Ensure main setup is done
+    if not os.path.exists(os.path.join(SCRIPT_PATH, "wand_bin", "Wand.exe")):
         setup_main()
 
 
@@ -487,14 +323,14 @@ def init(proton: str, iswine: bool = False) -> None:
             ask_for_log=True,
         )
 
-    # If WeMod is not installed try to copy a working prefix to the current one
+    # If Wand is not installed try to copy a working prefix to the current one
     log(f"Looking for init file '{INIT_FILE}'")
     if not os.path.exists(INIT_FILE):
         log(
             f"Looking for compatible wine prefixes in '{STEAM_COMPAT_FOLDER}' with Proton version '{current_version_parts[0]}.{current_version_parts[1]}'"
         )
 
-        # Get closest version that has WeMod installed
+        # Get closest version that has Wand installed
         closest_version, closest_prefix_folder = scanfolderforversions(
             current_version_parts
         )
@@ -514,8 +350,8 @@ def init(proton: str, iswine: bool = False) -> None:
             and closest_version == current_version_parts
         ):
             response = show_message(
-                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have WeMod installed. Would you like to use the perfectly matched Proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is very likely going to work?",
-                title="Very likely compatible WeMod version detected",
+                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have Wand installed. Would you like to use the perfectly matched Proton version {cut_version[0]}.{cut_version[1]} that has Wand installed, which is very likely going to work?",
+                title="Very likely compatible Wand version detected",
                 yesno=True,
             )
             if response == None:
@@ -526,8 +362,8 @@ def init(proton: str, iswine: bool = False) -> None:
             and closest_version[0] == current_version_parts[0]
         ):
             response = show_message(
-                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have WeMod installed. Would you like to use the closest Proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is likely going to work?",
-                title="Likely compatible WeMod version detected",
+                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have Wand installed. Would you like to use the closest Proton version {cut_version[0]}.{cut_version[1]} that has Wand installed, which is likely going to work?",
+                title="Likely compatible Wand version detected",
                 yesno=True,
             )
             if response == None:
@@ -538,8 +374,8 @@ def init(proton: str, iswine: bool = False) -> None:
             and closest_version[0] != current_version_parts[0]
         ):
             response = show_message(
-                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have WeMod installed. Would you like to attempt to use the closest Proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which may result in some issues?",
-                title="Maybe compatible WeMod version detected",
+                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have Wand installed. Would you like to attempt to use the closest Proton version {cut_version[0]}.{cut_version[1]} that has Wand installed, which may result in some issues?",
+                title="Maybe compatible Wand version detected",
                 yesno=True,
             )
         else:
@@ -549,9 +385,9 @@ def init(proton: str, iswine: bool = False) -> None:
         if response == "Yes":
             # Copy the closest version's prefix to the game prefix
             log(f"Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}")
-            syncwemod(
+            syncwand(
                 closest_prefix_folder
-            )  # Sync WeMod data in closest version
+            )  # Sync Wand data in closest version
 
             copy_folder_with_progress(
                 closest_prefix_folder,
@@ -560,7 +396,7 @@ def init(proton: str, iswine: bool = False) -> None:
                 [None],
                 [None],
             )
-            syncwemod()  # Sync WeMod data
+            syncwand()  # Sync Wand data
             log(
                 f"Copied Proton version {cut_version[0]}.{cut_version[1]} prefix to game prefix that was on version {current_version_parts[0]}.{current_version_parts[1]}"
             )
@@ -574,7 +410,7 @@ def init(proton: str, iswine: bool = False) -> None:
     # Check for the initialization file in the wine prefix
     log(f"Looking once more for the init file")
     if os.path.exists(INIT_FILE):
-        syncwemod()  # Sync WeMod data and prefix packaging
+        syncwand()  # Sync Wand data and prefix packaging
         log("Found init file. Continuing launch...")
         return
 
@@ -597,7 +433,7 @@ def init(proton: str, iswine: bool = False) -> None:
         build_prefix(proton_dir)
     else:
         download_prefix(proton_dir)
-    syncwemod()  # Sync WeMod data
+    syncwand()  # Sync Wand data
 
 
 # Function to download and unpack a pre-configured wine prefix
@@ -607,7 +443,7 @@ def download_prefix(proton_dir: str) -> None:
         log(WINEPREFIX)
         exit_with_message(
             "First Launch",
-            "First Launch Detected: Please run the game once without WeMod first. Error.",
+            "First Launch Detected: Please run the game once without Wand first. Error.",
             ask_for_log=True,
         )
 
@@ -623,7 +459,7 @@ def download_prefix(proton_dir: str) -> None:
         log("RepoUser not set in config using: " + repo_user)
 
     repo_name = load_conf_setting("RepoName")
-    if repo_name and repo_name.lower() == "wemod-launcher".lower():
+    if repo_name and repo_name.lower() == "wand-launcher".lower():
         repo_name = "BuiltPrefixes-dev"
         save_conf_setting("RepoName", repo_name)
         log("Updated RepoName in config to: " + repo_name)
@@ -655,7 +491,7 @@ def download_prefix(proton_dir: str) -> None:
             releases, current_version_parts
         )
         file_name = (
-            f"wemod_prefix{closest_version[0]}.{closest_version[1]}.zip"
+            f"wand_prefix{closest_version[0]}.{closest_version[1]}.zip"
         )
 
     if (
@@ -686,7 +522,7 @@ def download_prefix(proton_dir: str) -> None:
         log(f"No version to download found on repo '{repo_concat}'")
         exit_with_message(
             "No downloads available",
-            f"Error: Nothing to download on repo '{repo_concat}',\nTo fix this, you can try to delete wemod.conf",
+            f"Error: Nothing to download on repo '{repo_concat}',\nTo fix this, you can try to delete wand.conf",
             ask_for_log=True,
         )
     if response == "No":
@@ -736,10 +572,8 @@ def download_prefix(proton_dir: str) -> None:
     if os.path.isfile(prefix_path):
         os.remove(prefix_path)
 
-    syncwemod()
-    if not os.path.isfile(
-        os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin", "WeMod.exe")
-    ):
+    syncwand()
+    if not os.path.isfile(os.path.join(SCRIPT_PATH, "wand_bin", "Wand.exe")):
         setup_main()
 
     log("Finished prefix download and unpacking")
@@ -767,8 +601,8 @@ def build_prefix(proton_dir: str) -> None:
     # Choose method to install dotnet48
     dotnet48_method = popup_options(
         "dotnet48",
-        "Would you like to install dotnet48 with winetricks (default for GE-Proton8 or above)\nor with wemod-launcher (ONLY USE FOR GE-Proton7)\nWARNING: The WeMod Launcher option isn't working well, you can try using it anyway (ONLY ON GE-Proton7)",
-        [["winetricks", "wemod-launcher"]],
+        "Would you like to install dotnet48 with winetricks (default for GE-Proton8 or above)\nor with wand-launcher (ONLY USE FOR GE-Proton7)\nWARNING: The Wand Launcher option isn't working well, you can try using it anyway (ONLY ON GE-Proton7)",
+        [["winetricks", "wand-launcher"]],
     )
 
     # Add dependencies to the list
@@ -788,8 +622,8 @@ def build_prefix(proton_dir: str) -> None:
         dep_i = dep_i + 1
         response = winetricks(deps[dep_i], path)
 
-    # Install dotnet48 using wemod-launcher if selected
-    if dotnet48_method and dotnet48_method == "wemod-launcher":
+    # Install dotnet48 using wand-launcher if selected
+    if dotnet48_method and dotnet48_method == "wand-launcher":
         log("Installing dotnet48...")
         dotnet48 = get_dotnet48()
         wine("winecfg -v win7", path)
@@ -825,58 +659,13 @@ def build_prefix(proton_dir: str) -> None:
         )
 
 
-# Check if a string contains a url protocol
-def contains_url_protocol(s: str) -> bool:
-    parts = s.split("://")
-    if len(parts) < 2:
-        return False
-
-    protocol = parts[0]
-    return protocol.isalnum() and len(protocol) > 1
-
-
-def is_exe_or_forced(s: str) -> bool:
-    env_val = os.getenv("NO_EXE")
-    if env_val:  # check env
-        if env_val.lower() == "false":
-            return True  # we want game exe, so true
-        elif env_val.lower() == "none":
-            pass  # none is to just ignore
-        else:
-            return False  # assume since set, user wanted to NO exe
-
-    cfg_val = load_conf_setting("NoEXE")
-    if cfg_val:  # same check with conf
-        if cfg_val.lower() == "false":
-            return True
-        elif cfg_val.lower() == "none":
-            pass
-        else:
-            return False
-
-    # final check if not url its a exe
-    return not contains_url_protocol(s)
-
-
 # Main run function
 def run(skip_init: bool = False) -> str:
     # Get passed args
     ARGS = sys.argv[1:]
 
-    # Initialize variables for Proton path and its index
-    PROTON = ""
-    fnr = -1
-
-    # Original logic for finding the Proton tool path if delimiter is present
     tools = os.getenv("STEAM_COMPAT_TOOL_PATHS").split(os.pathsep)
-    if fnr <= 0 and tools:
-        for tool in tools:
-            for nr, aarg in enumerate(ARGS):
-                if aarg and len(aarg) > 2 and aarg[0] == os.sep:
-                    if tool == os.path.dirname(aarg):
-                        if nr > fnr:
-                            fnr = nr
-                            break
+    fnr = -1
     # find the first argument that has the Proton tool path
     if tools:
         for tool in tools:
@@ -886,40 +675,6 @@ def run(skip_init: bool = False) -> str:
                         if nr > fnr:
                             fnr = nr
                             break
-
-    # If no delimiter is found and no Wine tool was found, check for common Wine names
-    if fnr <= 0:
-        # Count the occurrences of the delimiter '--'
-        delimiter_count = ARGS.count("--")
-        if delimiter_count == 0:
-            # If no delimiter is found, check for common Wine names
-            common_wine_names = [
-                "wine",
-                "umu-run",
-                "proton",
-            ]  # Add more if you can think of them
-            found_wine_name = None
-            for i, arg in enumerate(ARGS):
-                for wine_name in common_wine_names:
-                    if (
-                        wine_name in os.path.basename(arg).lower()
-                    ):  # Case-insensitive check
-                        # Heuristic: assume the first Wine name found is the one to use
-                        fnr = i
-                        found_wine_name = wine_name
-                        break
-                if found_wine_name:
-                    break
-
-            if not found_wine_name:
-                # If no common Wine names are found, log a warning and continue
-                log(
-                    "Warning: No '--' delimiter found and no common Wine names detected. Proceeding with original argument parsing."
-                )
-            else:
-                log(
-                    f"Detected common Wine name '{found_wine_name}' at index {fnr}."
-                )
 
     verb = ["waitforexitandrun"]
     tout = 90
@@ -939,14 +694,15 @@ def run(skip_init: bool = False) -> str:
             verb = []
             tout = 60
 
-        GAME_EXE = ARGS[(fnr + 2)]
-        if is_exe_or_forced(GAME_EXE):
-            GAME_EXE = os.path.realpath(GAME_EXE)
+        # Get the game exe
+        if os.getenv("NO_EXE") or load_conf_setting("NoEXE"):
+            GAME_EXE = ARGS[(fnr + 2)]
+        else:
+            GAME_EXE = os.path.realpath(ARGS[(fnr + 2)])
 
         # Add more args at the end
         LAUNCH_OPTIONS = ARGS[(fnr + 3) :]
-    # If fnr was set by fallback, we directly use it. Otherwise, proceed with the delimiter logic.
-    else:  # Only proceed with delimiter split if fallback didn't set fnr
+    else:
         # Subdivide the list into multiple lists based on delimiter
         AARGS = split_list_by_delimiter(ARGS, "--")
         # Log the args for future improvement
@@ -962,35 +718,30 @@ def run(skip_init: bool = False) -> str:
         # Take the Proton path
         PROTON = PROTON_CMD[0]
 
-        fnr_p = 0  # Use a different variable for index within PROTON_CMD to avoid confusion
+        fnr = 0
         # If there is a file then it's a custom runner so don't use a verb
-        if PROTON[(fnr_p + 1)].find(".") >= 0:
-            fnr_p -= 1
+        if PROTON[(fnr + 1)].find(".") >= 0:
+            fnr -= 1
             verb = []
             tout = 60
 
         # Get the game exe
-        GAME_EXE = PROTON_CMD[fnr_p + 2]
-        if is_exe_or_forced(GAME_EXE):
-            GAME_EXE = os.path.realpath(GAME_EXE)
+        if os.getenv("NO_EXE") or load_conf_setting("NoEXE"):
+            GAME_EXE = PROTON_CMD[fnr + 2]
+        else:
+            GAME_EXE = os.path.realpath(PROTON_CMD[fnr + 2])
 
         # Add more args at the end
-        LAUNCH_OPTIONS = PROTON_CMD[(fnr_p + 3) :]
+        LAUNCH_OPTIONS = PROTON_CMD[(fnr + 3) :]
 
     # Initialize environment if not skipped
     if not skip_init:
-        # Ensure proton is set before calling init
-        if not PROTON:
-            exit_with_message(
-                "Proton Path Not Set",
-                "Could not determine the Proton path. Please ensure it is correctly set.",
-            )
         init(PROTON, not bool(verb))
 
     # Get working dir
     WORK_DIR = os.path.realpath(os.getcwd())
 
-    if not is_exe_or_forced(GAME_EXE):
+    if os.getenv("NO_EXE") or load_conf_setting("NoEXE"):
         REL_EXE = GAME_EXE
         WIN_CMD = REL_EXE
     else:
@@ -998,7 +749,7 @@ def run(skip_init: bool = False) -> str:
             log(f"Error, the game executable '{GAME_EXE}' is missing")
             exit_with_message(
                 "Game Missing",
-                f"The game executable '{GAME_EXE}' is missing.\nMake sure the game runs without WeMod.\nIf not, use 'Verify Files' in Steam or ensure the game is installed correctly.",
+                f"The game executable '{GAME_EXE}' is missing.\nMake sure the game runs without Wand.\nIf not, use 'Verify Files' in Steam or ensure the game is installed correctly.",
                 ask_for_log=True,
             )
 
