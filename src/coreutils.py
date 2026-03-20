@@ -10,6 +10,7 @@ from urllib import request
 from typing import (
     Callable,
     Optional,
+    Tuple,
     Union,
     List,
     Any,
@@ -21,6 +22,21 @@ from corenodep import (
     save_conf_setting,
     read_file,
 )
+
+
+def get_mouse_location() -> Optional[Tuple[int, int]]:
+    """Get the current mouse position to place windows on the active screen."""
+    try:
+        import tkinter as tk
+
+        root = tk.Tk()
+        root.withdraw()
+        x = root.winfo_pointerx()
+        y = root.winfo_pointery()
+        root.destroy()
+        return (x, y)
+    except Exception:
+        return None
 
 if getattr(sys, "frozen", False):
     SCRIPT_IMP_FILE = os.path.realpath(sys.executable)
@@ -93,12 +109,14 @@ def show_message(
         close = True
         if timeout == None:
             close = False
+        location = get_mouse_location()
         if yesno:
             response = sg.popup_yes_no(
                 message,
                 title=title,
                 auto_close=close,
                 auto_close_duration=timeout,
+                location=location,
             )
         else:
             response = sg.popup_ok(
@@ -106,6 +124,7 @@ def show_message(
                 title=title,
                 auto_close=close,
                 auto_close_duration=timeout,
+                location=location,
             )
         return response
 
@@ -380,6 +399,7 @@ def popup_options(
         finalize=True,
         auto_close=close,
         auto_close_duration=timeout,
+        location=get_mouse_location(),
     )
 
     # Event loop to process button clicks
@@ -421,6 +441,7 @@ def get_user_input(
         finalize=True,
         auto_close=close,
         auto_close_duration=timeout,
+        location=get_mouse_location(),
     )
 
     # Event loop to process button clicks and input

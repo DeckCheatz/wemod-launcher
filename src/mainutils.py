@@ -25,6 +25,7 @@ from coreutils import (
     load_conf_setting,
     cache,
     log,
+    get_mouse_location,
 )
 
 if getattr(sys, "frozen", False):
@@ -171,7 +172,7 @@ def popup_execute(
     text_str = [""]
     text = sg.Multiline("", disabled=True, autoscroll=True, size=(80, 30))
     layout = [[text]]
-    window = sg.Window(title, layout, finalize=True)
+    window = sg.Window(title, layout, finalize=True, location=get_mouse_location())
     exitcode = [-1]
 
     def process_func() -> None:
@@ -244,7 +245,7 @@ def popup_download(title: str, link: str, file_name: str) -> str:
     progress = sg.ProgressBar(100, orientation="h", s=(50, 10))
     text = sg.Text("0%")
     layout = [[progress], [text]]
-    window = sg.Window(title, layout, finalize=True)
+    window = sg.Window(title, layout, finalize=True, location=get_mouse_location())
 
     def update_log(status: list[int], dl: int, total: int) -> None:
         status.clear()
@@ -343,7 +344,9 @@ def deref(path: str) -> None:
     text = sg.Text("0%")
     extra = sg.Text("Reading directory, please wait...")
     layout = [[extra], [progress], [text]]
-    window = sg.Window("De-referencing Links", layout, finalize=True)
+    window = sg.Window(
+        "De-referencing Links", layout, finalize=True, location=get_mouse_location()
+    )
     window.refresh()
 
     window.perform_long_operation(dereference_links, "-DEREF DONE-")
@@ -479,10 +482,11 @@ def copy_folder_with_progress(
     extra = sg.Text("Reading prefix directory, please wait...")
     layout = [[extra], [progress], [text]]
 
+    location = get_mouse_location()
     if zipup:
-        window = sg.Window("Copying Prefix", layout, finalize=True)
+        window = sg.Window("Copying Prefix", layout, finalize=True, location=location)
     else:
-        window = sg.Window("Zipping File", layout, finalize=True)
+        window = sg.Window("Zipping File", layout, finalize=True, location=location)
 
     window.refresh()
     window.perform_long_operation(copy_files, "-COPY DONE-")
@@ -565,7 +569,9 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
     text = sg.Text("0% (0/?)")
     extra = sg.Text("Reading ZIP file, please wait...")
     layout = [[extra], [progress], [text]]
-    window = sg.Window("Unpacking Prefix", layout, finalize=True)
+    window = sg.Window(
+        "Unpacking Prefix", layout, finalize=True, location=get_mouse_location()
+    )
     window.refresh()
 
     window.perform_long_operation(unpack_files, "-UNPACK DONE-")
