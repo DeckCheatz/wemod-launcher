@@ -12,6 +12,7 @@ from corenodep import (
 from coreutils import (
     exit_with_message,
     log,
+    http_get,
 )
 
 if getattr(sys, "frozen", False):
@@ -25,8 +26,6 @@ def getbatcmd():
     batf = os.path.join(SCRIPT_PATH, "wemod.bat")
     if not os.path.isfile(batf):
         try:
-            import urllib.request
-
             repo_user = load_conf_setting("RepoUser")
             if not repo_user:
                 repo_user = "DeckCheatz"
@@ -50,7 +49,9 @@ def getbatcmd():
             repo_concat = repo_user + "/" + repo_name
 
             url = f"https://raw.githubusercontent.com/{repo_concat}/refs/heads/main/wemod.bat"
-            urllib.request.urlretrieve(url, batf)
+            response = http_get(url)
+            with open(batf, "wb") as f:
+                f.write(response.content)
 
         except Exception as e:
             pass

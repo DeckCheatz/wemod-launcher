@@ -28,6 +28,16 @@ else:
     SCRIPT_IMP_FILE = os.path.realpath(__file__)
 SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
 
+HTTP_USER_AGENT = "DeckCheatz-wemod-launcher/1.539 (+https://github.com/DeckCheatz/wemod-launcher)"
+HTTP_HEADERS = {"User-Agent": HTTP_USER_AGENT}
+
+
+def http_get(url: str, **kwargs) -> "requests.Response":
+    import requests
+    headers = kwargs.pop("headers", {})
+    headers.setdefault("User-Agent", HTTP_USER_AGENT)
+    return requests.get(url, headers=headers, **kwargs)
+
 
 # Function for logging messages
 def log(message: Optional[str] = None, open_log: bool = False) -> None:
