@@ -28,8 +28,7 @@ else:
     SCRIPT_IMP_FILE = os.path.realpath(__file__)
 SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
 
-HTTP_USER_AGENT = "DeckCheatz-wemod-launcher/1.539 (+https://github.com/DeckCheatz/wemod-launcher)"
-HTTP_HEADERS = {"User-Agent": HTTP_USER_AGENT}
+HTTP_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 
 
 def http_get(url: str, **kwargs) -> "requests.Response":
