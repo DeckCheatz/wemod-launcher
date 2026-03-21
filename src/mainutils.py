@@ -684,3 +684,14 @@ def flatpakrunner():
             fwf.write(str(e))
     if os.path.isfile(flatpakrunfile):
         os.remove(flatpakrunfile)
+
+# Safe symlink creation function
+# Yeeted from: https://zetcode.com/python/os-symlink/
+def create_symlink(src, dst):
+    try:
+        os.symlink(src, dst)
+    except FileExistsError:
+        if os.path.islink(dst):
+            # Optionally update existing symlink
+            os.remove(dst)
+            os.symlink(src, dst)
