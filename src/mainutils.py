@@ -25,6 +25,7 @@ from coreutils import (
     load_conf_setting,
     cache,
     log,
+    http_get,
 )
 
 if getattr(sys, "frozen", False):
@@ -36,13 +37,12 @@ SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
 
 # Get the GitHub releases from "USERNAME/REPO"
 def get_github_releases(repo_name: str) -> List[Any]:
+    url = f"https://api.github.com/repos/{repo_name}/releases"
     try:
-        import requests
+        response = http_get(url)
     except Exception as e:
         log(f"Failed to fetch releases:\n{e}")
         return []
-    url = f"https://api.github.com/repos/{repo_name}/releases"
-    response = requests.get(url)
     if response.status_code == 200:
         releases = response.json()
         return releases
@@ -211,10 +211,8 @@ def popup_execute(
 def download_progress(
     link: str, file_name: str, set_progress: Callable[[int, int], None]
 ) -> None:
-    import requests
-
     with open(file_name, "wb") as f:
-        response = requests.get(link, stream=True)
+        response = http_get(link, stream=True)
         total_length = response.headers.get("content-length")
 
         if total_length is None:  # no content length header
