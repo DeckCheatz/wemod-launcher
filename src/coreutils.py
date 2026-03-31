@@ -33,32 +33,6 @@ TOP_UA_URL = "https://raw.githubusercontent.com/microlinkhq/top-user-agents/refs
 
 _cached_user_agent = None
 
-
-def _get_user_agent() -> str:
-    global _cached_user_agent
-    if _cached_user_agent:
-        return _cached_user_agent
-    try:
-        import json
-        req = request.Request(TOP_UA_URL, headers={"User-Agent": FALLBACK_USER_AGENT})
-        with request.urlopen(req, timeout=5) as resp:
-            agents = json.loads(resp.read().decode())
-            if agents and isinstance(agents, list):
-                _cached_user_agent = agents[0]
-                return _cached_user_agent
-    except Exception:
-        pass
-    _cached_user_agent = FALLBACK_USER_AGENT
-    return _cached_user_agent
-
-
-def http_get(url: str, **kwargs) -> "requests.Response":
-    import requests
-    headers = kwargs.pop("headers", {})
-    headers.setdefault("User-Agent", _get_user_agent())
-    return requests.get(url, headers=headers, **kwargs)
-
-
 # Function for logging messages
 def log(message: Optional[str] = None, open_log: bool = False) -> None:
     oswemodlog = os.getenv("WEMOD_LOG")
@@ -100,6 +74,42 @@ def log(message: Optional[str] = None, open_log: bool = False) -> None:
                 f.write(message)
         if open_log:
             os.system(f"xdg-open '{wemodlog}'")
+
+
+def _get_user_agent() -> str:
+    global _cached_user_agent
+    if _cached_user_agent:
+        return _cached_user_agent
+    try:
+        import json
+        req = request.Request(TOP_UA_URL, headers={"User-Agent": FALLBACK_USER_AGENT})
+        with request.urlopen(req, timeout=5) as resp:
+            agents = json.loads(resp.read().decode())
+            if agents and isinstance(agents, list):
+                _cached_user_agent = agents[0]
+                return _cached_user_agent
+    except Exception:
+        pass
+    _cached_user_agent = FALLBACK_USER_AGENT
+    return _cached_user_agent
+
+
+def http_get(url: str, **kwargs) -> "requests.Response":
+    headers = kwargs.pop("headers", {})
+    headers.setdefault("User-Agent", FALLBACK_USER_AGENT)
+    if not _cached_user_agent:
+        try:
+            return requests.get(url, headers=headers, **kwargs)
+        except Exception:
+            log(
+                f"Failed to retrieve {url!r} with the fallback User‑Agent. "
+                "The network may be offline or the UA might be outdated. "
+                "Retrying with the latest online‑pulled User‑Agent."
+                "If this keeps appearing in the log while the internet is working, "
+                "please file a bug report."
+            )
+    headers["User-Agent"] = _get_user_agent()   # fetches the up‑to‑date UA
+    return requests.get(url, headers=headers, **kwargs)
 
 
 # Function to display a message
