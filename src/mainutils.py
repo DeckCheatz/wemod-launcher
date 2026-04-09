@@ -25,6 +25,7 @@ from coreutils import (
     load_conf_setting,
     cache,
     log,
+    get_mouse_location,
 )
 
 if getattr(sys, "frozen", False):
@@ -75,9 +76,7 @@ def find_closest_compatible_release(
                     # Exact match
                     closest_release = release
                     closest_version = release_version_parts
-                    closest_release_url = release["assets"][0][
-                        "browser_download_url"
-                    ]
+                    closest_release_url = release["assets"][0]["browser_download_url"]
                     break
                 elif (
                     release_version_parts[0] == current_version_parts[0]
@@ -124,8 +123,7 @@ def find_closest_compatible_release(
                             or release_version_parts[0] > closest_version[0]
                             or (
                                 release_version_parts[0] == closest_version[0]
-                                and release_version_parts[1]
-                                > closest_version[1]
+                                and release_version_parts[1] > closest_version[1]
                             )
                         )
                     ):
@@ -144,8 +142,7 @@ def find_closest_compatible_release(
                             or release_version_parts[0] < closest_version[0]
                             or (
                                 release_version_parts[0] == closest_version[0]
-                                and release_version_parts[1]
-                                < closest_version[1]
+                                and release_version_parts[1] < closest_version[1]
                             )
                         )
                     ):
@@ -171,7 +168,9 @@ def popup_execute(
     text_str = [""]
     text = sg.Multiline("", disabled=True, autoscroll=True, size=(80, 30))
     layout = [[text]]
-    window = sg.Window(title, layout, finalize=True)
+    window = sg.Window(
+        title, layout, finalize=True, location=get_mouse_location(640, 480)
+    )
     exitcode = [-1]
 
     def process_func() -> None:
@@ -233,6 +232,14 @@ def download_progress(
 def popup_download(title: str, link: str, file_name: str) -> str:
     import FreeSimpleGUI as sg
 
+    def format_size(bytes_val: int) -> str:
+        """Format bytes to human readable string."""
+        for unit in ["B", "KB", "MB", "GB"]:
+            if bytes_val < 1024:
+                return f"{bytes_val:.1f} {unit}"
+            bytes_val /= 1024
+        return f"{bytes_val:.1f} TB"
+
     sg.theme("systemdefault")
 
     status = [0, 0]
@@ -242,11 +249,13 @@ def popup_download(title: str, link: str, file_name: str) -> str:
         os.makedirs(cache)
 
     progress = sg.ProgressBar(100, orientation="h", s=(50, 10))
-    text = sg.Text("0%")
+    text = sg.Text("0%", size=(30, 1))
     layout = [[progress], [text]]
-    window = sg.Window(title, layout, finalize=True)
+    window = sg.Window(
+        title, layout, finalize=True, location=get_mouse_location(400, 100)
+    )
 
-    def update_log(status: list[int], dl: int, total: int) -> None:
+    def update_status(status: list[int], dl: int, total: int) -> None:
         status.clear()
         status.append(dl)
         status.append(total)
@@ -257,13 +266,13 @@ def popup_download(title: str, link: str, file_name: str) -> str:
         os.remove(file_path)
 
     download_func = lambda: download_progress(
-        link, file_path, lambda dl, total: update_log(status, dl, total)
+        link, file_path, lambda dl, total: update_status(status, dl, total)
     )
 
     window.perform_long_operation(download_func, "-DL COMPLETE-")
 
     while True:
-        event, values = window.read(timeout=1000)
+        event, values = window.read(timeout=100)
         if event == "-DL COMPLETE-":
             os.rename(file_path, file_path_end)
             break
@@ -278,7 +287,7 @@ def popup_download(title: str, link: str, file_name: str) -> str:
                 continue
             dl, total = status
             perc = int(100 * (dl / total)) if total > 0 else 0
-            text.update(f"{perc}% ({dl}/{total})")
+            text.update(f"{perc}% ({format_size(dl)} / {format_size(total)})")
             progress.update(perc)
 
     window.close()
@@ -289,9 +298,7 @@ def popup_download(title: str, link: str, file_name: str) -> str:
 def get_dotnet48() -> str:
     # Newer if you like to test: "https://download.visualstudio.microsoft.com/download/pr/2d6bb6b2-226a-4baa-bdec-798822606ff1/8494001c276a4b96804cde7829c04d7f/ndp48-x86-x64-allos-enu.exe"
     LINK = "https://download.visualstudio.microsoft.com/download/pr/7afca223-55d2-470a-8edc-6a1739ae3252/abd170b4b0ec15ad0222a809b761a036/ndp48-x86-x64-allos-enu."
-    cache_func = lambda FILE: popup_download(
-        "Downloading dotnet48", LINK, FILE
-    )
+    cache_func = lambda FILE: popup_download("Downloading dotnet48", LINK, FILE)
 
     dotnet48 = cache("ndp48-x86-x64-allos-enu.exe", cache_func)
     return dotnet48
@@ -343,7 +350,12 @@ def deref(path: str) -> None:
     text = sg.Text("0%")
     extra = sg.Text("Reading directory, please wait...")
     layout = [[extra], [progress], [text]]
-    window = sg.Window("De-referencing Links", layout, finalize=True)
+    window = sg.Window(
+        "De-referencing Links",
+        layout,
+        finalize=True,
+        location=get_mouse_location(400, 120),
+    )
     window.refresh()
 
     window.perform_long_operation(dereference_links, "-DEREF DONE-")
@@ -407,6 +419,10 @@ def copy_folder_with_progress(
 
     log(f"ignoring: {ignore}\nincluding anyway: {include_override}")
 
+    # Thread-safe status: [current, total, phase]
+    # phase: 0 = scanning, 1 = copying/zipping
+    status = [0, 0, 0]
+
     def traverse_folders(path: str) -> List[str]:
         import pathlib
 
@@ -417,20 +433,16 @@ def copy_folder_with_progress(
                 allf.append(item)
         return allf
 
-    def update_progress(copied: int, total: int) -> None:
-        """Update the GUI with the current progress."""
-        percentage = int(100 * (copied / total)) if total > 0 else 0
-        text.update(f"{percentage}% ({copied}/{total})")
-        progress.update(percentage)
-        window.refresh()
+    def update_status(current: int, total: int, phase: int) -> None:
+        status[0] = current
+        status[1] = total
+        status[2] = phase
 
     def copy_files() -> None:
         files = traverse_folders(source)
         copy = []
         for f in files:
-            rfile = os.path.relpath(
-                f, source
-            )  # get file path relative to source
+            rfile = os.path.relpath(f, source)  # get file path relative to source
             use = True  # by default, use the file
 
             # Check if the file is in one of the dirs to ignore
@@ -449,18 +461,14 @@ def copy_folder_with_progress(
                 copy.append(rfile)
 
         total_files = len(copy)
-        if zipup:
-            extra.update("Zipping file, please be patient...")
-        else:
-            extra.update("Copying prefix, please be patient...")
-        window.refresh()
+        update_status(0, total_files, 1)
 
         if zipup:
             with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as zipf:
                 for i, f in enumerate(copy):
                     arcname = f
                     zipf.write(os.path.join(source, f), arcname)
-                    update_progress(i + 1, total_files)
+                    update_status(i + 1, total_files, 1)
         else:
             for i, f in enumerate(copy):
                 src_path = os.path.join(source, f)
@@ -468,27 +476,28 @@ def copy_folder_with_progress(
                 try:
                     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
                     shutil.copy2(src_path, dest_path, follow_symlinks=False)
-                    update_progress(i + 1, total_files)
+                    update_status(i + 1, total_files, 1)
                 except Exception as e:
                     log(f"Failed to copy {src_path} to {dest_path}: {e}")
 
     sg.theme("systemdefault")
 
     progress = sg.ProgressBar(100, orientation="h", s=(50, 10))
-    text = sg.Text("0% (0/?)")
-    extra = sg.Text("Reading prefix directory, please wait...")
+    text = sg.Text("0% (0/?)", size=(20, 1))
+    extra = sg.Text("Reading directory, please wait...")
     layout = [[extra], [progress], [text]]
 
+    location = get_mouse_location(400, 120)
     if zipup:
-        window = sg.Window("Copying Prefix", layout, finalize=True)
+        window = sg.Window("Copying Prefix", layout, finalize=True, location=location)
     else:
-        window = sg.Window("Zipping File", layout, finalize=True)
+        window = sg.Window("Zipping File", layout, finalize=True, location=location)
 
     window.refresh()
     window.perform_long_operation(copy_files, "-COPY DONE-")
 
     while True:
-        event, values = window.read(timeout=1000)
+        event, values = window.read(timeout=100)
         if event == "-COPY DONE-":
             break
         elif event is None:
@@ -497,6 +506,16 @@ def copy_folder_with_progress(
                 "The window was closed. Exiting...",
                 timeout=5,
             )
+        else:
+            current, total, phase = status
+            if phase == 1 and total > 0:
+                perc = int(100 * current / total)
+                if zipup:
+                    extra.update("Zipping files, please be patient...")
+                else:
+                    extra.update("Copying files, please be patient...")
+                text.update(f"{perc}% ({current}/{total} files)")
+                progress.update(perc)
 
     window.close()
 
@@ -508,32 +527,38 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
 
     # Track errors during extraction
     extraction_errors = []
-    critical_files = ["pfx/.wemod_installer", "version"]
+    critical_files = [
+        "pfx/.wemod_installer",
+        "pfx/.wand_installer",
+        "version",
+    ]
 
-    def update_progress(unzipped: int, total: int) -> None:
-        """Update the GUI with the current progress."""
-        percentage = int(100 * (unzipped / total)) if total > 0 else 0
-        text.update(f"{percentage}% ({unzipped}/{total})")
-        progress.update(percentage)
-        window.refresh()
+    # Thread-safe status: [current, total, phase]
+    # phase: 0 = reading zip, 1 = extracting
+    status = [0, 0, 0]
+
+    def update_status(current: int, total: int, phase: int) -> None:
+        status[0] = current
+        status[1] = total
+        status[2] = phase
 
     def unpack_files() -> None:
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             files = zip_ref.namelist()
             total_files = len(files)
-
-            extra.update("Unpacking prefix, please be patient...")
-            window.refresh()
+            update_status(0, total_files, 1)
 
             for i, file in enumerate(files):
                 full_file = os.path.join(dest_path, file)
                 try:  # try to create folder if missing
-                    if len(
+                    if len(os.path.dirname(full_file)) > 0 and not os.path.isdir(
                         os.path.dirname(full_file)
-                    ) > 0 and not os.path.isdir(os.path.dirname(full_file)):
+                    ):
                         os.makedirs(os.path.dirname(full_file), exist_ok=True)
                 except Exception as e:
-                    error_msg = f"failed to make dir '{os.path.dirname(full_file)}': {e}"
+                    error_msg = (
+                        f"failed to make dir '{os.path.dirname(full_file)}': {e}"
+                    )
                     log(error_msg)
                     extraction_errors.append(error_msg)
                 try:  # try to delete old file
@@ -546,32 +571,33 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
                 try:
                     zip_ref.extract(file, dest_path)
                 except Exception as e:
-                    error_msg = (
-                        f"Failed to extract '{file}' to '{dest_path}': {e}"
-                    )
+                    error_msg = f"Failed to extract '{file}' to '{dest_path}': {e}"
                     log(error_msg)
                     extraction_errors.append(error_msg)
                     # If this is a critical file, track it separately
                     if file in critical_files:
-                        log(
-                            f"CRITICAL: Failed to extract required file '{file}'"
-                        )
+                        log(f"CRITICAL: Failed to extract required file '{file}'")
 
-                update_progress(i + 1, total_files)
+                update_status(i + 1, total_files, 1)
 
     sg.theme("systemdefault")
 
     progress = sg.ProgressBar(100, orientation="h", s=(50, 10))
-    text = sg.Text("0% (0/?)")
+    text = sg.Text("0% (0/?)", size=(20, 1))
     extra = sg.Text("Reading ZIP file, please wait...")
     layout = [[extra], [progress], [text]]
-    window = sg.Window("Unpacking Prefix", layout, finalize=True)
+    window = sg.Window(
+        "Unpacking Prefix",
+        layout,
+        finalize=True,
+        location=get_mouse_location(400, 120),
+    )
     window.refresh()
 
     window.perform_long_operation(unpack_files, "-UNPACK DONE-")
 
     while True:
-        event, values = window.read(timeout=1000)
+        event, values = window.read(timeout=100)
         if event == "-UNPACK DONE-":
             break
         elif event is None:
@@ -580,6 +606,13 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
                 "The window was closed. Exiting...",
                 timeout=5,
             )
+        else:
+            current, total, phase = status
+            if phase == 1 and total > 0:
+                perc = int(100 * current / total)
+                extra.update("Extracting files, please be patient...")
+                text.update(f"{perc}% ({current}/{total} files)")
+                progress.update(perc)
 
     window.close()
 
@@ -614,21 +647,177 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
         log(f"Encountered {len(extraction_errors)} errors during extraction")
         # Check if critical files failed to extract
         critical_failures = [
-            err
-            for err in extraction_errors
-            if any(cf in err for cf in critical_files)
+            err for err in extraction_errors if any(cf in err for cf in critical_files)
         ]
         if critical_failures:
-            error_summary = "\n".join(
-                critical_failures[:5]
-            )  # Show first 5 errors
-            raise Exception(
-                f"Failed to extract critical files:\n{error_summary}"
+            error_summary = "\n".join(critical_failures[:5])  # Show first 5 errors
+            raise Exception(f"Failed to extract critical files:\n{error_summary}")
+
+
+def copytree_with_progress(
+    source: str, dest: str, title: str = "Copying Files"
+) -> None:
+    """Copy a directory tree with a GUI progress bar."""
+    import FreeSimpleGUI as sg
+    import pathlib
+
+    # Thread-safe status: [current, total, phase]
+    # phase: 0 = scanning, 1 = copying
+    status = [0, 0, 0]
+
+    def update_status(current: int, total: int, phase: int) -> None:
+        status[0] = current
+        status[1] = total
+        status[2] = phase
+
+    def copy_tree() -> None:
+        # First, count all files
+        files_to_copy = []
+        source_path = pathlib.Path(source)
+        for item in source_path.rglob("*"):
+            if item.is_file():
+                files_to_copy.append(item)
+
+        total_files = len(files_to_copy)
+        update_status(0, total_files, 1)
+
+        # Create destination directory if it doesn't exist
+        os.makedirs(dest, exist_ok=True)
+
+        # Copy each file
+        for i, src_file in enumerate(files_to_copy):
+            rel_path = src_file.relative_to(source_path)
+            dest_file = os.path.join(dest, rel_path)
+
+            # Create parent directories if needed
+            os.makedirs(os.path.dirname(dest_file), exist_ok=True)
+
+            try:
+                shutil.copy2(src_file, dest_file, follow_symlinks=False)
+            except Exception as e:
+                log(f"Failed to copy {src_file} to {dest_file}: {e}")
+
+            update_status(i + 1, total_files, 1)
+
+    sg.theme("systemdefault")
+
+    progress = sg.ProgressBar(100, orientation="h", s=(50, 10))
+    text = sg.Text("0% (0/?)", size=(20, 1))
+    extra = sg.Text("Scanning directory...")
+    layout = [[extra], [progress], [text]]
+    window = sg.Window(title, layout, finalize=True)
+    window.refresh()
+
+    window.perform_long_operation(copy_tree, "-COPY DONE-")
+
+    while True:
+        event, values = window.read(timeout=100)
+        if event == "-COPY DONE-":
+            break
+        elif event is None:
+            exit_with_message(
+                "Window Closed",
+                "The window was closed. Exiting...",
+                timeout=5,
             )
+        else:
+            current, total, phase = status
+            if phase == 1 and total > 0:
+                perc = int(100 * current / total)
+                extra.update("Copying files...")
+                text.update(f"{perc}% ({current}/{total} files)")
+                progress.update(perc)
+
+    window.close()
 
 
 def is_flatpak() -> bool:
     return "FLATPAK_ID" in os.environ or os.path.exists("/.flatpak-info")
+
+
+def is_nixos() -> bool:
+    """Detect if the host system is running NixOS."""
+    import subprocess
+
+    # If we're in Flatpak, we need to check the host system
+    if is_flatpak():
+        try:
+            # Use flatpak-spawn to check the host filesystem
+            result = subprocess.run(
+                ["flatpak-spawn", "--host", "test", "-e", "/etc/NIXOS"],
+                capture_output=True,
+                timeout=2
+            )
+            if result.returncode == 0:
+                return True
+
+            result = subprocess.run(
+                ["flatpak-spawn", "--host", "test", "-e", "/run/current-system/nixos-version"],
+                capture_output=True,
+                timeout=2
+            )
+            return result.returncode == 0
+        except Exception:
+            # If flatpak-spawn fails, assume not NixOS
+            return False
+    else:
+        # Not in Flatpak, check locally
+        return os.path.exists("/etc/NIXOS") or os.path.exists("/run/current-system/nixos-version")
+
+
+def get_python_command(
+    python_args: Optional[List[str]] = None,
+    python_executable: Optional[str] = None,
+    use_nixos_wrapper: bool = True,
+    include_flatpak_spawn: bool = True
+) -> tuple[List[str], bool]:
+    """
+    Get the appropriate Python command, wrapped for NixOS if necessary.
+
+    Args:
+        python_args: Arguments to pass to Python (e.g., ["-m", "venv", "/path"])
+        python_executable: The Python executable path (defaults to sys.executable)
+        use_nixos_wrapper: Whether to wrap with nix-shell on NixOS (default True)
+        include_flatpak_spawn: Whether to include flatpak-spawn when in Flatpak (default True)
+
+    Returns:
+        Tuple of (command_list, use_shell) where use_shell indicates if shell=True is needed
+    """
+    if python_executable is None:
+        python_executable = sys.executable
+
+    if python_args is None:
+        python_args = []
+
+    # If we're on NixOS and should use the wrapper
+    if use_nixos_wrapper and is_nixos():
+        # Check if we're in a Flatpak sandbox (but not yet escaped to host)
+        in_flatpak = is_flatpak() and not os.getenv("FROM_FLATPAK")
+
+        # Build the full Python command string
+        import shlex
+        python_args_str = " ".join(shlex.quote(arg) for arg in python_args)
+        full_python_cmd = f"python {python_args_str}" if python_args else "python"
+
+        # Include pip in the nix-shell environment
+        nix_packages = "python3.withPackages (p: with p; [tkinter pip])"
+
+        if in_flatpak and include_flatpak_spawn:
+            # Inside Flatpak, we need to escape to the host to run nix-shell
+            return ([
+                "flatpak-spawn", "--host",
+                "nix-shell", "-p", nix_packages,
+                "--run", full_python_cmd
+            ], False)
+        else:
+            # On host NixOS (or Flatpak with include_flatpak_spawn=False), wrap Python with nix-shell
+            return ([
+                "nix-shell", "-p", nix_packages,
+                "--run", full_python_cmd
+            ], False)
+    else:
+        # Not on NixOS or wrapper disabled, use Python directly
+        return ([python_executable] + python_args, False)
 
 
 def flatpakrunner():
@@ -647,9 +836,7 @@ def flatpakrunner():
     save_conf_setting("FlatpakRunning", "new")
 
     time.sleep(2)
-    if load_conf_setting("FlatpakRunning") != "true" and os.path.isfile(
-        flatpakrunfile
-    ):
+    if load_conf_setting("FlatpakRunning") != "true" and os.path.isfile(flatpakrunfile):
         os.remove(flatpakrunfile)
 
     while not os.path.isfile(flatpakrunfile):
