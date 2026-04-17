@@ -17,10 +17,17 @@ from typing import (
     Union,
 )
 
-CONFIG_PATH = os.path.join(SCRIPT_PATH, "wemod.conf")
+CONFIG_PATH = os.path.join(SCRIPT_PATH, "wand.conf")
 DEF_SECTION = "Settings"
 CONFIG = configparser.ConfigParser()
 CONFIG.optionxform = str
+
+# Migrate old config file name on first run after rename
+_old_config = os.path.join(SCRIPT_PATH, "wemod.conf")
+if os.path.exists(_old_config) and not os.path.exists(CONFIG_PATH):
+    import shutil as _shutil
+    _shutil.move(_old_config, CONFIG_PATH)
+
 if os.path.exists(CONFIG_PATH):
     CONFIG.read(CONFIG_PATH)
 

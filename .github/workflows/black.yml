@@ -31,7 +31,7 @@ jobs:
           format: space-delimited
           token: ${{ secrets.GITHUB_TOKEN }}
   
-      - name: Check if Python files or wemod file changed
+      - name: Check if Python files or wand file changed
         id: check_files
         run: |
           echo "PYTHON_FILES_CHANGED=false" >> $GITHUB_ENV
@@ -73,10 +73,10 @@ jobs:
         if: steps.run_black.outcome == 'success'
         run: |
           current_ver=$(awk '/script_version = "/ {print $3}' src/coreutils.py | tr -d '"')
-          awk -v ver="$current_ver" '/The WeMod Launcher is currently on version / {
-            printf("**The WeMod Launcher is currently on version %.3f.**\n", ver);
+          awk -v ver="$current_ver" '/The Wand Launcher is currently on version/ {
+            printf("**The Wand Launcher is currently on version %.3f.**\n", ver);
           }
-          !/The WeMod Launcher is currently on version / { print $0 }' readme.md > readme.tmp && mv readme.tmp readme.md
+          !/The Wand Launcher is currently on version/ { print $0 }' readme.md > readme.tmp && mv readme.tmp readme.md
   
       - name: Stage and commit updated files
         if: steps.run_black.outcome == 'success'

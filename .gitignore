@@ -1,9 +1,9 @@
 .vscode/
 .cache/
-wemod_data/
-wemod_venv/
+wand_data/
+wand_venv/
 __pycache__/
-wemod.conf
-wemod.log
+wand.conf
+wand.log
 winetricks
 pip.pyz

@@ -1,6 +1,6 @@
 name: Feature request
 description: Suggest an idea for this project
-title: '[Feature] I would like to have the feature X in the WeMod launcher'
+title: '[Feature] I would like to have the feature X in the Wand launcher'
 labels: ["enhancement"]
 body:
   - type: textarea

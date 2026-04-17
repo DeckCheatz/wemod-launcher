@@ -1,6 +1,6 @@
 name: Report Findings of the Launcher or components
-description: Share Findings of the Wemod Launcher and/or their components
-title: '[REPORT]: The WeMod Launcher works with (fill in)'
+description: Share Findings of the Wand Launcher and/or their components
+title: '[REPORT]: The Wand Launcher works with (fill in)'
 labels: ["report"]
 body:
   - type: textarea
@@ -10,7 +10,7 @@ body:
       description: Briefly explain what worked or didn’t and in what setup.
       placeholder: |
         Example:
-        WeMod worked fine with GE-Proton 9.3 on Arch using Lutris.
+        Wand worked fine with GE-Proton 9.3 on Arch using Lutris.
         But GE-Proton 9 and below its completely broken
     validations:
       required: true

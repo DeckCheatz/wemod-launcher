@@ -1,6 +1,6 @@
 name: Question
 description: Ask a question about the project
-title: '[Question] How do I use the wemod-laucher for x'
+title: '[Question] How do I use the wand-launcher for x'
 labels: ["question"]
 body:
   - type: textarea
