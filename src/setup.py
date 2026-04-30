@@ -11,6 +11,7 @@ from coreutils import (
     log,
     pip,
     exit_with_message,
+    http_get,
 )
 
 from corenodep import (
@@ -47,9 +48,8 @@ else:
 
 def welcome() -> bool:
     import FreeSimpleGUI as sg
-    import requests
 
-    wemod_logo = requests.get(
+    wemod_logo = http_get(
         "https://www.wemod.com/static/images/device-icons/favicon-192-ce0bc030f3.png",
         stream=False,
     )
@@ -117,14 +117,12 @@ def download_wemod(temp_dir: str) -> str:
 
 
 def get_wemod_exe_url():
-    import requests
-
     SCOOP_METADATA_URL = (
         "https://raw.githubusercontent.com/"
         "Calinou/scoop-games/refs/heads/master/bucket/"
         "wemod.json"
     )
-    raw = requests.get(SCOOP_METADATA_URL).json()
+    raw = http_get(SCOOP_METADATA_URL).json()
 
     if not raw["architecture"]["64bit"]["url"]:
         exit_with_message(

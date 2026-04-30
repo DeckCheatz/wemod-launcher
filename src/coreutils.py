@@ -3,8 +3,8 @@
 
 import os
 import sys
+import json
 import subprocess
-
 from urllib import request
 
 from typing import (
@@ -27,6 +27,11 @@ if getattr(sys, "frozen", False):
 else:
     SCRIPT_IMP_FILE = os.path.realpath(__file__)
 SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
+
+FALLBACK_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+TOP_UA_URL = "https://raw.githubusercontent.com/microlinkhq/top-user-agents/refs/heads/master/src/index.json"
+
+_cached_user_agent = None
 
 
 # Function for logging messages
@@ -70,6 +75,86 @@ def log(message: Optional[str] = None, open_log: bool = False) -> None:
                 f.write(message)
         if open_log:
             os.system(f"xdg-open '{wemodlog}'")
+
+
+class SimpleResponse:
+    def __init__(self, resp, stream=False):
+        self._resp = resp
+        self.status_code = resp.getcode()
+        self.headers = {k.lower(): v for k, v in resp.headers.items()}
+        self._stream = stream
+        if not stream:
+            self.content = resp.read()
+            self._content_pos = 0
+        else:
+            self.content = b""
+
+    @property
+    def text(self):
+        if self._stream:
+            self.content = self._resp.read()
+        return self.content.decode(errors="replace")
+
+    def json(self):
+        return json.loads(self.text)
+
+    def iter_content(self, chunk_size=4096):
+        if self._stream:
+            while True:
+                chunk = self._resp.read(chunk_size)
+                if not chunk:
+                    break
+                yield chunk
+        else:
+            while self._content_pos < len(self.content):
+                chunk = self.content[
+                    self._content_pos : self._content_pos + chunk_size
+                ]
+                self._content_pos += chunk_size
+                yield chunk
+
+
+def _do_req(h, url: str, kwargs):
+    req = request.Request(url, headers=h)
+    resp = request.urlopen(req, timeout=kwargs.get("timeout", 30))
+    return SimpleResponse(resp, stream=kwargs.get("stream", False))
+
+
+def _get_user_agent() -> str:
+    global _cached_user_agent
+    if _cached_user_agent:
+        return _cached_user_agent
+    try:
+        req = request.Request(
+            TOP_UA_URL, headers={"User-Agent": FALLBACK_USER_AGENT}
+        )
+        with request.urlopen(req, timeout=5) as resp:
+            agents = json.loads(resp.read().decode())
+            if agents and isinstance(agents, list):
+                _cached_user_agent = agents[0]
+                return _cached_user_agent
+    except Exception:
+        pass
+    _cached_user_agent = FALLBACK_USER_AGENT
+    return _cached_user_agent
+
+
+def http_get(url: str, **kwargs) -> SimpleResponse:
+    headers = kwargs.pop("headers", {})
+    ua = _cached_user_agent if _cached_user_agent else FALLBACK_USER_AGENT
+    headers.setdefault("User-Agent", ua)
+
+    try:
+        return _do_req(headers, url, kwargs)
+    except Exception:
+        log(
+            f"Failed to retrieve {url!r} with the fallback User‑Agent.\n"
+            "The network may be offline or the UA might be outdated.\n"
+            "Retrying with the latest online‑pulled User‑Agent.\n"
+            "If this keeps appearing in the log while the internet is working, please file a bug report."
+        )
+    headers["User-Agent"] = _get_user_agent()
+    return _do_req(headers, url, kwargs)
 
 
 # Function to display a message
@@ -233,7 +318,9 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
     # Check and download pip.pyz if not present
     if not os.path.isfile(pip_pyz):
         log("Pip not found. Downloading...")
-        request.urlretrieve("https://bootstrap.pypa.io/pip/pip.pyz", pip_pyz)
+        resp = http_get("https://bootstrap.pypa.io/pip/pip.pyz")
+        with open(pip_pyz, "wb") as f:
+            f.write(resp.content)
 
         # Exit if pip.pyz still not present after download
         if not os.path.isfile(pip_pyz):
@@ -444,7 +531,7 @@ def get_user_input(
 
 def script_manager() -> None:
     script_name = "wemod-launcher"
-    script_version = "1.539"
+    script_version = "1.540"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 
