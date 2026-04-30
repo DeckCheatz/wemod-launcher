@@ -7,8 +7,6 @@ import pwd
 import shutil
 import subprocess
 
-from urllib import request
-
 # Import consts
 from consts import (
     STEAM_COMPAT_FOLDER,
@@ -23,6 +21,7 @@ from coreutils import (
     get_user_input,
     popup_options,
     show_message,
+    http_get,
 )
 
 from corenodep import (
@@ -99,7 +98,7 @@ def ensure_wine(verstr: Optional[str] = None) -> str:
 
     if os.path.isdir(ProtonPfx):
         ProtonVersion = os.path.join(BASE_STEAM_COMPAT, "version")
-        if verstr:
+        if verstr and not ("umu-launcher" in verstr):
             with open(ProtonVersion, "w") as pver:
                 pver.write(verstr)
         elif not os.path.isfile(ProtonVersion):
@@ -316,10 +315,11 @@ def winetricks(command: str, proton_bin: str) -> int:
     # Download winetricks if not present
     if not os.path.isfile(winetricks_sh):
         log("winetricks not found. Downloading...")
-        request.urlretrieve(
-            "https://github.com/Winetricks/winetricks/raw/master/src/winetricks",
-            winetricks_sh,
+        resp = http_get(
+            "https://github.com/Winetricks/winetricks/raw/master/src/winetricks"
         )
+        with open(winetricks_sh, "wb") as f:
+            f.write(resp.content)
         log(f"setting exec permissions on '{winetricks_sh}'")
         process = subprocess.Popen(
             f"sh -c 'chmod +x {winetricks_sh}'", shell=True

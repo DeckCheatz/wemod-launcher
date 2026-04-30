@@ -215,16 +215,16 @@ def download_progress(
         response = http_get(link, stream=True)
         total_length = response.headers.get("content-length")
 
-        if total_length is None:  # no content length header
-            f.write(response.content)
-        else:
-            dl = 0
+        dl = 0
+        if total_length is not None:
             total_length = int(total_length)
-            for data in response.iter_content(chunk_size=4096):
-                dl += len(data)
-                f.write(data)
-                if set_progress is not None:
-                    set_progress(dl, total_length)
+        else:
+            total_length = 0
+        for data in response.iter_content(chunk_size=4096):
+            dl += len(data)
+            f.write(data)
+            if set_progress is not None:
+                set_progress(dl, total_length if total_length else dl)
 
 
 # Function to download a file with progress display
