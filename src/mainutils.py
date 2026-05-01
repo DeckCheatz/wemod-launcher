@@ -5,6 +5,7 @@ import os
 import sys
 import pwd
 import shutil
+import pathlib
 
 from typing import (
     Callable,
@@ -321,8 +322,6 @@ def deref(path: str) -> None:
             update_progress(int((i + 1) / total_links * 100))
 
     def find_symlinks(path: str) -> List[List[str]]:
-        import pathlib
-
         links = []
         directory = pathlib.Path(path)
         for item in directory.rglob("*"):
@@ -408,8 +407,6 @@ def copy_folder_with_progress(
     log(f"ignoring: {ignore}\nincluding anyway: {include_override}")
 
     def traverse_folders(path: str) -> List[str]:
-        import pathlib
-
         allf = []
         directory = pathlib.Path(path)
         for item in directory.rglob("*"):
@@ -685,13 +682,39 @@ def flatpakrunner():
     if os.path.isfile(flatpakrunfile):
         os.remove(flatpakrunfile)
 
-# Safe symlink creation function
-# Yeeted from: https://zetcode.com/python/os-symlink/
-def create_symlink(src, dst):
-    try:
-        os.symlink(src, dst)
-    except FileExistsError:
-        if os.path.islink(dst):
-            # Optionally update existing symlink
-            os.remove(dst)
-            os.symlink(src, dst)
+def create_symlink(src: Union[str, pathlib.Path], dst: Union[str, pathlib.Path], replace: Union[bool, None] = True) -> None:
+    # Needs src, dest;  replace can be True (replace all), None (replace only files and symlinks) or False (don't replace anything)
+    src_path = pathlib.Path(src)
+    dst_path = pathlib.Path(dst)
+
+    if not src_path.exists(): # exit early
+        raise FileNotFoundError(f"Source does not exist: '{src_path}'")
+
+    src_resolved = src_path.resolve()
+    dst_resolved = dst_path.resolve()
+
+    if dst_path.is_symlink(): # destination is a symlink
+        if dst_resolved == src_resolved:
+            return # already correct
+
+        if replace is False:
+            raise OSError(
+                f"Symlink '{dst_path}' points to '{dst_resolved}', expected '{src_path}' or '{src_resolved}'"
+            )
+
+        dst_path.unlink()
+        os.symlink(src_path, dst_path)
+        return
+
+    # destination is NOT a symlink
+    if replace is False:
+        raise OSError(f"Path '{dst_path}' exists and is not a symlink")
+
+    if dst_path.is_dir():
+        if replace is None:
+            raise OSError(f"Path '{dst_path}' exists and is not a file or symlink")
+        shutil.rmtree(dst_path)
+    else:
+        dst_path.unlink()
+
+    os.symlink(src_path, dst_path)
