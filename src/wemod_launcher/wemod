@@ -1,0 +1,1139 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+import threading
+from typing import Optional
+
+# Import core utils without download dependencies
+from core_nodeps import (
+    join_lists_with_delimiter,
+    load_conf_setting,
+    parse_version,
+    read_file,
+    save_conf_setting,
+    split_list_by_delimiter,
+    winpath,
+)
+
+# Import core utils
+from coreutils import (
+    cache,
+    exit_with_message,
+    log,
+    monitor_file,
+    popup_options,
+    script_manager,
+    show_message,
+)
+
+# Import main utils
+from mainutils import (
+    deref,
+    find_closest_compatible_release,
+    flatpakrunner,
+    get_dotnet48,
+    get_github_releases,
+    popup_download,
+    popup_execute,
+    unpack_zip_with_progress,
+)
+
+# Import from prepare
+from prepare import (
+    check_flatpak,
+    self_update,
+    setup_main,
+    venv_manager,
+)
+
+if getattr(sys, "frozen", False):
+    SCRIPT_FILE = os.path.realpath(sys.executable)
+else:
+    SCRIPT_FILE = os.path.realpath(__file__)
+SCRIPT_PATH = os.path.dirname(SCRIPT_FILE)
+if os.path.basename(SCRIPT_PATH) == "src":
+    SCRIPT_BASE = os.path.dirname(SCRIPT_PATH)
+else:
+    SCRIPT_BASE = SCRIPT_PATH
+
+
+# Fist main block of two
+if __name__ == "__main__":
+    # Print version and update config
+    script_manager()
+    # Make venv if needed and return path
+    python_venv = venv_manager()
+    # Update the script
+    python_venv = self_update(python_venv)
+    # Detect if the script is running inside a flatpak
+    if_flatpak_list = check_flatpak(python_venv)
+
+    # On venv path restart the script
+    if 0 < len(if_flatpak_list):
+        # Use environment variable to protect the script from re-running forever
+        inf_protect = os.getenv("WeModInfProtect", "1")
+        if int(inf_protect) > 4:
+            exit_with_message(
+                "Infinite rerun",
+                "Infinite script reruns were detected\nThe script was stopped\nCreate an issue on the wemod_laucher GitHub\nand attach this file",
+            )
+        os.environ["WeModInfProtect"] = str(int(inf_protect) + 1)
+
+        # if we are in a flatpak we wait for a command to be passed back into the script in a thread
+        if len(if_flatpak_list) > 1:
+            flat_thread = threading.Thread(target=flatpakrunner)
+            flat_thread.start()
+
+        command = if_flatpak_list + [SCRIPT_FILE] + sys.argv[1:]
+        log(
+            f"Re-running script within virtual environment;\nor, to update or run outside the flatpak sandbox with the command:\n\t{command}\n\nThe rerun nr {inf_protect} was started"
+        )
+
+        # Execute the script within the virtual environment
+        try:
+            process = subprocess.run(command, capture_output=True, text=True)
+            print(str(process.stdout))
+            print(str(process.stderr))
+        except Exception as e:
+            log(f"Unknown rerun command error:\n\t{e}")
+            exit_with_message(
+                "Unknown Command error",
+                f"The command to rerun the script failed because the command returned an unknown error:\n\t{e}\nYou are probably using flatpak,\nin which case make sure to install flatpak-xdg-utils\nand allow system and session bus in Flatseal",
+            )
+
+        if len(if_flatpak_list) > 1:
+            flat_thread.join()
+
+        # exit after it was run in a venv successfully
+        sys.exit(process.returncode)
+
+
+# Import utils that need constants
+# Import consts
+from consts import (
+    BASE_STEAM_COMPAT,
+    BAT_COMMAND,
+    INIT_FILE,
+    STEAM_COMPAT_FOLDER,
+    WINEPREFIX,
+)
+from constutils import (
+    ensure_wine,
+    scanfolderforversions,
+    troubleshooter,
+    wine,
+    winetricks,
+)
+
+
+# Symlink WeMod data to make all WeMod prefixes use the same WeMod data
+def syncwemod(
+    folder: Optional[str] = None,
+) -> None:
+    # This section handles prefix packaging and is kept as-is, as it's a separate concern
+    # from the core WeMod data synchronization logic and includes an intentional exit.
+    package_prefix = os.getenv("PACKAGEPREFIX")
+    if not package_prefix:
+        package_prefix = load_conf_setting("PackagePrefix")
+        if package_prefix:
+            if package_prefix.lower() != "true":
+                try:
+                    package_prefix = int(package_prefix)
+                except Exception:
+                    package_prefix = "false"
+                else:
+                    if package_prefix > 0:
+                        package_prefix -= 1
+                        save_conf_setting("PackagePrefix", package_prefix)
+                        package_prefix = "true"
+    if package_prefix and folder is None and package_prefix.lower() == "true":
+        from mainutils import copy_folder_with_progress
+
+        log(
+            "Prefix packaging was requested with PACKAGEPREFIX=true in front of the command"
+        )
+        current_proton_version = read_file(os.path.join(BASE_STEAM_COMPAT, "version"))
+        if not current_proton_version:
+            log(f"Version is not set for {BASE_STEAM_COMPAT}, Error")
+            exit_with_message(
+                "Prefix Version unknown",
+                "The prefix version is unknown. Please make sure the prefix works with WeMod before trying to zip it",
+                timeout=20,
+            )
+        cut_proton_version = parse_version(current_proton_version)
+        destfile = os.path.join(
+            STEAM_COMPAT_FOLDER,
+            "prefixes",
+            "GE-Proton"
+            + str(cut_proton_version[0])
+            + "."
+            + str(cut_proton_version[1])
+            + ".zip",
+        )
+
+        if not os.path.isfile(INIT_FILE):
+            log(f"WeMod is not installed in {BASE_STEAM_COMPAT}, error")
+            exit_with_message(
+                "WeMod not installed",
+                "WeMod is not installed in the active prefix, exiting",
+                timeout=20,
+            )
+
+        os.makedirs(os.path.dirname(destfile), exist_ok=True)
+
+        if os.path.isfile(destfile):
+            os.remove(destfile)
+
+        log(f"Zipping folder '{BASE_STEAM_COMPAT}' into '{destfile}'")
+
+        initcont = read_file(INIT_FILE)
+        with open(INIT_FILE, "w") as init:
+            init.write("")
+
+        waslink = False
+        if os.path.islink(WINEPREFIX):
+            os.remove(WINEPREFIX)
+            waslink = True
+
+        copy_folder_with_progress(BASE_STEAM_COMPAT, destfile, True, [None], [None])
+
+        if waslink:
+            try:
+                os.symlink(BASE_STEAM_COMPAT, WINEPREFIX)
+            except Exception:
+                pass
+
+        with open(INIT_FILE, "w") as init:
+            init.write(initcont)
+
+        os.system("xdg-open '" + os.path.join(STEAM_COMPAT_FOLDER, "prefixes") + "'")
+        log("Done creating Prefix zip")
+        exit_with_message(
+            "Prefix Packaged",
+            "The prefix was zipped successfully. Exiting",
+            timeout=5,
+        )
+
+    # WeMod login data synchronization logic starts here
+    if folder is None:
+        folder = BASE_STEAM_COMPAT
+
+    WeModData = os.path.join(
+        SCRIPT_BASE, "wemod_data", "wemod_login"
+    )  # Central launcher login data
+    WeModOldData = os.path.join(
+        SCRIPT_BASE, "wemod_data"
+    )  # Central launcher login data in older versions
+    old_data_files = [
+        "SharedStorage"  # can add more if we know what files are allways created by WeMod
+    ]
+
+    # Check if any old data files exist directly in WeModOldData
+    needs_migration = False
+    if os.path.isdir(WeModOldData):
+        for filename in old_data_files:
+            if os.path.exists(os.path.join(WeModOldData, filename)):
+                needs_migration = True
+                break
+
+    if needs_migration:
+        log(
+            f"Old WeMod data files detected in '{WeModOldData}'. Migrating to '{WeModData}'."
+        )
+        # Ensure the target WeModData directory (wemod_login) exists before moving
+        os.makedirs(WeModData, exist_ok=True)
+
+        # Iterate through items in WeModOldData and move them to WeModData, excluding specific folders
+        for item_name in os.listdir(WeModOldData):
+            # Exclude the 'wemod_login' (which is WeModData itself) and 'wemod_bin' directories
+            if item_name not in ["wemod_login", "wemod_bin"]:
+                source_path = os.path.join(WeModOldData, item_name)
+                destination_path = os.path.join(WeModData, item_name)
+                try:
+                    shutil.move(source_path, destination_path)
+                    log(f"Moved '{source_path}' to '{destination_path}'")
+                except Exception as e:
+                    log(
+                        f"Failed to move '{source_path}' to '{destination_path}': {e}"
+                    )
+                    try:
+                        if os.path.isdir(source_path):
+                            shutil.rmtree(
+                                source_path
+                            )  # remove directory tree
+                        else:
+                            os.remove(source_path)  # delete the file
+                        log(f"Removed old dir/file at '{source_path}'")
+                    except Exception as e:
+                        log(
+                            f"Failed to remove old dir/file '{source_path}': {e}"
+                        )
+
+        # move wemod_bin as well
+        old_dir = os.path.join(SCRIPT_BASE, "wemod_bin")
+        new_dir = os.path.join(WeModOldData, "wemod_bin")
+        try:
+            shutil.move(old_dir, new_dir)
+            log(f"Moved '{old_dir}' to '{new_dir}'")
+        except Exception as e:
+            log(f"Failed to move '{old_dir}' to '{new_dir}': {e}")
+            try:
+                if os.path.isdir(old_dir):
+                    shutil.rmtree(old_dir)  # remove directory tree
+                else:
+                    os.remove(old_dir)  # delete the file
+                log(f"Removed old directory '{old_dir}'")
+            except Exception as e:
+                log(f"Failed to remove old directory '{old_dir}': {e}")
+
+        # If migration was needed some old files are in the main folder and need to be moved or cleaned up
+        old_files_in_base = [
+            "wemod.conf",
+            "wemod_venv",
+            "winetricks",
+            "pip.pyz",
+        ]
+        old_dir = SCRIPT_BASE
+        new_dir = os.path.join(SCRIPT_BASE, "src")
+        for old_file in old_files_in_base:
+            old_path = os.path.join(old_dir, old_file)
+            if os.path.exists(old_path):
+                try:
+                    shutil.move(old_path, new_dir)
+                    log(f"Moved '{old_path}' to '{new_dir}'")
+                except Exception as e:
+                    log(f"Failed to move '{old_path}' to '{new_dir}': {e}")
+                    try:
+                        if os.path.isdir(old_path):
+                            shutil.rmtree(old_path)  # remove directory tree
+                        else:
+                            os.remove(old_path)  # delete the file
+                        log(f"Removed old file '{old_path}'")
+                    except Exception as e:
+                        log(f"Failed to remove old file '{old_path}': {e}")
+
+        log("Old WeMod data migration complete.")
+
+    WeModExternal = os.path.join(
+        folder, "pfx/drive_c/users/steamuser/AppData/Roaming/WeMod"
+    )  # WeMod's expected data location within the Wine prefix
+
+    log(
+        f"Starting WeMod data sync. Central: '{WeModData}', Prefix: '{WeModExternal}'"
+    )
+
+    # Ensure the central WeModData directory exists
+    os.makedirs(WeModData, exist_ok=True)
+    wemod_data_has_content = len(os.listdir(WeModData)) > 0
+
+    action_needed = True
+    # Handle the state of WeModExternal (the prefix-specific path)
+    if os.path.islink(WeModExternal):
+        print("Checking link ---")
+        # WeModExternal is a symlink. Check if it's correct.
+        current_target = os.path.realpath(WeModExternal)
+        if current_target == WeModData:
+            log(
+                f"Link '{WeModExternal}' is already a valid symlink to '{WeModData}'. Sync complete."
+            )
+            action_needed = False
+        else:
+            log(
+                f"Link '{WeModExternal}' is an invalid symlink pointing to '{current_target}', not '{WeModData}'. Removing it."
+            )
+            os.remove(WeModExternal)  # Remove the invalid symlink
+
+    elif os.path.exists(WeModExternal) and not os.path.isdir(WeModExternal):
+        # WeModExternal exists but is a file or a broken link (not a directory or valid symlink)
+        log(
+            f"File '{WeModExternal}' exists but is not a directory or a valid symlink. Removing it."
+        )
+        try:
+            os.remove(WeModExternal)
+        except Exception as e:
+            log(f"Failed to remove invalid path '{WeModExternal}': {e}")
+            # Do not exit, try to proceed and log the error.
+
+    # At this point, WeModExternal is either a real directory or does not exist.
+    if action_needed and os.path.isdir(WeModExternal):
+        # WeModExternal is a real directory (not a symlink), so its content needs to be reconciled.
+        log(
+            f"Directory '{WeModExternal}' is real and exists. Processing its content for synchronization."
+        )
+        wemod_external_has_content = len(os.listdir(WeModExternal)) > 0
+
+        if wemod_data_has_content and wemod_external_has_content:
+            # Both central and external directories contain data, prompt the user for preference.
+            response = show_message(
+                "Warning: WeMod login data found in both the launcher's central directory "
+                "and the game prefix directory.\nWhich account would you like to use?\n\n"
+                "  Yes: Use the account from the Launcher's central directory (recommended).\n"
+                "  No: Use the account from the game prefix directory (this will overwrite the central data).",
+                title="Multiple WeMod accounts found",
+                yesno=True,
+            )
+
+            if response == "No":
+                # User chose to use data from the external (prefix) directory.
+                log(
+                    f"User chose to use data from '{WeModExternal}'. Overwriting central data in '{WeModData}'."
+                )
+                shutil.rmtree(WeModData)  # Clear central directory
+                shutil.copytree(
+                    WeModExternal, WeModData
+                )  # Copy external data to central
+            else:  # response is "Yes" or None (default to Yes)
+                # User chose or defaulted to using data from the central directory.
+                log(
+                    f"User chose to use data from '{WeModData}'. Keeping central data, discarding external."
+                )
+                # WeModData is already preferred, no action needed on its content.
+        elif not wemod_data_has_content and wemod_external_has_content:
+            # Central directory is empty, but external directory has data. Move external data to central.
+            log(
+                f"Directory '{WeModData}' is empty, but '{WeModExternal}' has data. Moving data from external to central."
+            )
+            # WeModData already exists (created earlier), so directly copy into it.
+            shutil.copytree(WeModExternal, WeModData)
+        else:
+            # Either WeModExternal has no content, or WeModData already has content and is preferred.
+            log(
+                f"Directory '{WeModExternal}' has no relevant content, or '{WeModData}' is already set up. No data transfer needed from external."
+            )
+
+        # After processing, remove the real WeModExternal directory to prepare for symlinking.
+        log(f"Removing real directory '{WeModExternal}' to create symlink.")
+        shutil.rmtree(WeModExternal, ignore_errors=True)
+
+    # Create the symlink from WeModExternal to WeModData if it doesn't exist
+    if action_needed and not os.path.exists(WeModExternal):
+        log(f"Creating symlink from '{WeModData}' to '{WeModExternal}'.")
+        try:
+            os.symlink(WeModData, WeModExternal)
+        except Exception as e:
+            log(
+                f"Failed to create symlink '{WeModExternal}' -> '{WeModData}'\nYour login data won't be synchronized.\nReported error:\n{e}"
+            )
+    elif action_needed:
+        # This branch should ideally not be reached if the previous steps correctly handled WeModExternal.
+        # It implies WeModExternal still exists but is not a correct symlink to WeModData.
+        log(
+            f"Warning: '{WeModExternal}' still exists after initial processing and is not a link to '{WeModData}'. Attempting forceful recreation."
+        )
+        try:
+            shutil.rmtree(WeModExternal)  # Forcefully remove
+            os.symlink(WeModData, WeModExternal)  # Recreate symlink
+        except Exception as e:
+            log(
+                f"Failed to force-recreate symlink '{WeModExternal}' -> '{WeModData}': {e}"
+            )
+            exit_with_message(
+                "Symlink Force-Creation Failed",
+                f"Failed to force-create the symlink for WeMod data synchronization:\n{e}",
+                ask_for_log=True,
+            )
+
+    log("WeMod data synchronization complete.")
+
+    if not os.path.exists(
+        os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin", "WeMod.exe")
+    ):
+        setup_main()
+
+
+# Initialize the environment
+def init(proton: str, iswine: bool = False) -> None:
+    # Create wine prefix directory if it doesn't exist
+    if not os.path.isdir(WINEPREFIX):
+        os.makedirs(BASE_STEAM_COMPAT, exist_ok=True)
+
+    # Grab active Proton version
+    if iswine:
+        os.environ["WINEPREFIX"] = BASE_STEAM_COMPAT
+
+        try:
+            wver = subprocess.run(
+                [proton, "--version"],
+                bufsize=1,
+                capture_output=True,
+                text=True,
+            )
+        except Exception as e:
+            log(f"Error grabbing the external wine version using file:\n\t{e}")
+            prefix_version_file = ensure_wine()
+        else:
+            prefix_version_file = ensure_wine(str(wver.stdout))
+    else:
+        prefix_version_file = ensure_wine()
+    current_proton_version = read_file(prefix_version_file)
+    current_version_parts = parse_version(current_proton_version)
+    if current_version_parts == None:
+        exit_with_message(
+            "Missing Proton version",
+            f"Error: The GE-Proton version file could not be read, located at:\n'{prefix_version_file}'.\nTry to delete the game prefix located at:\n'{BASE_STEAM_COMPAT}'",
+            timeout=30,
+            ask_for_log=True,
+        )
+
+    # If WeMod is not installed try to copy a working prefix to the current one
+    log(f"Looking for init file '{INIT_FILE}'")
+    if not os.path.exists(INIT_FILE):
+        log(
+            f"Looking for compatible wine prefixes in '{STEAM_COMPAT_FOLDER}' with Proton version '{current_version_parts[0]}.{current_version_parts[1]}'"
+        )
+
+        # Get closest version that has WeMod installed
+        closest_version, closest_prefix_folder = scanfolderforversions(
+            current_version_parts
+        )
+        cut_version = parse_version(closest_version)
+
+        if closest_version and current_version_parts:
+            log(
+                f"Found '{cut_version[0]}.{cut_version[1]}' on '{current_version_parts[0]}.{current_version_parts[1]}'"
+            )
+
+        from main_utils import copy_folder_with_progress
+
+        response = "No"
+        if (
+            closest_version
+            and current_version_parts
+            and closest_version == current_version_parts
+        ):
+            response = show_message(
+                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have WeMod installed. Would you like to use the perfectly matched Proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is very likely going to work?",
+                title="Very likely compatible WeMod version detected",
+                yesno=True,
+            )
+            if response == None:
+                response = "Yes"
+        elif (
+            closest_version
+            and current_version_parts
+            and closest_version[0] == current_version_parts[0]
+        ):
+            response = show_message(
+                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have WeMod installed. Would you like to use the closest Proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is likely going to work?",
+                title="Likely compatible WeMod version detected",
+                yesno=True,
+            )
+            if response == None:
+                response = "Yes"
+        elif (
+            closest_version
+            and current_version_parts
+            and closest_version[0] != current_version_parts[0]
+        ):
+            response = show_message(
+                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have WeMod installed. Would you like to attempt to use the closest Proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which may result in some issues?",
+                title="Maybe compatible WeMod version detected",
+                yesno=True,
+            )
+        else:
+            log("No compatible Proton version found in the compatibility folder.")
+        if response == "Yes":
+            # Copy the closest version's prefix to the game prefix
+            log(f"Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}")
+            syncwemod(
+                closest_prefix_folder
+            )  # Sync WeMod data in closest version
+
+            copy_folder_with_progress(
+                closest_prefix_folder,
+                BASE_STEAM_COMPAT,
+                False,
+                [None],
+                [None],
+            )
+            syncwemod()  # Sync WeMod data
+            log(
+                f"Copied Proton version {cut_version[0]}.{cut_version[1]} prefix to game prefix that was on version {current_version_parts[0]}.{current_version_parts[1]}"
+            )
+        elif closest_version and current_version_parts:
+            log(
+                f"User chose not to use an alternative Proton version; the active version was {current_version_parts[0]}.{current_version_parts[1]}."
+            )
+        else:
+            log(f"No versions to copy available")
+
+    # Check for the initialization file in the wine prefix
+    log(f"Looking once more for the init file")
+    if os.path.exists(INIT_FILE):
+        syncwemod()  # Sync WeMod data and prefix packaging
+        log("Found init file. Continuing launch...")
+        return
+
+    log("Init file not found! Attempting to prepare the WINEPREFIX")
+
+    # User choice for prefix setup
+    prefix_op = popup_options(
+        "Prefix Setup",
+        "Would you like to download (RECOMMENDED, faster and works on all systems) an already setup one \nor build/modify (only works on some systems) your prefix?",
+        [["download", "build"]],
+    )
+
+    # Determine Proton directory
+
+    proton_dir = os.path.join(os.path.dirname(proton), "files", "bin")
+    log(f"Using wine from Proton at path: '{proton_dir}'")
+
+    # Call appropriate function based on user choice
+    if prefix_op and prefix_op == "build":
+        build_prefix(proton_dir)
+    else:
+        download_prefix(proton_dir)
+    syncwemod()  # Sync WeMod data
+
+
+# Function to download and unpack a pre-configured wine prefix
+def download_prefix(proton_dir: str) -> None:
+    # Check and prepare for first launch
+    if not os.path.exists(WINEPREFIX + "/drive_c"):
+        log(WINEPREFIX)
+        exit_with_message(
+            "First Launch",
+            "First Launch Detected: Please run the game once without WeMod first. Error.",
+            ask_for_log=True,
+        )
+
+    repo_user = load_conf_setting("RepoUser")
+    if repo_user and repo_user.lower() == "DaniAsh551".lower():
+        repo_user = "DeckCheatz"
+        save_conf_setting("RepoUser", repo_user)
+        log("Updated RepoUser in config to: " + repo_user)
+
+    if not repo_user:
+        repo_user = "DeckCheatz"
+        # save_conf_setting("RepoUser", repo_user)
+        log("RepoUser not set in config using: " + repo_user)
+
+    repo_name = load_conf_setting("RepoName")
+    if repo_name and repo_name.lower() == "wemod-launcher".lower():
+        repo_name = "BuiltPrefixes-dev"
+        save_conf_setting("RepoName", repo_name)
+        log("Updated RepoName in config to: " + repo_name)
+
+    if not repo_name:
+        repo_name = "BuiltPrefixes-dev"
+        # save_conf_setting("RepoName", repo_name)
+        log("RepoName not set in config using: " + repo_name)
+
+    repo_parts = os.getenv("REPO_STRING")
+    if repo_parts:
+        repo_parts = repo_parts.split("/", 1) + [""]
+        if repo_parts[0] and repo_parts[0] != "":
+            repo_user = repo_parts[0]
+        if repo_parts[1] and repo_parts[1] != "":
+            repo_name = repo_parts[1]
+
+    repo_concat = repo_user + "/" + repo_name
+
+    current_proton_version = read_file(os.path.join(BASE_STEAM_COMPAT, "version"))
+    current_version_parts = parse_version(current_proton_version)
+
+    closest_version = None
+    releases = get_github_releases(repo_concat)
+    if len(releases) > 0:
+        closest_version, url = find_closest_compatible_release(
+            releases, current_version_parts
+        )
+        file_name = (
+            f"wemod_prefix{closest_version[0]}.{closest_version[1]}.zip"
+        )
+
+    if (
+        closest_version
+        and current_version_parts
+        and closest_version == current_version_parts
+    ):
+        response = "Yes"
+    elif (
+        closest_version
+        and current_version_parts
+        and closest_version[0] == current_version_parts[0]
+    ):
+        response = show_message(
+            f"This is most likely going to work, the version {closest_version[0]}.{closest_version[1]} is probably compatible with version {current_version_parts[0]}.{current_version_parts[1]}.\nDownload and use it?",
+            title="Likely compatible version found",
+            yesno=True,
+        )
+        if response == None:
+            response = "Yes"
+    elif closest_version and current_version_parts:
+        response = show_message(
+            f"The current version {closest_version[0]}.{closest_version[1]} might not be compatible with version {current_version_parts[0]}.{current_version_parts[1]}.\nDownload and use it?",
+            title="Maybe compatible version found",
+            yesno=True,
+        )
+    else:
+        log(f"No version to download found on repo '{repo_concat}'")
+        exit_with_message(
+            "No downloads available",
+            f"Error: Nothing to download on repo '{repo_concat}',\nTo fix this, you can try to delete wemod.conf",
+            ask_for_log=True,
+        )
+    if response == "No":
+        log(
+            f"User was unhappy with the version of choice {closest_version[0]}.{closest_version[1]} for {current_version_parts[0]}.{current_version_parts[1]}. Exiting"
+        )
+        exit_with_message(
+            "Closing",
+            f"Closing since the download of version {closest_version[0]}.{closest_version[1]} was refused",
+            timeout=5,
+        )
+
+    # Download or use cached prefix
+    prefix_path = cache(
+        file_name,
+        lambda name: popup_download("Downloading Prefix...", url, name),
+        simple=True,
+    )
+
+    # Unpack the downloaded prefix
+    log(f"Unpacking prefix file {prefix_path} into {BASE_STEAM_COMPAT}")
+
+    try:
+        unpack_zip_with_progress(prefix_path, BASE_STEAM_COMPAT)
+    except Exception as e:
+        log(f"Failed to unpack prefix: {e}")
+        exit_with_message(
+            "Prefix Extraction Failed",
+            f"Failed to extract the downloaded prefix:\n{str(e)}\n\nPlease check the log file for details.\nYou may need to manually download and extract the prefix.",
+            ask_for_log=True,
+        )
+
+    # Validate that critical files were extracted
+    if not os.path.exists(INIT_FILE):
+        log(f"CRITICAL: Init file missing after extraction: {INIT_FILE}")
+        exit_with_message(
+            "Incomplete Prefix",
+            f"The prefix was extracted but the initialization file is missing.\nExpected: {INIT_FILE}\n\nThis may indicate a corrupted download or permission issue.\nTry deleting the game prefix and running again.",
+            ask_for_log=True,
+        )
+
+    version_file = os.path.join(BASE_STEAM_COMPAT, "version")
+    if not os.path.exists(version_file):
+        log(f"WARNING: Version file missing after extraction: {version_file}")
+
+    # Delete cache file since the prefix copier has been added there is no need to keep this file around
+    if os.path.isfile(prefix_path):
+        os.remove(prefix_path)
+
+    syncwemod()
+    if not os.path.isfile(
+        os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin", "WeMod.exe")
+    ):
+        setup_main()
+
+    log("Finished prefix download and unpacking")
+
+
+def build_prefix(proton_dir: str) -> None:
+    import FreeSimpleGUI as sg
+
+    # Set environment path
+    path = os.path.join(SCRIPT_PATH, "bin") + ":" + proton_dir + ":" + os.getenv("PATH")
+
+    # deref
+    winfolder = os.path.join(WINEPREFIX, "drive_c", "windows")
+    log(f"Dereferencing '{winfolder}'")
+    deref(winfolder)
+
+    deps = []
+
+    # Choose method to install dotnet48
+    dotnet48_method = popup_options(
+        "dotnet48",
+        "Would you like to install dotnet48 with winetricks (default for GE-Proton8 or above)\nor with wemod-launcher (ONLY USE FOR GE-Proton7)\nWARNING: The WeMod Launcher option isn't working well, you can try using it anyway (ONLY ON GE-Proton7)",
+        [["winetricks", "wemod-launcher"]],
+    )
+
+    # Add dependencies to the list
+    deps.append("-q sdl cjkfonts vkd3d dxvk2030")
+
+    if not dotnet48_method or dotnet48_method == "winetricks":
+        deps.append("-q dotnet48")
+
+    # Install dependencies
+    log("Running dependencies installation. This could take a while...")
+    setup_main()
+
+    # Install each dependency
+    response = 0
+    dep_i = -1
+    while response == 0 and (len(deps) - 1) > dep_i:
+        dep_i = dep_i + 1
+        response = winetricks(deps[dep_i], path)
+
+    # Install dotnet48 using wemod-launcher if selected
+    if dotnet48_method and dotnet48_method == "wemod-launcher":
+        log("Installing dotnet48...")
+        dotnet48 = get_dotnet48()
+        wine("winecfg -v win7", path)
+        dotnet48_result = wine(dotnet48, path)
+
+        if dotnet48_result != 0 and dotnet48_result != 194 and dotnet48_result != -15:
+            exit_with_message(
+                "dotnet48 install error",
+                "dotnet48 installation exited with code '{}'".format(dotnet48_result),
+                ask_for_log=True,
+            )
+
+    wine("winecfg -v win10", path)  # Set Windows version to Windows 10
+
+    # Finalize setup
+    if response == 0:
+        log("Finished dependencies installation. Writing init file...")
+        open(INIT_FILE, "a").close()
+    else:
+        exit_with_message(
+            "ERROR",
+            "Failed dependencies installation with code '{}'. Aborting...".format(
+                response
+            ),
+            response,
+            ask_for_log=True,
+        )
+
+
+# Main run function
+def run(skip_init: bool = False) -> str:
+    # Get passed args
+    ARGS = sys.argv[1:]
+
+    # Initialize variables for Proton path and its index
+    PROTON = ""
+    fnr = -1
+
+    # Original logic for finding the Proton tool path if delimiter is present
+    tools = os.getenv("STEAM_COMPAT_TOOL_PATHS").split(os.pathsep)
+    if fnr <= 0 and tools:
+        for tool in tools:
+            for nr, aarg in enumerate(ARGS):
+                if aarg and len(aarg) > 2 and aarg[0] == os.sep:
+                    if tool == os.path.dirname(aarg):
+                        if nr > fnr:
+                            fnr = nr
+                            break
+    # find the first argument that has the Proton tool path
+    if tools:
+        for tool in tools:
+            for nr, aarg in enumerate(ARGS):
+                if aarg and len(aarg) > 2 and aarg[0] == os.sep:
+                    if tool == os.path.dirname(aarg):
+                        if nr > fnr:
+                            fnr = nr
+                            break
+
+    # If no delimiter is found and no Wine tool was found, check for common Wine names
+    if fnr <= 0:
+        # Count the occurrences of the delimiter '--'
+        delimiter_count = ARGS.count("--")
+        if delimiter_count == 0:
+            # If no delimiter is found, check for common Wine names
+            common_wine_names = [
+                "wine",
+                "umu-run",
+                "proton",
+            ]  # Add more if you can think of them
+            found_wine_name = None
+            for i, arg in enumerate(ARGS):
+                for wine_name in common_wine_names:
+                    if (
+                        wine_name in os.path.basename(arg).lower()
+                    ):  # Case-insensitive check
+                        # Heuristic: assume the first Wine name found is the one to use
+                        fnr = i
+                        found_wine_name = wine_name
+                        break
+                if found_wine_name:
+                    break
+
+            if not found_wine_name:
+                # If no common Wine names are found, log a warning and continue
+                log(
+                    "Warning: No '--' delimiter found and no common Wine names detected. Proceeding with original argument parsing."
+                )
+            else:
+                log(
+                    f"Detected common Wine name '{found_wine_name}' at index {fnr}."
+                )
+
+    verb = ["waitforexitandrun"]
+    tout = 90
+    if fnr >= 0:  # if the Proton tool path was found
+        # Log the args for future improvement
+        log(
+            f"The normal args list is {len(ARGS)} long and the full contents are:\n\t{ARGS}"
+        )
+        # Take the start of the command
+        REAPER_CMD = ARGS[:fnr]
+        # Take the full Proton tool path
+        PROTON = ARGS[fnr]
+
+        # If there is a file then it's a custom runner so don't use a verb
+        if ARGS[(fnr + 1)].find(".") >= 0:
+            fnr -= 1
+            verb = []
+            tout = 60
+
+        # Get the game exe
+        if os.getenv("NO_EXE") or load_conf_setting("NoEXE"):
+            GAME_EXE = ARGS[(fnr + 2)]
+        else:
+            GAME_EXE = os.path.realpath(ARGS[(fnr + 2)])
+
+        # Add more args at the end
+        LAUNCH_OPTIONS = ARGS[(fnr + 3) :]
+    # If fnr was set by fallback, we directly use it. Otherwise, proceed with the delimiter logic.
+    else:  # Only proceed with delimiter split if fallback didn't set fnr
+        # Subdivide the list into multiple lists based on delimiter
+        AARGS = split_list_by_delimiter(ARGS, "--")
+        # Log the args for future improvement
+        log(
+            f"The subsplit args list is {len(AARGS)} long and the full contents are:\n\t{AARGS}"
+        )
+        # Take the steam command part and merge it back into one list split by delimiter
+        REAPER_CMD = join_lists_with_delimiter(AARGS[:-1], "--")
+        # Add removed -- back at the end
+        REAPER_CMD += ["--"]
+        # Take the end that runs the game
+        PROTON_CMD = AARGS[-1]
+        # Take the Proton path
+        PROTON = PROTON_CMD[0]
+
+        fnr_p = 0  # Use a different variable for index within PROTON_CMD to avoid confusion
+        # If there is a file then it's a custom runner so don't use a verb
+        if PROTON[(fnr_p + 1)].find(".") >= 0:
+            fnr_p -= 1
+            verb = []
+            tout = 60
+
+        # Get the game exe
+        if os.getenv("NO_EXE") or load_conf_setting("NoEXE"):
+            GAME_EXE = PROTON_CMD[fnr_p + 2]
+        else:
+            GAME_EXE = os.path.realpath(PROTON_CMD[fnr_p + 2])
+
+        # Add more args at the end
+        LAUNCH_OPTIONS = PROTON_CMD[(fnr_p + 3) :]
+
+    # Initialize environment if not skipped
+    if not skip_init:
+        # Ensure proton is set before calling init
+        if not PROTON:
+            exit_with_message(
+                "Proton Path Not Set",
+                "Could not determine the Proton path. Please ensure it is correctly set.",
+            )
+        init(PROTON, not bool(verb))
+
+    # Get working dir
+    WORK_DIR = os.path.realpath(os.getcwd())
+
+    if os.getenv("NO_EXE") or load_conf_setting("NoEXE"):
+        REL_EXE = GAME_EXE
+        WIN_CMD = REL_EXE
+    else:
+        if not os.path.isfile(GAME_EXE):
+            log(f"Error, the game executable '{GAME_EXE}' is missing")
+            exit_with_message(
+                "Game Missing",
+                f"The game executable '{GAME_EXE}' is missing.\nMake sure the game runs without WeMod.\nIf not, use 'Verify Files' in Steam or ensure the game is installed correctly.",
+                ask_for_log=True,
+            )
+
+        # Make game path be relative to work dir (work dir is the root game dir)
+        REL_EXE = os.path.relpath(GAME_EXE, WORK_DIR)
+
+        # Make sure the relative game path is in windows format
+        WIN_CMD = winpath(REL_EXE, addfront="")
+
+    GAME_FRONT = os.getenv("GAME_FRONT")
+    if GAME_FRONT:
+        try:
+            t = json.loads(GAME_FRONT)
+            if not isinstance(t, list):
+                raise TypeError("The given variable is not of type list")
+        except Exception as e:
+            log(
+                "The environment variable GAME_FRONT is not a valid list. Clearing GAME_FRONT."
+            )
+            log('Expected format: GAME_FRONT=\'["cmd", "/c", "exit"]\'')
+            log(f"\tThe error returned was:\n{e}")
+            GAME_FRONT = []
+        else:
+            GAME_FRONT = t
+    else:
+        GAME_FRONT = []
+
+    # Log the found parts of the command
+    log(
+        f"D:{WORK_DIR}\nR:{REAPER_CMD}\nP:{PROTON}\nV:{verb}\nB:{BAT_COMMAND}\nF:{GAME_FRONT}\nG:{WIN_CMD}\nL:{LAUNCH_OPTIONS}"
+    )
+
+    # Construct the final command
+    FINAL = (
+        REAPER_CMD
+        + [PROTON]
+        + verb
+        + BAT_COMMAND
+        + GAME_FRONT
+        + [WIN_CMD]
+        + LAUNCH_OPTIONS
+    )
+
+    ttfile = os.path.join(SCRIPT_PATH, ".cache", "early.tmp")
+    returnfile = os.path.join(SCRIPT_PATH, ".cache", "return.tmp")
+
+    os.makedirs(os.path.dirname(ttfile), exist_ok=True)
+
+    ttime = open(ttfile, "w")
+    ttime.write("")
+    ttime.close()
+
+    log(f"Creating a game time tracking file, the file is:\n\t{ttfile}")
+
+    ttime_thread = threading.Thread(
+        target=monitor_file, args=(ttfile, tout, returnfile)
+    )
+    ttime_thread.start()
+
+    # Log the final command
+    log(f"Executing:\n\t{FINAL}\n")
+    print(f"Executing:\n\t{FINAL}\n")
+
+    fromflat = os.getenv("FROM_FLATPAK")
+
+    if fromflat:
+        import time
+
+        response = 0
+
+        log("Using flatpak mode")
+
+        cachedir = os.path.join(SCRIPT_PATH, ".cache")
+        os.makedirs(cachedir, exist_ok=True)
+
+        flatpakrunfile = os.path.join(cachedir, "insideflatpak.tmp")
+        errorfile = os.path.join(cachedir, "flatpakerror.tmp")
+        warnfile = os.path.join(cachedir, "flatpakwarn.tmp")
+
+        log("Save flatpak command to, inside flatpak run file")
+        with open(flatpakrunfile, "w") as frf:
+            for line in FINAL:
+                frf.write(line + "\n")
+
+        time.sleep(2)
+        save_conf_setting("FlatpakRunning", "true")
+        log(
+            "While the flatpak run file exists, the command still runs, so wait for the file to be removed"
+        )
+        while os.path.isfile(flatpakrunfile):
+            flatrunn = load_conf_setting("FlatpakRunning")
+            if (flatrunn and flatrunn == "new") or not flatrunn:
+                log("New instance detected, closing old instance")
+                sys.exit(0)
+            time.sleep(1)
+        save_conf_setting("FlatpakRunning", None)
+
+        log("Any errors from the run command, get raised")
+        if os.path.isfile(errorfile):
+            with open(errorfile, "r") as fef:
+                error = fef.read()
+                os.remove(errorfile)
+                if error:
+                    response = 1
+                    raise Exception(str(error))
+
+        log("Any warnings from the command the logged")
+        if os.path.isfile(warnfile):
+            with open(warnfile, "r") as fwf:
+                warn = fwf.read()
+                os.remove(warnfile)
+                if warn:
+                    log(f"Error while loading the wine server waiter:\n\t{warn}")
+
+        log("Finished flatpak mode code")
+    else:
+        log("Running in regular mode")
+        save_conf_setting("FlatpakRunning", None)
+
+        # Execute the final command
+        process = subprocess.Popen(
+            FINAL, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+
+        log("Communicating with the process")
+        stdout, stderr = process.communicate()
+
+        if stdout:
+            log(stdout.decode("utf8"))
+
+        if stderr:
+            log(stderr.decode("utf8"))
+
+        log("Process finished")
+        response = process.returncode
+
+        if len(verb) == 0:
+            log("Running the wine server waiter")
+            try:
+                if os.path.isdir(os.path.join(WINEPREFIX, "drive_c")):
+                    os.environ["WINEPREFIX"] = WINEPREFIX
+                elif os.path.isdir(os.path.join(BASE_STEAM_COMPAT, "drive_c")):
+                    os.environ["WINEPREFIX"] = BASE_STEAM_COMPAT
+                else:
+                    os.environ["WINEPREFIX"] = WINEPREFIX
+
+                wserver = subprocess.run(
+                    ["wineserver", "--wait"],
+                    bufsize=1,
+                    capture_output=True,
+                    text=True,
+                )
+            except Exception as e:
+                log(f"Error while loading the wine server waiter:\n\t{e}")
+            else:
+                print(str(wserver.stdout))
+                print(str(wserver.stderr))
+
+            log("Finished regular mode code")
+
+    log("At this point, the game should have already finished running")
+    if os.path.exists(ttfile):
+        log("Deleting early game tracking file")
+        os.remove(ttfile)
+
+    log("Waiting for early game tracking thread to finish")
+    ttime_thread.join()
+
+    troubleshooter()
+
+    log(f"Exit command with {response}")
+    return "EXIT"
+
+
+# Second main block
+if __name__ == "__main__":
+    # Main execution block
+    RESPONCE = ""
+    logy = "No"
+    try:
+        RESPONCE = run()
+    except Exception as e:
+        RESPONCE = "ERR:\n" + str(e)
+        logy = show_message("Error occurred. Open the log?", "Error occurred", 30, True)
+
+    # Log final response or error
+    log(str(RESPONCE))
+    log("\n\n\n")
+
+    if not logy or logy == "Yes":
+        log(open_log=True)

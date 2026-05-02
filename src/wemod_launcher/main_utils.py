@@ -15,17 +15,16 @@ from typing import (
 )
 
 
-from corenodep import (
+from wemod_launcher.core_nodeps import (
     parse_version,
 )
 
-from coreutils import (
+from wemod_launcher.core_utils import (
     exit_with_message,
     save_conf_setting,
     load_conf_setting,
     cache,
     log,
-    http_get,
 )
 
 if getattr(sys, "frozen", False):
@@ -37,12 +36,13 @@ SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
 
 # Get the GitHub releases from "USERNAME/REPO"
 def get_github_releases(repo_name: str) -> List[Any]:
-    url = f"https://api.github.com/repos/{repo_name}/releases"
     try:
-        response = http_get(url)
+        import requests
     except Exception as e:
         log(f"Failed to fetch releases:\n{e}")
         return []
+    url = f"https://api.github.com/repos/{repo_name}/releases"
+    response = requests.get(url)
     if response.status_code == 200:
         releases = response.json()
         return releases
@@ -75,9 +75,7 @@ def find_closest_compatible_release(
                     # Exact match
                     closest_release = release
                     closest_version = release_version_parts
-                    closest_release_url = release["assets"][0][
-                        "browser_download_url"
-                    ]
+                    closest_release_url = release["assets"][0]["browser_download_url"]
                     break
                 elif (
                     release_version_parts[0] == current_version_parts[0]
@@ -124,8 +122,7 @@ def find_closest_compatible_release(
                             or release_version_parts[0] > closest_version[0]
                             or (
                                 release_version_parts[0] == closest_version[0]
-                                and release_version_parts[1]
-                                > closest_version[1]
+                                and release_version_parts[1] > closest_version[1]
                             )
                         )
                     ):
@@ -144,8 +141,7 @@ def find_closest_compatible_release(
                             or release_version_parts[0] < closest_version[0]
                             or (
                                 release_version_parts[0] == closest_version[0]
-                                and release_version_parts[1]
-                                < closest_version[1]
+                                and release_version_parts[1] < closest_version[1]
                             )
                         )
                     ):
@@ -211,20 +207,22 @@ def popup_execute(
 def download_progress(
     link: str, file_name: str, set_progress: Callable[[int, int], None]
 ) -> None:
+    import requests
+
     with open(file_name, "wb") as f:
-        response = http_get(link, stream=True)
+        response = requests.get(link, stream=True)
         total_length = response.headers.get("content-length")
 
-        dl = 0
-        if total_length is not None:
-            total_length = int(total_length)
+        if total_length is None:  # no content length header
+            f.write(response.content)
         else:
-            total_length = 0
-        for data in response.iter_content(chunk_size=4096):
-            dl += len(data)
-            f.write(data)
-            if set_progress is not None:
-                set_progress(dl, total_length if total_length else dl)
+            dl = 0
+            total_length = int(total_length)
+            for data in response.iter_content(chunk_size=4096):
+                dl += len(data)
+                f.write(data)
+                if set_progress is not None:
+                    set_progress(dl, total_length)
 
 
 # Function to download a file with progress display
@@ -235,7 +233,7 @@ def popup_download(title: str, link: str, file_name: str) -> str:
 
     status = [0, 0]
 
-    cache = os.path.join(SCRIPT_PATH, ".cache")
+    cache = "/tmp/wemod-launcher/.cache"
     if not os.path.isdir(cache):
         os.makedirs(cache)
 
@@ -287,9 +285,7 @@ def popup_download(title: str, link: str, file_name: str) -> str:
 def get_dotnet48() -> str:
     # Newer if you like to test: "https://download.visualstudio.microsoft.com/download/pr/2d6bb6b2-226a-4baa-bdec-798822606ff1/8494001c276a4b96804cde7829c04d7f/ndp48-x86-x64-allos-enu.exe"
     LINK = "https://download.visualstudio.microsoft.com/download/pr/7afca223-55d2-470a-8edc-6a1739ae3252/abd170b4b0ec15ad0222a809b761a036/ndp48-x86-x64-allos-enu."
-    cache_func = lambda FILE: popup_download(
-        "Downloading dotnet48", LINK, FILE
-    )
+    cache_func = lambda FILE: popup_download("Downloading dotnet48", LINK, FILE)
 
     dotnet48 = cache("ndp48-x86-x64-allos-enu.exe", cache_func)
     return dotnet48
@@ -426,9 +422,7 @@ def copy_folder_with_progress(
         files = traverse_folders(source)
         copy = []
         for f in files:
-            rfile = os.path.relpath(
-                f, source
-            )  # get file path relative to source
+            rfile = os.path.relpath(f, source)  # get file path relative to source
             use = True  # by default, use the file
 
             # Check if the file is in one of the dirs to ignore
@@ -506,11 +500,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
 
     # Track errors during extraction
     extraction_errors = []
-    critical_files = [
-        "pfx/.wemod_installer",
-        "pfx/.wand_installer",
-        "version",
-    ]
+    critical_files = ["pfx/.wemod_installer", "version"]
 
     def update_progress(unzipped: int, total: int) -> None:
         """Update the GUI with the current progress."""
@@ -530,9 +520,9 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
             for i, file in enumerate(files):
                 full_file = os.path.join(dest_path, file)
                 try:  # try to create folder if missing
-                    if len(
+                    if len(os.path.dirname(full_file)) > 0 and not os.path.isdir(
                         os.path.dirname(full_file)
-                    ) > 0 and not os.path.isdir(os.path.dirname(full_file)):
+                    ):
                         os.makedirs(os.path.dirname(full_file), exist_ok=True)
                 except Exception as e:
                     error_msg = f"failed to make dir '{os.path.dirname(full_file)}': {e}"
@@ -637,7 +627,7 @@ def flatpakrunner():
     import subprocess
     import time
 
-    cachedir = os.path.join(SCRIPT_PATH, ".cache")
+    cachedir = "/tmp/wemod-launcher/.cache"
     os.makedirs(cachedir, exist_ok=True)
 
     flatpakrunfile = os.path.join(cachedir, "insideflatpak.tmp")
@@ -649,9 +639,7 @@ def flatpakrunner():
     save_conf_setting("FlatpakRunning", "new")
 
     time.sleep(2)
-    if load_conf_setting("FlatpakRunning") != "true" and os.path.isfile(
-        flatpakrunfile
-    ):
+    if load_conf_setting("FlatpakRunning") != "true" and os.path.isfile(flatpakrunfile):
         os.remove(flatpakrunfile)
 
     while not os.path.isfile(flatpakrunfile):
