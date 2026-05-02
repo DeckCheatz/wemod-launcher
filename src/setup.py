@@ -12,6 +12,7 @@ from coreutils import (
     pip,
     exit_with_message,
     http_get,
+    get_mouse_location,
 )
 
 from corenodep import (
@@ -49,7 +50,7 @@ else:
 def welcome() -> bool:
     import FreeSimpleGUI as sg
 
-    wemod_logo = http_get(
+    wand_logo = requests.get(
         "https://www.wemod.com/static/images/device-icons/favicon-192-ce0bc030f3.png",
         stream=False,
     )
@@ -57,15 +58,16 @@ def welcome() -> bool:
     sg.theme("systemdefault")
 
     ret = sg.popup_ok_cancel(
-        "Welcome to WeMod Installer!\nPress OK to start the setup.",
-        title="WeMod Launcher Setup",
-        image=wemod_logo.content,
-        icon=wemod_logo.content,
+        "Welcome to Wand Installer!\nPress OK to start the setup.",
+        title="Wand Launcher Setup",
+        image=wand_logo.content,
+        icon=wand_logo.content,
+        location=get_mouse_location(450, 300),
     )
     return ret == "OK"
 
 
-def download_wemod(temp_dir: str) -> str:
+def download_wand(temp_dir: str) -> str:
     import FreeSimpleGUI as sg
 
     sg.theme("systemdefault")
@@ -76,23 +78,28 @@ def download_wemod(temp_dir: str) -> str:
     text = sg.Text("0%")
     # text = sg.Multiline(str.join("", log), key="-LOG-", autoscroll=True, size=(50,50), disabled=True)
     layout = [[progress], [text]]
-    window = sg.Window("Downloading WeMod", layout, finalize=True)
+    window = sg.Window(
+        "Downloading Wand",
+        layout,
+        finalize=True,
+        location=get_mouse_location(400, 100),
+    )
 
     def update_log(status: list[int], dl: int, total: int) -> None:
         status.clear()
         status.append(dl)
         status.append(total)
 
-    setup_file = os.path.join(temp_dir, "wemod_setup.exe")
+    setup_file = os.path.join(temp_dir, "wand_setup.exe")
 
     def download_func():
         return download_progress(
-            get_wemod_exe_url(),
+            "https://storage-cdn.wemod.com/app/releases/stable/Wand-12.22.0-full.nupkg",
             setup_file,
             lambda dl, total: update_log(status, dl, total),
         )
 
-    # download_func = lambda: download_progress("http://localhost:8000/WeMod-8.3.15.exe", setup_file, lambda dl,total: update_log(status, dl, total))
+    # download_func = lambda: download_progress("http://localhost:8000/Wand-8.3.15.exe", setup_file, lambda dl,total: update_log(status, dl, total))
 
     window.perform_long_operation(download_func, "-DL COMPLETE-")
 
@@ -116,17 +123,19 @@ def download_wemod(temp_dir: str) -> str:
     return setup_file
 
 
-def get_wemod_exe_url():
+def get_wand_exe_url():
+    import requests
+
     SCOOP_METADATA_URL = (
         "https://raw.githubusercontent.com/"
         "Calinou/scoop-games/refs/heads/master/bucket/"
-        "wemod.json"
+        "wand.json"
     )
     raw = http_get(SCOOP_METADATA_URL).json()
 
     if not raw["architecture"]["64bit"]["url"]:
         exit_with_message(
-            "Unable to find WeMod EXE URL from Scoop",
+            "Unable to find Wand EXE URL from Scoop",
             "Please raise on GitHub!",
             timeout=120,
         )
@@ -134,7 +143,7 @@ def get_wemod_exe_url():
     return raw["architecture"]["64bit"]["url"]
 
 
-def unpack_wemod(
+def unpack_wand(
     setup_file: str, temp_dir: str, install_location: str
 ) -> bool:
     try:
@@ -150,7 +159,7 @@ def unpack_wemod(
             )
         )
 
-        tmp_net = tempfile.mkdtemp(prefix="wemod-net")
+        tmp_net = tempfile.mkdtemp(prefix="wand-net")
         archive.extractall(tmp_net, net)
 
         shutil.move(os.path.join(tmp_net, net[0].filename), install_location)
@@ -159,28 +168,77 @@ def unpack_wemod(
 
         return True
     except Exception as e:
-        log(f"Failed to unpack WeMod: {e}")
+        log(f"Failed to unpack Wand: {e}")
         return False
 
 
 def mk_venv() -> Optional[str]:
-    venv_path = load_conf_setting("VirtualEnvironment") or "wemod_venv"
+    from mainutils import is_flatpak
+
+    # Use different venv subdirectories for Flatpak vs host to avoid conflicts
+    base_venv_path = load_conf_setting("VirtualEnvironment")
+    if not base_venv_path:
+        base_venv_path = "wand_venv"
+
+    # Determine which subdirectory to use based on environment
+    if is_flatpak() and not os.getenv("FROM_FLATPAK"):
+        # Inside Flatpak sandbox (before escaping to host)
+        venv_subdir = "flatpak"
+    else:
+        # On host system (or after escaping from Flatpak)
+        venv_subdir = "host"
+
+    # Construct full venv path: wand_venv/flatpak or wand_venv/host
+    if os.path.isabs(base_venv_path):
+        venv_path = os.path.join(base_venv_path, venv_subdir)
+        target_path = venv_path
+    else:
+        venv_path = os.path.join(base_venv_path, venv_subdir)
+        target_path = os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))
+
     try:
-        if os.path.isabs(venv_path):
-            subprocess.run(
-                [sys.executable, "-m", "venv", venv_path], check=True
-            )
+        # Create venv in the correct environment:
+        # - Flatpak venv: Use Flatpak's Python directly
+        # - NixOS host venv: Use nix-shell with --copies to create self-contained venv
+        if is_flatpak() and not os.getenv("FROM_FLATPAK"):
+            # Inside Flatpak - use Flatpak's Python directly
+            cmd = [sys.executable, "-m", "venv", target_path]
+            subprocess.run(cmd, check=True)
+            log(f"Virtual environment created successfully at {target_path}")
         else:
-            subprocess.run(
-                [
-                    sys.executable,
-                    "-m",
-                    "venv",
-                    os.path.abspath(os.path.join(SCRIPT_PATH, venv_path)),
-                ],
-                check=True,
-            )
-        log("Virtual environment created successfully.")
+            # On host - check if NixOS
+            from mainutils import is_nixos
+            if is_nixos():
+                # On NixOS: Use nix-shell ONLY during venv creation
+                # Creates self-contained venv with tkinter and pip copied in
+                # Afterwards, only venv's bin/python is used (no nix-shell wrapping)
+                import shlex
+                nix_packages = "python3.withPackages (p: with p; [tkinter pip])"
+
+                # Single command: create venv, bootstrap pip, then copy tkinter
+                setup_cmd = f"""
+python -m venv --copies {shlex.quote(target_path)} && \\
+{shlex.quote(target_path)}/bin/python -m ensurepip --upgrade && \\
+python -c '
+import shutil, sysconfig, os, glob
+src = sysconfig.get_path("purelib")
+tgt = glob.glob("{target_path}/lib/python*/site-packages")[0]
+for pattern in ["tkinter", "_tkinter*"]:
+    for path in glob.glob(os.path.join(src, pattern)):
+        dst = os.path.join(tgt, os.path.basename(path))
+        if not os.path.exists(dst):
+            (shutil.copytree(path, dst, dirs_exist_ok=True) if os.path.isdir(path) else shutil.copy2(path, dst))
+'
+"""
+
+                cmd = ["nix-shell", "-p", nix_packages, "--run", setup_cmd]
+                subprocess.run(cmd, check=True)
+                log(f"Created self-contained NixOS venv with tkinter at {target_path}")
+            else:
+                # Regular host (not NixOS) - use system Python
+                cmd = [sys.executable, "-m", "venv", target_path]
+                subprocess.run(cmd, check=True)
+                log(f"Virtual environment created successfully at {target_path}")
     except Exception as e:
         log(f"Failed to create virtual environment, with error {e}")
         return None
@@ -201,8 +259,34 @@ def tk_check() -> None:
 
 
 def venv_manager() -> List[Optional[str]]:
+    from mainutils import is_flatpak
+
     requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
     tk_check()
+
+    # Check if venv already exists and use it
+    base_venv_path = load_conf_setting("VirtualEnvironment") or "wand_venv"
+
+    # Determine which subdirectory based on environment
+    if is_flatpak() and not os.getenv("FROM_FLATPAK"):
+        venv_subdir = "flatpak"
+    else:
+        venv_subdir = "host"
+
+    # Check if venv exists
+    if os.path.isabs(base_venv_path):
+        existing_venv_path = os.path.join(base_venv_path, venv_subdir)
+    else:
+        existing_venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, base_venv_path, venv_subdir))
+
+    existing_venv_python = os.path.join(existing_venv_path, "bin", "python")
+
+    # If venv exists, use it
+    if os.path.isfile(existing_venv_python):
+        log(f"Using existing venv: {existing_venv_python}")
+        return [existing_venv_python]
+
+    # Venv doesn't exist, continue with dependency check
     if not check_dependencies(requirements_txt):
         pip_install = f"install -r '{requirements_txt}'"
         return_code = pip(pip_install)
@@ -261,7 +345,7 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
     if not upd:
         upd = load_conf_setting("SelfUpdate")
 
-    infinite = os.getenv("WeModInfProtect", "1")
+    infinite = os.getenv("WandInfProtect", "1")
     if int(infinite) > 3:
         return path
     elif int(infinite) > 2:
@@ -328,12 +412,13 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
 
             # Set executable permissions (replace with specific file names if needed)
             subprocess.run(
-                flatpak_cmd + ["chmod", "-R", "ug+x", "*.py", "wemod.bat"],
+                flatpak_cmd + ["chmod", "-R", "ug+x", "*.py", "wand.bat"],
                 text=True,
             )
 
             # Optionally update the path to include the executable if not already set
             if not path:
+                # For self_update, we just need the base command without args
                 path = [sys.executable]
             log("Update finished")
     except Exception as e:
@@ -345,6 +430,7 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
 
 
 def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
+
     flatpak_start = []
     if is_flatpak() and not os.getenv("FROM_FLATPAK"):
         flatpak_start = [
@@ -371,17 +457,125 @@ def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
         for env in envlist:
             if env in os.environ:
                 flatpak_start.append(f"--env={env}={os.environ[env]}")
-        infpr = os.getenv("WeModInfProtect", "1")
+        infpr = os.getenv("WandInfProtect", "1")
         infpr = str(int(infpr) + 1)
 
         flatpak_start.append("--env=FROM_FLATPAK=true")
-        flatpak_start.append(f"--env=WeModInfProtect={infpr}")
+        flatpak_start.append(f"--env=WandInfProtect={infpr}")
         flatpak_start.append("--")  # Isolate command from command args
 
-    if flatpak_cmd:  # if venv is set use it
-        return flatpak_start + flatpak_cmd
-    elif flatpak_start:  # if not use python executable
-        return flatpak_start + [sys.executable]
+    # When escaping from Flatpak to host, ensure host venv exists
+    if flatpak_cmd and not flatpak_start:
+        # Check if we're already in a virtual environment
+        if sys.prefix != sys.base_prefix:
+            # Already in venv, no need to rerun
+            return []
+        # Not in venv yet, use the provided venv
+        return flatpak_cmd
+    elif flatpak_start:
+        # Escaping from Flatpak to host - ensure host venv exists
+        base_venv_path = load_conf_setting("VirtualEnvironment") or "wand_venv"
+        host_venv_path = os.path.join(base_venv_path, "host")
+
+        if not os.path.isabs(host_venv_path):
+            host_venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, host_venv_path))
+
+        host_venv_python = os.path.join(host_venv_path, "bin", "python")
+
+        # If host venv doesn't exist, create it now before escaping
+        if not os.path.isfile(host_venv_python):
+            log(f"Host venv not found, creating it on host: {host_venv_path}")
+
+            # Check if host is NixOS
+            from mainutils import is_nixos
+            if is_nixos():
+                # On NixOS: Use nix-shell ONLY during venv creation
+                # Creates self-contained venv, then only venv's bin/python is used
+                import shlex
+                nix_packages = "python3.withPackages (p: with p; [tkinter pip])"
+
+                # Single command: create venv, bootstrap pip, then copy tkinter
+                setup_cmd = f"""
+python -m venv --copies {shlex.quote(host_venv_path)} && \\
+{shlex.quote(host_venv_path)}/bin/python -m ensurepip --upgrade && \\
+python -c '
+import shutil, sysconfig, os, glob
+src = sysconfig.get_path("purelib")
+tgt = glob.glob("{host_venv_path}/lib/python*/site-packages")[0]
+for pattern in ["tkinter", "_tkinter*"]:
+    for path in glob.glob(os.path.join(src, pattern)):
+        dst = os.path.join(tgt, os.path.basename(path))
+        if not os.path.exists(dst):
+            (shutil.copytree(path, dst, dirs_exist_ok=True) if os.path.isdir(path) else shutil.copy2(path, dst))
+'
+"""
+
+                create_cmd = flatpak_start + ["nix-shell", "-p", nix_packages, "--run", setup_cmd]
+                try:
+                    subprocess.run(create_cmd, check=True, capture_output=True, text=True)
+                    log(f"Created self-contained NixOS host venv with tkinter at {host_venv_path}")
+                except subprocess.CalledProcessError as e:
+                    log(f"Failed to create host venv: {e.stderr}")
+                    exit_with_message(
+                        "Host venv creation failed",
+                        f"Failed to create host venv at {host_venv_path}",
+                        ask_for_log=True
+                    )
+
+                # Install dependencies into the host venv
+                requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
+                if os.path.exists(requirements_txt):
+                    log(f"Installing dependencies into host venv from {requirements_txt}")
+                    install_cmd = flatpak_start + [
+                        host_venv_python, "-m", "pip", "install", "-r", requirements_txt
+                    ]
+                    try:
+                        subprocess.run(install_cmd, check=True, capture_output=True, text=True)
+                        log(f"Successfully installed dependencies into host venv")
+                    except subprocess.CalledProcessError as e:
+                        log(f"Failed to install dependencies: {e.stderr}")
+                        exit_with_message(
+                            "Dependency installation failed",
+                            f"Failed to install dependencies into host venv",
+                            ask_for_log=True
+                        )
+            else:
+                # Create venv on regular host
+                create_cmd = flatpak_start + [
+                    "python3", "-m", "venv", host_venv_path
+                ]
+                try:
+                    subprocess.run(create_cmd, check=True, capture_output=True, text=True)
+                    log(f"Host venv created successfully at {host_venv_path}")
+                except subprocess.CalledProcessError as e:
+                    log(f"Failed to create host venv: {e.stderr}")
+                    exit_with_message(
+                        "Host venv creation failed",
+                        f"Failed to create host venv at {host_venv_path}",
+                        ask_for_log=True
+                    )
+
+                # Install dependencies into the host venv
+                requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
+                if os.path.exists(requirements_txt):
+                    log(f"Installing dependencies into host venv from {requirements_txt}")
+                    install_cmd = flatpak_start + [
+                        host_venv_python, "-m", "pip", "install", "-r", requirements_txt
+                    ]
+                    try:
+                        subprocess.run(install_cmd, check=True, capture_output=True, text=True)
+                        log(f"Successfully installed dependencies into host venv")
+                    except subprocess.CalledProcessError as e:
+                        log(f"Failed to install dependencies: {e.stderr}")
+                        exit_with_message(
+                            "Dependency installation failed",
+                            f"Failed to install dependencies into host venv",
+                            ask_for_log=True
+                        )
+
+        # Always use host venv Python
+        log(f"Using host venv: {host_venv_python}")
+        return flatpak_start + [host_venv_python]
     else:
         return []
 
@@ -394,7 +588,7 @@ def setup_main() -> None:
         print("Installation cancelled by user")
         return
 
-    install_location = os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin")
+    install_location = os.path.join(SCRIPT_BASE, "wand_data", "wand_bin")
     winetricks = os.path.join(SCRIPT_PATH, "winetricks")
 
     if os.getenv("FORCE_UPDATE_WEMOD", "0") == "1" or not os.path.isfile(
@@ -422,45 +616,46 @@ def setup_main() -> None:
 
     if (
         not os.path.isdir(install_location)
-        or not os.path.isfile(os.path.join(install_location, "WeMod.exe"))
+        or not os.path.isfile(os.path.join(install_location, "Wand.exe"))
         or os.getenv("FORCE_UPDATE_WEMOD", "0") == "1"
     ):
         if os.path.isdir(install_location):
             shutil.rmtree(install_location, ignore_errors=True)
 
-        temp_dir = tempfile.mkdtemp(prefix="wemod-launcher-")
-        setup_file = download_wemod(temp_dir)
-        unpacked = unpack_wemod(setup_file, temp_dir, install_location)
+        temp_dir = tempfile.mkdtemp(prefix="wand-launcher-")
+        setup_file = download_wand(temp_dir)
+        unpacked = unpack_wand(setup_file, temp_dir, install_location)
 
         show_message(
             'Setup completed successfully.\nMake sure the "LAUNCH OPTIONS" of the game say \''
-            + str(os.path.join(SCRIPT_PATH, "wemod"))
+            + str(os.path.join(SCRIPT_PATH, "wand"))
             + " %command%'",
-            title="WeMod Downloaded",
+            title="Wand Downloaded",
             timeout=5,
         )
 
         if not unpacked:
             exit_with_message(
                 "Failed Unpack",
-                "Failed to unpack WeMod, exiting",
+                "Failed to unpack Wand, exiting",
                 1,
                 timeout=10,
                 ask_for_log=True,
             )
 
 
-def run_wemod() -> None:
+def run_wand() -> None:
     if getattr(sys, "frozen", False):
         exit_with_message(
             "Invalid compile",
-            "The script was compiled with 'setup.py' as the start file.\nThis is incorrect the start-file is 'wemod', please recompile",
+            "The script was compiled with 'setup.py' as the start file.\nThis is incorrect the start-file is 'wand', please recompile",
         )
     else:
-        script_file = os.path.join(SCRIPT_PATH, "wemod")
+        script_file = os.path.join(SCRIPT_PATH, "wand")
         command = [sys.executable, script_file] + sys.argv[1:]
 
     # Execute the main script so the venv gets created
+    # (On NixOS, venv creation will use nix-shell with --copies)
     process = subprocess.run(command, capture_output=True, text=True)
 
     # Send output and error to steam console
@@ -471,4 +666,4 @@ def run_wemod() -> None:
 
 
 if __name__ == "__main__":
-    run_wemod()
+    run_wand()
