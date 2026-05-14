@@ -33,6 +33,7 @@ from coreutils import (
 
 # Import main utils
 from mainutils import (
+    copytree_with_progress,
     deref,
     find_closest_compatible_release,
     flatpakrunner,
@@ -80,7 +81,7 @@ if __name__ == "__main__":
         if int(inf_protect) > 4:
             exit_with_message(
                 "Infinite rerun",
-                "Infinite script reruns were detected\nThe script was stopped\nCreate an issue on the wemod_laucher GitHub\nand attach this file",
+                "Infinite script reruns were detected\nThe script was stopped\nCreate an issue on the wand_laucher GitHub\nand attach this file",
             )
         os.environ["WeModInfProtect"] = str(int(inf_protect) + 1)
 
@@ -132,7 +133,7 @@ from constutils import (
 
 
 # Symlink WeMod data to make all WeMod prefixes use the same WeMod data
-def syncwemod(
+def syncwand(
     folder: Optional[str] = None,
 ) -> None:
     # This section handles prefix packaging and is kept as-is, as it's a separate concern
@@ -230,10 +231,10 @@ def syncwemod(
         folder = BASE_STEAM_COMPAT
 
     WeModData = os.path.join(
-        SCRIPT_BASE, "wemod_data", "wemod_login"
+        SCRIPT_BASE, "wand_data", "wand_login"
     )  # Central launcher login data
     WeModOldData = os.path.join(
-        SCRIPT_BASE, "wemod_data"
+        SCRIPT_BASE, "wand_data"
     )  # Central launcher login data in older versions
     old_data_files = [
         "SharedStorage"  # can add more if we know what files are allways created by WeMod
@@ -251,13 +252,13 @@ def syncwemod(
         log(
             f"Old WeMod data files detected in '{WeModOldData}'. Migrating to '{WeModData}'."
         )
-        # Ensure the target WeModData directory (wemod_login) exists before moving
+        # Ensure the target WeModData directory (wand_login) exists before moving
         os.makedirs(WeModData, exist_ok=True)
 
         # Iterate through items in WeModOldData and move them to WeModData, excluding specific folders
         for item_name in os.listdir(WeModOldData):
-            # Exclude the 'wemod_login' (which is WeModData itself) and 'wemod_bin' directories
-            if item_name not in ["wemod_login", "wemod_bin"]:
+            # Exclude the 'wand_login' (which is WeModData itself) and 'wand_bin' directories
+            if item_name not in ["wand_login", "wand_bin"]:
                 source_path = os.path.join(WeModOldData, item_name)
                 destination_path = os.path.join(WeModData, item_name)
                 try:
@@ -280,9 +281,9 @@ def syncwemod(
                             f"Failed to remove old dir/file '{source_path}': {e}"
                         )
 
-        # move wemod_bin as well
-        old_dir = os.path.join(SCRIPT_BASE, "wemod_bin")
-        new_dir = os.path.join(WeModOldData, "wemod_bin")
+        # move wand_bin as well
+        old_dir = os.path.join(SCRIPT_BASE, "wand_bin")
+        new_dir = os.path.join(WeModOldData, "wand_bin")
         try:
             shutil.move(old_dir, new_dir)
             log(f"Moved '{old_dir}' to '{new_dir}'")
@@ -299,8 +300,8 @@ def syncwemod(
 
         # If migration was needed some old files are in the main folder and need to be moved or cleaned up
         old_files_in_base = [
-            "wemod.conf",
-            "wemod_venv",
+            "wand.conf",
+            "wand_venv",
             "winetricks",
             "pip.pyz",
         ]
@@ -335,7 +336,7 @@ def syncwemod(
 
     # Ensure the central WeModData directory exists
     os.makedirs(WeModData, exist_ok=True)
-    wemod_data_has_content = len(os.listdir(WeModData)) > 0
+    wand_data_has_content = len(os.listdir(WeModData)) > 0
 
     action_needed = True
     # Handle the state of WeModExternal (the prefix-specific path)
@@ -370,9 +371,9 @@ def syncwemod(
         log(
             f"Directory '{WeModExternal}' is real and exists. Processing its content for synchronization."
         )
-        wemod_external_has_content = len(os.listdir(WeModExternal)) > 0
+        wand_external_has_content = len(os.listdir(WeModExternal)) > 0
 
-        if wemod_data_has_content and wemod_external_has_content:
+        if wand_data_has_content and wand_external_has_content:
             # Both central and external directories contain data, prompt the user for preference.
             response = show_message(
                 "Warning: WeMod login data found in both the launcher's central directory "
@@ -389,8 +390,8 @@ def syncwemod(
                     f"User chose to use data from '{WeModExternal}'. Overwriting central data in '{WeModData}'."
                 )
                 shutil.rmtree(WeModData)  # Clear central directory
-                shutil.copytree(
-                    WeModExternal, WeModData
+                copytree_with_progress(
+                    WeModExternal, WeModData, title="Copying WeMod Data"
                 )  # Copy external data to central
             else:  # response is "Yes" or None (default to Yes)
                 # User chose or defaulted to using data from the central directory.
@@ -398,13 +399,15 @@ def syncwemod(
                     f"User chose to use data from '{WeModData}'. Keeping central data, discarding external."
                 )
                 # WeModData is already preferred, no action needed on its content.
-        elif not wemod_data_has_content and wemod_external_has_content:
+        elif not wand_data_has_content and wand_external_has_content:
             # Central directory is empty, but external directory has data. Move external data to central.
             log(
                 f"Directory '{WeModData}' is empty, but '{WeModExternal}' has data. Moving data from external to central."
             )
             # WeModData already exists (created earlier), so directly copy into it.
-            shutil.copytree(WeModExternal, WeModData)
+            copytree_with_progress(
+                WeModExternal, WeModData, title="Copying WeMod Data"
+            )
         else:
             # Either WeModExternal has no content, or WeModData already has content and is preferred.
             log(
@@ -446,7 +449,7 @@ def syncwemod(
     log("WeMod data synchronization complete.")
 
     if not os.path.exists(
-        os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin", "WeMod.exe")
+        os.path.join(SCRIPT_BASE, "wand_data", "wand_bin", "WeMod.exe")
     ):
         setup_main()
 
@@ -549,7 +552,7 @@ def init(proton: str, iswine: bool = False) -> None:
         if response == "Yes":
             # Copy the closest version's prefix to the game prefix
             log(f"Copying {closest_prefix_folder} to {BASE_STEAM_COMPAT}")
-            syncwemod(
+            syncwand(
                 closest_prefix_folder
             )  # Sync WeMod data in closest version
 
@@ -560,7 +563,7 @@ def init(proton: str, iswine: bool = False) -> None:
                 [None],
                 [None],
             )
-            syncwemod()  # Sync WeMod data
+            syncwand()  # Sync WeMod data
             log(
                 f"Copied Proton version {cut_version[0]}.{cut_version[1]} prefix to game prefix that was on version {current_version_parts[0]}.{current_version_parts[1]}"
             )
@@ -574,7 +577,7 @@ def init(proton: str, iswine: bool = False) -> None:
     # Check for the initialization file in the wine prefix
     log(f"Looking once more for the init file")
     if os.path.exists(INIT_FILE):
-        syncwemod()  # Sync WeMod data and prefix packaging
+        syncwand()  # Sync WeMod data and prefix packaging
         log("Found init file. Continuing launch...")
         return
 
@@ -597,7 +600,7 @@ def init(proton: str, iswine: bool = False) -> None:
         build_prefix(proton_dir)
     else:
         download_prefix(proton_dir)
-    syncwemod()  # Sync WeMod data
+    syncwand()  # Sync WeMod data
 
 
 # Function to download and unpack a pre-configured wine prefix
@@ -623,7 +626,7 @@ def download_prefix(proton_dir: str) -> None:
         log("RepoUser not set in config using: " + repo_user)
 
     repo_name = load_conf_setting("RepoName")
-    if repo_name and repo_name.lower() == "wemod-launcher".lower():
+    if repo_name and repo_name.lower() == "wand-launcher".lower():
         repo_name = "BuiltPrefixes-dev"
         save_conf_setting("RepoName", repo_name)
         log("Updated RepoName in config to: " + repo_name)
@@ -655,7 +658,7 @@ def download_prefix(proton_dir: str) -> None:
             releases, current_version_parts
         )
         file_name = (
-            f"wemod_prefix{closest_version[0]}.{closest_version[1]}.zip"
+            f"wand_prefix{closest_version[0]}.{closest_version[1]}.zip"
         )
 
     if (
@@ -686,7 +689,7 @@ def download_prefix(proton_dir: str) -> None:
         log(f"No version to download found on repo '{repo_concat}'")
         exit_with_message(
             "No downloads available",
-            f"Error: Nothing to download on repo '{repo_concat}',\nTo fix this, you can try to delete wemod.conf",
+            f"Error: Nothing to download on repo '{repo_concat}',\nTo fix this, you can try to delete wand.conf",
             ask_for_log=True,
         )
     if response == "No":
@@ -736,9 +739,9 @@ def download_prefix(proton_dir: str) -> None:
     if os.path.isfile(prefix_path):
         os.remove(prefix_path)
 
-    syncwemod()
+    syncwand()
     if not os.path.isfile(
-        os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin", "WeMod.exe")
+        os.path.join(SCRIPT_BASE, "wand_data", "wand_bin", "WeMod.exe")
     ):
         setup_main()
 
@@ -767,8 +770,8 @@ def build_prefix(proton_dir: str) -> None:
     # Choose method to install dotnet48
     dotnet48_method = popup_options(
         "dotnet48",
-        "Would you like to install dotnet48 with winetricks (default for GE-Proton8 or above)\nor with wemod-launcher (ONLY USE FOR GE-Proton7)\nWARNING: The WeMod Launcher option isn't working well, you can try using it anyway (ONLY ON GE-Proton7)",
-        [["winetricks", "wemod-launcher"]],
+        "Would you like to install dotnet48 with winetricks (default for GE-Proton8 or above)\nor with wand-launcher (ONLY USE FOR GE-Proton7)\nWARNING: The WeMod Launcher option isn't working well, you can try using it anyway (ONLY ON GE-Proton7)",
+        [["winetricks", "wand-launcher"]],
     )
 
     # Add dependencies to the list
@@ -788,8 +791,8 @@ def build_prefix(proton_dir: str) -> None:
         dep_i = dep_i + 1
         response = winetricks(deps[dep_i], path)
 
-    # Install dotnet48 using wemod-launcher if selected
-    if dotnet48_method and dotnet48_method == "wemod-launcher":
+    # Install dotnet48 using wand-launcher if selected
+    if dotnet48_method and dotnet48_method == "wand-launcher":
         log("Installing dotnet48...")
         dotnet48 = get_dotnet48()
         wine("winecfg -v win7", path)

@@ -10,6 +10,7 @@ from urllib import request
 from typing import (
     Callable,
     Optional,
+    Tuple,
     Union,
     List,
     Any,
@@ -21,6 +22,32 @@ from corenodep import (
     save_conf_setting,
     read_file,
 )
+
+
+def get_mouse_location(
+    window_width: int = 400, window_height: int = 200
+) -> Optional[Tuple[int, int]]:
+    """Get a location to center a window on the mouse position.
+
+    Args:
+        window_width: Estimated window width for centering calculation.
+        window_height: Estimated window height for centering calculation.
+
+    Returns:
+        Tuple of (x, y) coordinates that will center a window of the given
+        dimensions on the current mouse position, or None if unavailable.
+    """
+    try:
+        import tkinter as tk
+
+        root = tk.Tk()
+        root.withdraw()
+        x = root.winfo_pointerx()
+        y = root.winfo_pointery()
+        root.destroy()
+        return (x - window_width // 2, y - window_height // 2)
+    except Exception:
+        return None
 
 if getattr(sys, "frozen", False):
     SCRIPT_IMP_FILE = os.path.realpath(sys.executable)
@@ -36,30 +63,32 @@ _cached_user_agent = None
 
 # Function for logging messages
 def log(message: Optional[str] = None, open_log: bool = False) -> None:
-    oswemodlog = os.getenv("WEMOD_LOG")
-    wemodlog = oswemodlog
-    cowemodlog = load_conf_setting("WeModLog")
-    if not wemodlog:
-        wemodlog = cowemodlog
-    if wemodlog != "":
+    oswandlog = os.getenv("WAND_LOG")
+    wandlog = oswandlog
+    cowandlog = load_conf_setting("WandLog")
+    if not wandlog:
+        wandlog = cowandlog
+    if wandlog != "":
         try:
-            if not wemodlog:
-                raise Exception("WeModLog unset")
-            elif os.path.isabs(wemodlog):
-                os.makedirs(os.path.dirname(wemodlog), exist_ok=True)
+            if not wandlog:
+                raise Exception("WandLog unset")
+            elif os.path.isabs(wandlog):
+                os.makedirs(os.path.dirname(wandlog), exist_ok=True)
             else:
                 os.makedirs(
                     os.path.dirname(
-                        os.path.abspath(os.path.join(SCRIPT_PATH, wemodlog))
+                        os.path.abspath(os.path.join(SCRIPT_PATH, wandlog))
                     ),
                     exist_ok=True,
                 )
         except:
-            wemodlog = "wemod.log"
-            if not oswemodlog:  # Only save if not a environment var
-                save_conf_setting("WeModLog", wemodlog)
+            wandlog = "wand.log"
+            if not oswandlog:  # Only save if not a environment var
+                save_conf_setting("WandLog", wandlog)
 
-            new_message = f"WeModLog path was not given or invalid using path '{wemodlog}'\nIf you don't want to generate a log file, use WEMOD_LOG='' or set the config to WeModLog=''"
+            new_message = f"WandLog path was not given or invalid using path '{
+                wandlog
+            }'\nIf you don't want to generate a log file, use WAND_LOG='' or set the config to WandLog=''"
             if message == None:
                 message = new_message
             else:
@@ -68,13 +97,13 @@ def log(message: Optional[str] = None, open_log: bool = False) -> None:
             message = str(message)
         if message and message[-1] != "\n":
             message += "\n"
-        if not os.path.isabs(wemodlog):
-            wemodlog = os.path.abspath(os.path.join(SCRIPT_PATH, wemodlog))
-        with open(wemodlog, "a") as f:
+        if not os.path.isabs(wandlog):
+            wandlog = os.path.abspath(os.path.join(SCRIPT_PATH, wandlog))
+        with open(wandlog, "a") as f:
             if message != None:
                 f.write(message)
         if open_log:
-            os.system(f"xdg-open '{wemodlog}'")
+            os.system(f"xdg-open '{wandlog}'")
 
 
 class SimpleResponse:
@@ -178,12 +207,14 @@ def show_message(
         close = True
         if timeout == None:
             close = False
+        location = get_mouse_location()
         if yesno:
             response = sg.popup_yes_no(
                 message,
                 title=title,
                 auto_close=close,
                 auto_close_duration=timeout,
+                location=location,
             )
         else:
             response = sg.popup_ok(
@@ -191,6 +222,7 @@ def show_message(
                 title=title,
                 auto_close=close,
                 auto_close_duration=timeout,
+                location=location,
             )
         return response
 
@@ -204,9 +236,7 @@ def exit_with_message(
     ask_for_log: bool = False,
 ) -> None:
     if ask_for_log:
-        exit_message += (
-            "\nDo you want to open the log for more info on the exit error?"
-        )
+        exit_message += "\nDo you want to open the log for more info on the exit error?"
     ret = show_message(
         exit_message,
         title,
@@ -238,13 +268,16 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
         venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))
     pos_pip = None
     if venv_path:
+        # When using venv, use the venv's Python directly
+        # On NixOS, the venv was created with --copies so it's self-contained
         python_executable = os.path.join(
-            venv_path, os.path.basename(sys.executable)
+            venv_path, "bin", os.path.basename(sys.executable)
         )
         pos_pip = os.path.join(venv_path, "bin", "pip")
         if not os.path.isfile(pos_pip):
             pos_pip = None
     else:
+        # When not using venv, use system Python directly
         python_executable = sys.executable
 
     # Try to use pip directly if possible
@@ -285,13 +318,17 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
             return 99
         else:
             show_message(
-                "The pip inside the virtual environment reported an error.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wemod_venv\nand is located inside the wemod-launcher folder"
+                "The pip inside the virtual environment reported an error.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wand_venv\nand is located inside the wand-launcher folder",
+                "Pip Error"
             )
             log(
-                f"A pip error occurred.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wemod_venv\nand is located inside the wemod-launcher folder.\nError message:\n\t{stdout}\n\t{stderr}"
+                f"A pip error occurred.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wand_venv\nand is located inside the wand-launcher folder.\nError message:\n\t{
+                    stdout
+                }\n\t{stderr}"
             )
 
     # Try to use the built-in pip
+    # Use Python directly (venv has everything copied on NixOS)
     process = subprocess.Popen(
         f"'{python_executable}' -m pip {command}",
         shell=True,
@@ -336,6 +373,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
         log("Pip not installed. Using local pip.pyz")
 
     # Execute the pip command using pip.pyz
+    # Use Python directly (venv has everything copied on NixOS)
     process = subprocess.Popen(
         f"{python_executable} {pip_pyz} {command}",
         shell=True,
@@ -356,9 +394,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
     return process.returncode
 
 
-def monitor_file(
-    ttfile: str, tout: int, responsefile: str, bout: Optional[int] = 60
-):
+def monitor_file(ttfile: str, tout: int, responsefile: str, bout: Optional[int] = 60):
     import time
 
     cout = os.getenv("WAIT_ON_GAMECLOSE")
@@ -386,7 +422,7 @@ def monitor_file(
         log("Finished early game close detention")
     else:
         log(
-            "The game ran long enough, wemod is now allowed to close on game exit, therefore early game close detention is finished"
+            "The game ran long enough, wand is now allowed to close on game exit, therefore early game close detention is finished"
         )
 
 
@@ -397,32 +433,32 @@ def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
         if bout != None:
             batresp = show_message(
                 returnmessage
-                + f'\nYou can still use wemod by clicking "Yes",\nthis will keep wemod open in the backround\nIf you want to close WeMod click "No"\nWeMod will automaticly close in {bout} seconds, if nothing is done',
+                + f'\nYou can still use wand by clicking "Yes",\nthis will keep wand open in the backround\nIf you want to close Wand click "No"\nWand will automaticly close in {
+                    bout
+                } seconds, if nothing is done',
                 "BAT Warning",
                 bout,
                 True,
             )
             log(
-                f"The user selected {batresp} after being asked to wait longer for WeMod"
+                f"The user selected {batresp} after being asked to wait longer for Wand"
             )
         if bout == None or batresp == "Yes":
             show_message(
                 returnmessage
-                + '\nClick "OK" ONLY if you are ready to close WeMod\nTo KEEP it open, just minimize THIS message box.',
+                + '\nClick "OK" ONLY if you are ready to close Wand\nTo KEEP it open, just minimize THIS message box.',
                 "BAT Warning",
                 None,
                 False,
             )
-            log("The user accepted to close WeMod")
+            log("The user accepted to close Wand")
         os.remove(responsefile)
         return True
     return None
 
 
 # Function to handle caching of files
-def cache(
-    file_path: str, default: Callable[[str], None], simple: bool = False
-) -> str:
+def cache(file_path: str, default: Callable[[str], None], simple: bool = False) -> str:
     CACHE = os.path.join(SCRIPT_PATH, ".cache")
     if not os.path.isdir(CACHE):
         log("Cache dir not found. Creating...")
@@ -452,9 +488,7 @@ def popup_options(
     import FreeSimpleGUI as sg
 
     # Define the layout based on provided options
-    buttons_layout = [
-        [sg.Button(option) for option in row] for row in options
-    ]
+    buttons_layout = [[sg.Button(option) for option in row] for row in options]
     layout = [[sg.Text(message)]] + buttons_layout
 
     close = True
@@ -467,6 +501,7 @@ def popup_options(
         finalize=True,
         auto_close=close,
         auto_close_duration=timeout,
+        location=get_mouse_location(),
     )
 
     # Event loop to process button clicks
@@ -508,6 +543,7 @@ def get_user_input(
         finalize=True,
         auto_close=close,
         auto_close_duration=timeout,
+        location=get_mouse_location(),
     )
 
     # Event loop to process button clicks and input
@@ -530,7 +566,7 @@ def get_user_input(
 
 
 def script_manager() -> None:
-    script_name = "wemod-launcher"
+    script_name = "wand-launcher"
     script_version = "1.540"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
@@ -542,24 +578,20 @@ def script_manager() -> None:
     if last_version:
         try:
             if float(last_version) < float(script_version):
-                log(
-                    f"Config on version {last_version} updating to {script_version}"
-                )
+                log(f"Config on version {last_version} updating to {script_version}")
             elif float(last_version) > float(script_version):
                 log(
-                    f"Warning: config on version {last_version}; downgrading to {script_version}"
+                    f"Warning: config on version {last_version}; downgrading to {
+                        script_version
+                    }"
                 )
         except Exception as e:
-            log(
-                f"Warning: config error '{e}'; changing version to {script_version}"
-            )
+            log(f"Warning: config error '{e}'; changing version to {script_version}")
     else:
         log("Adding script version to config")
 
     save_conf_setting("ScriptName", script_name)
     save_conf_setting("Version", script_version)
     log(f"The script {script_name} is running on version {script_version}")
-    print(
-        f"The WeMod script {script_name} is running on version {script_version}"
-    )
+    print(f"The Wand script {script_name} is running on version {script_version}")
     return
