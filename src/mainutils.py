@@ -5,6 +5,7 @@ import os
 import sys
 import pwd
 import shutil
+import pathlib
 
 from typing import (
     Callable,
@@ -319,8 +320,6 @@ def deref(path: str) -> None:
             update_progress(int((i + 1) / total_links * 100))
 
     def find_symlinks(path: str) -> List[List[str]]:
-        import pathlib
-
         links = []
         directory = pathlib.Path(path)
         for item in directory.rglob("*"):
@@ -406,8 +405,6 @@ def copy_folder_with_progress(
     log(f"ignoring: {ignore}\nincluding anyway: {include_override}")
 
     def traverse_folders(path: str) -> List[str]:
-        import pathlib
-
         allf = []
         directory = pathlib.Path(path)
         for item in directory.rglob("*"):
@@ -683,13 +680,50 @@ def flatpakrunner():
     if os.path.isfile(flatpakrunfile):
         os.remove(flatpakrunfile)
 
-# Safe symlink creation function
-# Yeeted from: https://zetcode.com/python/os-symlink/
-def create_symlink(src, dst):
-    try:
-        os.symlink(src, dst)
-    except FileExistsError:
-        if os.path.islink(dst):
-            # Optionally update existing symlink
-            os.remove(dst)
-            os.symlink(src, dst)
+
+def create_symlink(src: Union[str, pathlib.Path], dst: Union[str, pathlib.Path], replace: Union[bool, None] = True) -> None:
+    # Needs src, dest;  replace can be True (replace all), None (replace only files and symlinks) or False (don't replace anything)
+    src_path = pathlib.Path(src)
+    dst_path = pathlib.Path(dst)
+
+    # Resolve source relative to destination parent
+    # because relative symlink targets are interpreted there
+    check_src = (dst_path.parent / src_path).resolve() if not src_path.is_absolute() else src_path.resolve()
+
+    if not check_src.exists():
+        raise FileNotFoundError(f"Source does not exist: '{src_path}'")
+
+    # Destination does not exist -> create directly
+    if not dst_path.exists() and not dst_path.is_symlink():
+        os.symlink(src_path, dst_path)
+        return
+
+    # Existing symlink
+    if dst_path.is_symlink():
+        current = (dst_path.parent / os.readlink(dst_path)).resolve()
+
+        if current == check_src:
+            return
+
+        if replace is False:
+            raise OSError(
+                f"Symlink '{dst_path}' points to '{current}', expected '{check_src}'"
+            )
+
+        dst_path.unlink()
+        os.symlink(src_path, dst_path)
+        return
+
+    # Existing non-symlink
+    if replace is False:
+        raise OSError(f"Path '{dst_path}' exists and is not a symlink")
+
+    if dst_path.is_dir():
+        if replace is None:
+            raise OSError(f"Path '{dst_path}' exists and is not a file or symlink")
+        shutil.rmtree(dst_path)
+    else:
+        dst_path.unlink()
+
+    os.symlink(src_path, dst_path)
+
