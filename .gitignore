@@ -7,3 +7,17 @@ wemod.conf
 wemod.log
 winetricks
 pip.pyz
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+
+/dist
+
+/.pdm-build
+/.pdm-python

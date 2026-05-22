@@ -3,8 +3,8 @@
 
 import os
 import sys
-import json
 import subprocess
+
 from urllib import request
 
 from typing import (
@@ -15,7 +15,7 @@ from typing import (
     Any,
 )
 
-from corenodep import (
+from wemod_launcher.core_nodeps import (
     join_lists_with_delimiter,
     load_conf_setting,
     save_conf_setting,
@@ -27,11 +27,6 @@ if getattr(sys, "frozen", False):
 else:
     SCRIPT_IMP_FILE = os.path.realpath(__file__)
 SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
-
-FALLBACK_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
-TOP_UA_URL = "https://raw.githubusercontent.com/microlinkhq/top-user-agents/refs/heads/master/src/index.json"
-
-_cached_user_agent = None
 
 
 # Function for logging messages
@@ -59,9 +54,7 @@ def log(message: Optional[str] = None, open_log: bool = False) -> None:
             if not oswandlog:  # Only save if not a environment var
                 save_conf_setting("WandLog", wandlog)
 
-            new_message = f"WandLog path was not given or invalid using path '{
-                wandlog
-            }'\nIf you don't want to generate a log file, use WAND_LOG='' or set the config to WandLog=''"
+            new_message = f"WandLog path was not given or invalid using path '{wandlog}'\nIf you don't want to generate a log file, use WAND_LOG='' or set the config to WandLog=''"
             if message == None:
                 message = new_message
             else:
@@ -77,86 +70,6 @@ def log(message: Optional[str] = None, open_log: bool = False) -> None:
                 f.write(message)
         if open_log:
             os.system(f"xdg-open '{wandlog}'")
-
-
-class SimpleResponse:
-    def __init__(self, resp, stream=False):
-        self._resp = resp
-        self.status_code = resp.getcode()
-        self.headers = {k.lower(): v for k, v in resp.headers.items()}
-        self._stream = stream
-        if not stream:
-            self.content = resp.read()
-            self._content_pos = 0
-        else:
-            self.content = b""
-
-    @property
-    def text(self):
-        if self._stream:
-            self.content = self._resp.read()
-        return self.content.decode(errors="replace")
-
-    def json(self):
-        return json.loads(self.text)
-
-    def iter_content(self, chunk_size=4096):
-        if self._stream:
-            while True:
-                chunk = self._resp.read(chunk_size)
-                if not chunk:
-                    break
-                yield chunk
-        else:
-            while self._content_pos < len(self.content):
-                chunk = self.content[
-                    self._content_pos : self._content_pos + chunk_size
-                ]
-                self._content_pos += chunk_size
-                yield chunk
-
-
-def _do_req(h, url: str, kwargs):
-    req = request.Request(url, headers=h)
-    resp = request.urlopen(req, timeout=kwargs.get("timeout", 30))
-    return SimpleResponse(resp, stream=kwargs.get("stream", False))
-
-
-def _get_user_agent() -> str:
-    global _cached_user_agent
-    if _cached_user_agent:
-        return _cached_user_agent
-    try:
-        req = request.Request(
-            TOP_UA_URL, headers={"User-Agent": FALLBACK_USER_AGENT}
-        )
-        with request.urlopen(req, timeout=5) as resp:
-            agents = json.loads(resp.read().decode())
-            if agents and isinstance(agents, list):
-                _cached_user_agent = agents[0]
-                return _cached_user_agent
-    except Exception:
-        pass
-    _cached_user_agent = FALLBACK_USER_AGENT
-    return _cached_user_agent
-
-
-def http_get(url: str, **kwargs) -> SimpleResponse:
-    headers = kwargs.pop("headers", {})
-    ua = _cached_user_agent if _cached_user_agent else FALLBACK_USER_AGENT
-    headers.setdefault("User-Agent", ua)
-
-    try:
-        return _do_req(headers, url, kwargs)
-    except Exception:
-        log(
-            f"Failed to retrieve {url!r} with the fallback User‑Agent.\n"
-            "The network may be offline or the UA might be outdated.\n"
-            "Retrying with the latest online‑pulled User‑Agent.\n"
-            "If this keeps appearing in the log while the internet is working, please file a bug report."
-        )
-    headers["User-Agent"] = _get_user_agent()
-    return _do_req(headers, url, kwargs)
 
 
 # Function to display a message
@@ -206,9 +119,7 @@ def exit_with_message(
     ask_for_log: bool = False,
 ) -> None:
     if ask_for_log:
-        exit_message += (
-            "\nDo you want to open the log for more info on the exit error?"
-        )
+        exit_message += "\nDo you want to open the log for more info on the exit error?"
     ret = show_message(
         exit_message,
         title,
@@ -240,9 +151,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
         venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))
     pos_pip = None
     if venv_path:
-        python_executable = os.path.join(
-            venv_path, os.path.basename(sys.executable)
-        )
+        python_executable = os.path.join(venv_path, os.path.basename(sys.executable))
         pos_pip = os.path.join(venv_path, "bin", "pip")
         if not os.path.isfile(pos_pip):
             pos_pip = None
@@ -290,9 +199,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
                 "The pip inside the virtual environment reported an error.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wand_venv\nand is located inside the wand-launcher folder"
             )
             log(
-                f"A pip error occurred.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wand_venv\nand is located inside the wand-launcher folder.\nError message:\n\t{
-                    stdout
-                }\n\t{stderr}"
+                f"A pip error occurred.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wand_venv\nand is located inside the wand-launcher folder.\nError message:\n\t{stdout}\n\t{stderr}"
             )
 
     # Try to use the built-in pip
@@ -322,9 +229,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
     # Check and download pip.pyz if not present
     if not os.path.isfile(pip_pyz):
         log("Pip not found. Downloading...")
-        resp = http_get("https://bootstrap.pypa.io/pip/pip.pyz")
-        with open(pip_pyz, "wb") as f:
-            f.write(resp.content)
+        request.urlretrieve("https://bootstrap.pypa.io/pip/pip.pyz", pip_pyz)
 
         # Exit if pip.pyz still not present after download
         if not os.path.isfile(pip_pyz):
@@ -360,9 +265,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
     return process.returncode
 
 
-def monitor_file(
-    ttfile: str, tout: int, responsefile: str, bout: Optional[int] = 60
-):
+def monitor_file(ttfile: str, tout: int, responsefile: str, bout: Optional[int] = 60):
     import time
 
     cout = os.getenv("WAIT_ON_GAMECLOSE")
@@ -401,9 +304,7 @@ def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
         if bout != None:
             batresp = show_message(
                 returnmessage
-                + f'\nYou can still use wand by clicking "Yes",\nthis will keep wand open in the backround\nIf you want to close Wand click "No"\nWand will automaticly close in {
-                    bout
-                } seconds, if nothing is done',
+                + f'\nYou can still use wand by clicking "Yes",\nthis will keep wand open in the backround\nIf you want to close Wand click "No"\nWand will automaticly close in {bout} seconds, if nothing is done',
                 "BAT Warning",
                 bout,
                 True,
@@ -426,10 +327,8 @@ def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
 
 
 # Function to handle caching of files
-def cache(
-    file_path: str, default: Callable[[str], None], simple: bool = False
-) -> str:
-    CACHE = os.path.join(SCRIPT_PATH, ".cache")
+def cache(file_path: str, default: Callable[[str], None], simple: bool = False) -> str:
+    CACHE = "/tmp/wemod-launcher/.cache"
     if not os.path.isdir(CACHE):
         log("Cache dir not found. Creating...")
         os.mkdir(CACHE)
@@ -458,9 +357,7 @@ def popup_options(
     import FreeSimpleGUI as sg
 
     # Define the layout based on provided options
-    buttons_layout = [
-        [sg.Button(option) for option in row] for row in options
-    ]
+    buttons_layout = [[sg.Button(option) for option in row] for row in options]
     layout = [[sg.Text(message)]] + buttons_layout
 
     close = True
@@ -536,8 +433,8 @@ def get_user_input(
 
 
 def script_manager() -> None:
-    script_name = "wand-launcher"
-    script_version = "1.540"
+    script_name = "wemod-launcher"
+    script_version = "1.537"
     last_name = load_conf_setting("ScriptName")
     last_version = load_conf_setting("Version")
 
@@ -548,19 +445,13 @@ def script_manager() -> None:
     if last_version:
         try:
             if float(last_version) < float(script_version):
-                log(
-                    f"Config on version {last_version} updating to {script_version}"
-                )
+                log(f"Config on version {last_version} updating to {script_version}")
             elif float(last_version) > float(script_version):
                 log(
-                    f"Warning: config on version {last_version}; downgrading to {
-                        script_version
-                    }"
+                    f"Warning: config on version {last_version}; downgrading to {script_version}"
                 )
         except Exception as e:
-            log(
-                f"Warning: config error '{e}'; changing version to {script_version}"
-            )
+            log(f"Warning: config error '{e}'; changing version to {script_version}")
     else:
         log("Adding script version to config")
 

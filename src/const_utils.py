@@ -7,6 +7,8 @@ import pwd
 import shutil
 import subprocess
 
+from urllib import request
+
 # Import consts
 from consts import (
     STEAM_COMPAT_FOLDER,
@@ -16,15 +18,14 @@ from consts import (
     INIT_FILE,
 )
 
-from coreutils import (
+from core_utils import (
     exit_with_message,
     get_user_input,
     popup_options,
     show_message,
-    http_get,
 )
 
-from corenodep import (
+from core_nodeps import (
     load_conf_setting,
     save_conf_setting,
     parse_version,
@@ -37,11 +38,11 @@ from typing import (
     Optional,
 )
 
-from coreutils import (
+from core_utils import (
     log,
 )
 
-from mainutils import (
+from main_utils import (
     popup_execute,
 )
 
@@ -98,7 +99,7 @@ def ensure_wine(verstr: Optional[str] = None) -> str:
 
     if os.path.isdir(ProtonPfx):
         ProtonVersion = os.path.join(BASE_STEAM_COMPAT, "version")
-        if verstr and not ("umu-launcher" in verstr):
+        if verstr:
             with open(ProtonVersion, "w") as pver:
                 pver.write(verstr)
         elif not os.path.isfile(ProtonVersion):
@@ -130,7 +131,7 @@ def ensure_wine(verstr: Optional[str] = None) -> str:
 
 # Scan the steam compat folder for Wand installed prefixes
 def scanfolderforversions(
-    current_version_parts: List[Union[int, None]] = [None, None],
+    current_version_parts: List[Union[int, None]] = [None, None]
 ) -> List[Union[Optional[List[int]], Optional[str]]]:
     # At default, we don't know of any available version
     closest_version_folder = None
@@ -258,7 +259,7 @@ def scanfolderforversions(
                         prefix_path_seven = folder_path
 
     if prefix_path_seven:
-        from mainutils import copy_folder_with_progress
+        from main_utils import copy_folder_with_progress
 
         prefixesfolder = os.path.join(SCAN_FOLDER, "prefix")
         os.makedirs(prefixesfolder, exists_ok=True)
@@ -315,11 +316,10 @@ def winetricks(command: str, proton_bin: str) -> int:
     # Download winetricks if not present
     if not os.path.isfile(winetricks_sh):
         log("winetricks not found. Downloading...")
-        resp = http_get(
-            "https://github.com/Winetricks/winetricks/raw/master/src/winetricks"
+        request.urlretrieve(
+            "https://github.com/Winetricks/winetricks/raw/master/src/winetricks",
+            winetricks_sh,
         )
-        with open(winetricks_sh, "wb") as f:
-            f.write(resp.content)
         log(f"setting exec permissions on '{winetricks_sh}'")
         process = subprocess.Popen(
             f"sh -c 'chmod +x {winetricks_sh}'", shell=True
@@ -393,7 +393,11 @@ def troubleshooter() -> None:
                 init.write("true")
         elif ret == "Delete Wand.exe":
             try:
-                os.remove(os.path.join(SCRIPT_PATH, "wand_bin", "Wand.exe"))
+                os.remove(
+                    os.path.join(
+                        SCRIPT_BASE, "wemod_data", "wemod_bin", "WeMod.exe"
+                    )
+                )
             except Exception as e:
                 pass
         elif ret == "Delete game prefix":

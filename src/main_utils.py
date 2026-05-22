@@ -15,17 +15,16 @@ from typing import (
 )
 
 
-from corenodep import (
+from core_nodeps import (
     parse_version,
 )
 
-from coreutils import (
+from core_utils import (
     exit_with_message,
     save_conf_setting,
     load_conf_setting,
     cache,
     log,
-    http_get,
 )
 
 if getattr(sys, "frozen", False):
@@ -37,12 +36,13 @@ SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
 
 # Get the GitHub releases from "USERNAME/REPO"
 def get_github_releases(repo_name: str) -> List[Any]:
-    url = f"https://api.github.com/repos/{repo_name}/releases"
     try:
-        response = http_get(url)
+        import requests
     except Exception as e:
         log(f"Failed to fetch releases:\n{e}")
         return []
+    url = f"https://api.github.com/repos/{repo_name}/releases"
+    response = requests.get(url)
     if response.status_code == 200:
         releases = response.json()
         return releases
@@ -211,20 +211,22 @@ def popup_execute(
 def download_progress(
     link: str, file_name: str, set_progress: Callable[[int, int], None]
 ) -> None:
+    import requests
+
     with open(file_name, "wb") as f:
-        response = http_get(link, stream=True)
+        response = requests.get(link, stream=True)
         total_length = response.headers.get("content-length")
 
-        dl = 0
-        if total_length is not None:
-            total_length = int(total_length)
+        if total_length is None:  # no content length header
+            f.write(response.content)
         else:
-            total_length = 0
-        for data in response.iter_content(chunk_size=4096):
-            dl += len(data)
-            f.write(data)
-            if set_progress is not None:
-                set_progress(dl, total_length if total_length else dl)
+            dl = 0
+            total_length = int(total_length)
+            for data in response.iter_content(chunk_size=4096):
+                dl += len(data)
+                f.write(data)
+                if set_progress is not None:
+                    set_progress(dl, total_length)
 
 
 # Function to download a file with progress display
@@ -506,11 +508,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
 
     # Track errors during extraction
     extraction_errors = []
-    critical_files = [
-        "pfx/.wemod_installer",
-        "pfx/.wand_installer",
-        "version",
-    ]
+    critical_files = ["pfx/.wemod_installer", "version"]
 
     def update_progress(unzipped: int, total: int) -> None:
         """Update the GUI with the current progress."""
