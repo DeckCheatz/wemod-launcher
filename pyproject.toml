@@ -11,7 +11,7 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project.scripts]
-wand-launcher = "wand_launcher.frontend:main"
+wand-launcher = "wand_launcher.entry_point:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
