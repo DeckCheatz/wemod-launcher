@@ -1,4 +1,6 @@
-.cache/
 *__pycache__*/
-pip.pyz
-winetricks
+*.egg-info/
+*.egg
+build/
+dist/
+.venv/
