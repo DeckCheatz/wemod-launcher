@@ -4,5 +4,4 @@ requires-python = ">=3.12"
 
 [[package]]
 name = "wand-launcher"
-version = "2.0.0"
 source = { editable = "." }

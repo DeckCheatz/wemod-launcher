@@ -3,34 +3,16 @@ name: Run linter on codebase and commits in PRs
 on:
   workflow_dispatch:
   pull_request:
-    branches:
-      - rewrite/v2 # FIXME: To be changed to `main` once we release V2.
     types:
       - opened
       - edited
       - synchronize
-  
+
 jobs:
-  check-codebase:
+  run-prek-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: astral-sh/ruff-action@v3
-  check-codebase-formatting:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: astral-sh/ruff-action@v3
-        with:
-          args: "format --check --diff"
-  check-commit-msg:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: agenthunt/conventional-commit-checker-action@v2.0.1
+      - uses: j178/prek-action@v2
