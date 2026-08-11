@@ -76,7 +76,7 @@ jobs:
           awk -v ver="$current_ver" '/The WeMod Launcher is currently on version / {
             printf("**The WeMod Launcher is currently on version %.3f.**\n", ver);
           }
-          !/The WeMod Launcher is currently on version / { print $0 }' readme.md > readme.tmp && mv readme.tmp readme.md
+          !/The WeMod Launcher is currently on version / { print $0 }' README.md > README.tmp && mv README.tmp README.md
   
       - name: Stage and commit updated files
         if: steps.run_black.outcome == 'success'
