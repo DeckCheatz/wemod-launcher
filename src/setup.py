@@ -164,23 +164,72 @@ def unpack_wemod(
 
 
 def mk_venv() -> Optional[str]:
-    venv_path = load_conf_setting("VirtualEnvironment") or "wemod_venv"
+    from mainutils import is_flatpak
+
+    # Use different venv subdirectories for Flatpak vs host to avoid conflicts
+    base_venv_path = load_conf_setting("VirtualEnvironment")
+    if not base_venv_path:
+        base_venv_path = "wemod_venv"
+
+    # Determine which subdirectory to use based on environment
+    if is_flatpak() and not os.getenv("FROM_FLATPAK"):
+        # Inside Flatpak sandbox (before escaping to host)
+        venv_subdir = "flatpak"
+    else:
+        # On host system (or after escaping from Flatpak)
+        venv_subdir = "host"
+
+    # Construct full venv path: wemod_venv/flatpak or wemod_venv/host
+    if os.path.isabs(base_venv_path):
+        venv_path = os.path.join(base_venv_path, venv_subdir)
+        target_path = venv_path
+    else:
+        venv_path = os.path.join(base_venv_path, venv_subdir)
+        target_path = os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))
+
     try:
-        if os.path.isabs(venv_path):
-            subprocess.run(
-                [sys.executable, "-m", "venv", venv_path], check=True
-            )
+        # Create venv in the correct environment:
+        # - Flatpak venv: Use Flatpak's Python directly
+        # - NixOS host venv: Use nix-shell with --copies to create self-contained venv
+        if is_flatpak() and not os.getenv("FROM_FLATPAK"):
+            # Inside Flatpak - use Flatpak's Python directly
+            cmd = [sys.executable, "-m", "venv", target_path]
+            subprocess.run(cmd, check=True)
+            log(f"Virtual environment created successfully at {target_path}")
         else:
-            subprocess.run(
-                [
-                    sys.executable,
-                    "-m",
-                    "venv",
-                    os.path.abspath(os.path.join(SCRIPT_PATH, venv_path)),
-                ],
-                check=True,
-            )
-        log("Virtual environment created successfully.")
+            # On host - check if NixOS
+            from mainutils import is_nixos
+            if is_nixos():
+                # On NixOS: Use nix-shell ONLY during venv creation
+                # Creates self-contained venv with tkinter and pip copied in
+                # Afterwards, only venv's bin/python is used (no nix-shell wrapping)
+                import shlex
+                nix_packages = "python3.withPackages (p: with p; [tkinter pip])"
+
+                # Single command: create venv, bootstrap pip, then copy tkinter
+                setup_cmd = f"""
+python -m venv --copies {shlex.quote(target_path)} && \\
+{shlex.quote(target_path)}/bin/python -m ensurepip --upgrade && \\
+python -c '
+import shutil, sysconfig, os, glob
+src = sysconfig.get_path("purelib")
+tgt = glob.glob("{target_path}/lib/python*/site-packages")[0]
+for pattern in ["tkinter", "_tkinter*"]:
+    for path in glob.glob(os.path.join(src, pattern)):
+        dst = os.path.join(tgt, os.path.basename(path))
+        if not os.path.exists(dst):
+            (shutil.copytree(path, dst, dirs_exist_ok=True) if os.path.isdir(path) else shutil.copy2(path, dst))
+'
+"""
+
+                cmd = ["nix-shell", "-p", nix_packages, "--run", setup_cmd]
+                subprocess.run(cmd, check=True)
+                log(f"Created self-contained NixOS venv with tkinter at {target_path}")
+            else:
+                # Regular host (not NixOS) - use system Python
+                cmd = [sys.executable, "-m", "venv", target_path]
+                subprocess.run(cmd, check=True)
+                log(f"Virtual environment created successfully at {target_path}")
     except Exception as e:
         log(f"Failed to create virtual environment, with error {e}")
         return None
@@ -201,8 +250,34 @@ def tk_check() -> None:
 
 
 def venv_manager() -> List[Optional[str]]:
+    from mainutils import is_flatpak
+
     requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
     tk_check()
+
+    # Check if venv already exists and use it
+    base_venv_path = load_conf_setting("VirtualEnvironment") or "wemod_venv"
+
+    # Determine which subdirectory based on environment
+    if is_flatpak() and not os.getenv("FROM_FLATPAK"):
+        venv_subdir = "flatpak"
+    else:
+        venv_subdir = "host"
+
+    # Check if venv exists
+    if os.path.isabs(base_venv_path):
+        existing_venv_path = os.path.join(base_venv_path, venv_subdir)
+    else:
+        existing_venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, base_venv_path, venv_subdir))
+
+    existing_venv_python = os.path.join(existing_venv_path, "bin", "python")
+
+    # If venv exists, use it
+    if os.path.isfile(existing_venv_python):
+        log(f"Using existing venv: {existing_venv_python}")
+        return [existing_venv_python]
+
+    # Venv doesn't exist, continue with dependency check
     if not check_dependencies(requirements_txt):
         pip_install = f"install -r '{requirements_txt}'"
         return_code = pip(pip_install)
@@ -334,6 +409,7 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
 
             # Optionally update the path to include the executable if not already set
             if not path:
+                # For self_update, we just need the base command without args
                 path = [sys.executable]
             log("Update finished")
     except Exception as e:
@@ -345,6 +421,7 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
 
 
 def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
+
     flatpak_start = []
     if is_flatpak() and not os.getenv("FROM_FLATPAK"):
         flatpak_start = [
@@ -378,10 +455,118 @@ def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
         flatpak_start.append(f"--env=WeModInfProtect={infpr}")
         flatpak_start.append("--")  # Isolate command from command args
 
-    if flatpak_cmd:  # if venv is set use it
-        return flatpak_start + flatpak_cmd
-    elif flatpak_start:  # if not use python executable
-        return flatpak_start + [sys.executable]
+    # When escaping from Flatpak to host, ensure host venv exists
+    if flatpak_cmd and not flatpak_start:
+        # Check if we're already in a virtual environment
+        if sys.prefix != sys.base_prefix:
+            # Already in venv, no need to rerun
+            return []
+        # Not in venv yet, use the provided venv
+        return flatpak_cmd
+    elif flatpak_start:
+        # Escaping from Flatpak to host - ensure host venv exists
+        base_venv_path = load_conf_setting("VirtualEnvironment") or "wemod_venv"
+        host_venv_path = os.path.join(base_venv_path, "host")
+
+        if not os.path.isabs(host_venv_path):
+            host_venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, host_venv_path))
+
+        host_venv_python = os.path.join(host_venv_path, "bin", "python")
+
+        # If host venv doesn't exist, create it now before escaping
+        if not os.path.isfile(host_venv_python):
+            log(f"Host venv not found, creating it on host: {host_venv_path}")
+
+            # Check if host is NixOS
+            from mainutils import is_nixos
+            if is_nixos():
+                # On NixOS: Use nix-shell ONLY during venv creation
+                # Creates self-contained venv, then only venv's bin/python is used
+                import shlex
+                nix_packages = "python3.withPackages (p: with p; [tkinter pip])"
+
+                # Single command: create venv, bootstrap pip, then copy tkinter
+                setup_cmd = f"""
+python -m venv --copies {shlex.quote(host_venv_path)} && \\
+{shlex.quote(host_venv_path)}/bin/python -m ensurepip --upgrade && \\
+python -c '
+import shutil, sysconfig, os, glob
+src = sysconfig.get_path("purelib")
+tgt = glob.glob("{host_venv_path}/lib/python*/site-packages")[0]
+for pattern in ["tkinter", "_tkinter*"]:
+    for path in glob.glob(os.path.join(src, pattern)):
+        dst = os.path.join(tgt, os.path.basename(path))
+        if not os.path.exists(dst):
+            (shutil.copytree(path, dst, dirs_exist_ok=True) if os.path.isdir(path) else shutil.copy2(path, dst))
+'
+"""
+
+                create_cmd = flatpak_start + ["nix-shell", "-p", nix_packages, "--run", setup_cmd]
+                try:
+                    subprocess.run(create_cmd, check=True, capture_output=True, text=True)
+                    log(f"Created self-contained NixOS host venv with tkinter at {host_venv_path}")
+                except subprocess.CalledProcessError as e:
+                    log(f"Failed to create host venv: {e.stderr}")
+                    exit_with_message(
+                        "Host venv creation failed",
+                        f"Failed to create host venv at {host_venv_path}",
+                        ask_for_log=True
+                    )
+
+                # Install dependencies into the host venv
+                requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
+                if os.path.exists(requirements_txt):
+                    log(f"Installing dependencies into host venv from {requirements_txt}")
+                    install_cmd = flatpak_start + [
+                        host_venv_python, "-m", "pip", "install", "-r", requirements_txt
+                    ]
+                    try:
+                        subprocess.run(install_cmd, check=True, capture_output=True, text=True)
+                        log(f"Successfully installed dependencies into host venv")
+                    except subprocess.CalledProcessError as e:
+                        log(f"Failed to install dependencies: {e.stderr}")
+                        exit_with_message(
+                            "Dependency installation failed",
+                            f"Failed to install dependencies into host venv",
+                            ask_for_log=True
+                        )
+            else:
+                # Create venv on regular host
+                create_cmd = flatpak_start + [
+                    "python3", "-m", "venv", host_venv_path
+                ]
+                try:
+                    subprocess.run(create_cmd, check=True, capture_output=True, text=True)
+                    log(f"Host venv created successfully at {host_venv_path}")
+                except subprocess.CalledProcessError as e:
+                    log(f"Failed to create host venv: {e.stderr}")
+                    exit_with_message(
+                        "Host venv creation failed",
+                        f"Failed to create host venv at {host_venv_path}",
+                        ask_for_log=True
+                    )
+
+                # Install dependencies into the host venv
+                requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
+                if os.path.exists(requirements_txt):
+                    log(f"Installing dependencies into host venv from {requirements_txt}")
+                    install_cmd = flatpak_start + [
+                        host_venv_python, "-m", "pip", "install", "-r", requirements_txt
+                    ]
+                    try:
+                        subprocess.run(install_cmd, check=True, capture_output=True, text=True)
+                        log(f"Successfully installed dependencies into host venv")
+                    except subprocess.CalledProcessError as e:
+                        log(f"Failed to install dependencies: {e.stderr}")
+                        exit_with_message(
+                            "Dependency installation failed",
+                            f"Failed to install dependencies into host venv",
+                            ask_for_log=True
+                        )
+
+        # Always use host venv Python
+        log(f"Using host venv: {host_venv_python}")
+        return flatpak_start + [host_venv_python]
     else:
         return []
 
@@ -461,6 +646,7 @@ def run_wemod() -> None:
         command = [sys.executable, script_file] + sys.argv[1:]
 
     # Execute the main script so the venv gets created
+    # (On NixOS, venv creation will use nix-shell with --copies)
     process = subprocess.run(command, capture_output=True, text=True)
 
     # Send output and error to steam console
