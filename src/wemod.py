@@ -404,7 +404,7 @@ def syncwemod(
                 f"Directory '{WeModData}' is empty, but '{WeModExternal}' has data. Moving data from external to central."
             )
             # WeModData already exists (created earlier), so directly copy into it.
-            shutil.copytree(WeModExternal, WeModData)
+            shutil.copytree(WeModExternal, WeModData, dirs_exist_ok=True)
         else:
             # Either WeModExternal has no content, or WeModData already has content and is preferred.
             log(
