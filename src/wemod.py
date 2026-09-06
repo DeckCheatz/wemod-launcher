@@ -46,6 +46,7 @@ from mainutils import (
 # Import from setup
 from setup import (
     check_flatpak,
+    ensure_dwritecore,
     self_update,
     setup_main,
     venv_manager,
@@ -449,6 +450,10 @@ def syncwemod(
         os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin", "WeMod.exe")
     ):
         setup_main()
+
+    # Installs made before this fix existed still have a WeMod.exe but no
+    # DWriteCore.dll, so check on every launch rather than only at setup.
+    ensure_dwritecore(os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin"))
 
 
 # Initialize the environment
