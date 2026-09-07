@@ -386,6 +386,66 @@ def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
         return []
 
 
+# NuGet package shipping Microsoft's redistributable DWriteCore.dll.
+DWRITECORE_PACKAGE = "microsoft.windowsappsdk.dwrite"
+DWRITECORE_VERSION = "2.1.0"
+DWRITECORE_MEMBER = "runtimes-framework/win-x64/native/DWriteCore.dll"
+
+
+def ensure_dwritecore(install_location: str) -> None:
+    """Place Microsoft's DWriteCore.dll next to WeMod.exe.
+
+    Wine's builtin dwrite.dll raises EXCEPTION_ACCESS_VIOLATION (0xc0000005)
+    when Chromium asks it to map characters for certain pages. That kills
+    WeMod's renderer process, so panels such as the in-app Map stay blank
+    forever while the rest of the client keeps working.
+
+    Chromium loads a DWriteCore.dll placed next to its executable in
+    preference to the system dwrite.dll, so dropping the redistributable in
+    the WeMod directory avoids Wine's broken implementation entirely. No
+    command line flag is needed.
+    """
+    import tempfile
+    import zipfile
+
+    if str(load_conf_setting("DWriteCore")).lower() in ("false", "0", "no"):
+        log("DWriteCore disabled via config, using Wine's dwrite.dll")
+        return
+
+    target = os.path.join(install_location, "DWriteCore.dll")
+    if os.path.isfile(target) and os.getenv("FORCE_UPDATE_WEMOD", "0") != "1":
+        return
+
+    version = load_conf_setting("DWriteCoreVersion") or DWRITECORE_VERSION
+    url = (
+        f"https://api.nuget.org/v3-flatcontainer/{DWRITECORE_PACKAGE}/"
+        f"{version}/{DWRITECORE_PACKAGE}.{version}.nupkg"
+    )
+
+    log(f"DWriteCore.dll not found, downloading version {version}")
+    temp_dir = tempfile.mkdtemp(prefix="wemod-dwritecore-")
+    package = os.path.join(temp_dir, "dwritecore.nupkg")
+    try:
+        download_progress(url, package, None)
+        with zipfile.ZipFile(package) as archive:
+            with archive.open(DWRITECORE_MEMBER) as src:
+                data = src.read()
+        os.makedirs(install_location, exist_ok=True)
+        # Write to a temporary name first so an interrupted download can
+        # never leave a truncated DLL that Chromium would try to load.
+        partial = target + ".part"
+        with open(partial, "wb") as dst:
+            dst.write(data)
+        os.replace(partial, target)
+        log(f"Installed DWriteCore.dll ({len(data)} bytes) to {target}")
+    except Exception as e:
+        # Not fatal: without it WeMod still runs, the Map panel just crashes
+        # its renderer as before.
+        log(f"Could not install DWriteCore.dll: {e}")
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+
 def setup_main() -> None:
     import tempfile
     import FreeSimpleGUI as sg
@@ -431,6 +491,7 @@ def setup_main() -> None:
         temp_dir = tempfile.mkdtemp(prefix="wemod-launcher-")
         setup_file = download_wemod(temp_dir)
         unpacked = unpack_wemod(setup_file, temp_dir, install_location)
+        ensure_dwritecore(install_location)
 
         show_message(
             'Setup completed successfully.\nMake sure the "LAUNCH OPTIONS" of the game say \''
