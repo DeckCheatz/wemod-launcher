@@ -1,6 +1,6 @@
 # WeMod Launcher (Wemod for Linux)
 
-**The WeMod Launcher is currently on version 1.540.**
+**The WeMod Launcher is currently on version 1.541.**
 
 ![Alert](https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=20&quality=lossless) **The 1.x line is in bugfix-only mode.** It is no longer getting new features, only bug fixes.  
 Active development is happening in the rewrite (see the [Rework Project](#rework-project) below).
