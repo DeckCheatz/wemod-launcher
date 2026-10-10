@@ -727,7 +727,7 @@ def create_symlink(
             f"Path '{dst_path}' exists and is not a file or symlink"
         )
         shutil.rmtree(dst_path)
-    else if dst_path().is_dir() and replace:
+    elif dst_path().is_dir() and replace:
         dst_path.unlink()
 
         src_path.symlink_to(dst_path)
