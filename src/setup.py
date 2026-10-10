@@ -120,7 +120,7 @@ def get_wemod_exe_url():
     SCOOP_METADATA_URL = (
         "https://raw.githubusercontent.com/"
         "Calinou/scoop-games/refs/heads/master/bucket/"
-        "wemod.json"
+        "wand.json"
     )
     raw = http_get(SCOOP_METADATA_URL).json()
 
