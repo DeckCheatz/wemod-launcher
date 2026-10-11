@@ -10,13 +10,13 @@ Wand Launcher is a Linux tool that sets up and runs wand (a third-party applicat
 
 - **Working launcher.** Bootstrap, install app, set up prefix, launch monitor, exit. The happy path must work end-to-end before anything else.
 - **SettingsManager as coordination point.** A shared container that other components wire into via `*_ready()` methods. Holds shared state (flow tracking, return code) and provides a single place for components to find each other. No scattered `os.environ` reads or ad-hoc state management.
-- **CLI mode.** Full non-interactive operation via `--cli` / `--no-prompt`. The launcher must be scriptable.
+- **Headless operation.** `--no-prompt` skips every interactive prompt, the launcher just logs and exits. The interface stays pluggable so a CLI mode can be added in a later 2.x release.
 - **Structured logging.** Standard log levels, file output, contextual messages. Debuggability from day one.
 - **XDG-compliant paths.** `~/.config/wand/`, `~/.local/share/wand/`, `~/.cache/wand/` — no dotfiles in `$HOME`.
 
 ### Should Have (Post-MVP)
 
-- **GUI mode.** PyQt6 interface as the default when no CLI flags are set. Same functionality, different presentation.
+- **GUI mode.** PyQt6 interface, the only interactive interface in 2.x. Same functionality, different presentation.
 - **Tiered config.** CLI args > env vars > config file > hardcoded defaults. Game-specific overrides via `games.json`.
 - **Binary updater.** Self-update via GitHub Releases (AppImage swap for production, git pull for source installs).
 - **Structured migrations.** Schema versioning in `metadata.json` with ordered migration scripts for breaking changes.
