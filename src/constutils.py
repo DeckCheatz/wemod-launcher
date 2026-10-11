@@ -147,7 +147,7 @@ def scanfolderforversions(
         version_file = os.path.join(folder_path, "version")
 
         if os.path.isdir(folder_path) and os.path.exists(
-            os.path.join(folder_path, "pfx", ".wand_installer")
+            os.path.join(folder_path, "pfx", ".wemod_installer")
         ):
             folder_version_str = read_file(version_file)
             folder_version_parts = parse_version(folder_version_str)
@@ -265,7 +265,7 @@ def scanfolderforversions(
         )
         if prresp == "Yes":
             sevenpfx = os.path.join(prefix_path_seven, "pfx")
-            seveninit = os.path.join(sevenpfx, ".wand_installer")
+            seveninit = os.path.join(sevenpfx, ".wemod_installer")
 
             initcont = read_file(seveninit)
             with open(seveninit, "w") as init:

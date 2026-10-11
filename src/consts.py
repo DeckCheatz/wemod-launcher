@@ -139,4 +139,4 @@ def get_scan_folder():
 SCAN_FOLDER = get_scan_folder()
 WINETRICKS = os.path.join(SCRIPT_PATH, "winetricks")
 WINEPREFIX = os.path.join(BASE_STEAM_COMPAT, "pfx")
-INIT_FILE = os.path.join(WINEPREFIX, ".wand_installer")
+INIT_FILE = os.path.join(WINEPREFIX, ".wemod_installer")

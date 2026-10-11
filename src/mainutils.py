@@ -523,7 +523,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
     extraction_errors = []
     critical_files = [
         "pfx/.wemod_installer",
-        "pfx/.wand_installer",
+        "pfx/.wemod_installer",
         "version",
     ]
 
