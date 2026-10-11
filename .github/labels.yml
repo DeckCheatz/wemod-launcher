@@ -1,0 +1,166 @@
+# Declarative label scheme, synced by .github/workflows/labeler.yml
+# (EndBug/label-sync). `aliases` renames an existing label in place so
+# issues/PRs keep their label instead of losing it to a delete+recreate.
+#
+# Dimensions, each with its own color family so you can tell them apart
+# at a glance regardless of the text:
+#   - type       kept as GitHub's stock defaults (bug, enhancement, ...)
+#   - version    v1 (legacy launcher) vs v2 (rewrite)        -- grey/blue
+#   - area       which v2 phase, per docs/ARCHITECTURE.md    -- teal
+#   - milestone  which GOALS.md tier the work belongs to     -- purple shades
+#   - status     workflow state, replaces 8 overlapping      -- pastel
+#                ad-hoc labels that meant roughly the same thing
+#   - priority   mirrors the "Priority" Projects field as a  -- red->green
+#                real label so it's filterable without the board
+
+# --- type (unchanged stock defaults, listed so the file is the single
+#           source of truth for the whole label set) ---------------------
+- name: bug
+  color: d73a4a
+  description: Something isn't working
+  aliases: ["report"]
+- name: documentation
+  color: 0075ca
+  description: Improvements or additions to documentation
+  aliases: ["add to wiki"]
+- name: duplicate
+  color: cfd3d7
+  description: This issue or pull request already exists
+- name: enhancement
+  color: a2eeef
+  description: New feature or request
+- name: good first issue
+  color: 7057ff
+  description: Good for newcomers
+- name: help wanted
+  color: "008672"
+  description: Extra attention is needed
+  aliases: ["work for knowledgeable developers"]
+- name: invalid
+  color: e4e669
+  description: This doesn't seem right
+- name: question
+  color: d876e3
+  description: Further information is requested
+- name: wontfix
+  color: ffffff
+  description: This will not be worked on
+
+# --- version --------------------------------------------------------------
+- name: "version:v1-legacy"
+  color: "6e7781"
+  description: Affects the current live launcher (top-level src/*.py)
+
+- name: "version:v2-rewrite"
+  color: 1f6feb
+  description: Affects the in-progress rewrite (src/wand_launcher/**)
+  aliases: ["pickup for v2"]
+
+# --- area (v2 phases, per docs/ARCHITECTURE.md) ----------------------------
+- name: "area:bootstrap"
+  color: 006b75
+  description: SettingsManager/LogManager/InterfaceManager wiring, entrypoint, args
+
+- name: "area:update"
+  color: 006b75
+  description: Self-update phase (AppImage swap, git pull)
+
+- name: "area:migrations"
+  color: 006b75
+  description: Schema/config migrations against metadata.json
+
+- name: "area:app-install"
+  color: 006b75
+  description: App exe download, checksum verify, install
+
+- name: "area:prefix-setup"
+  color: 006b75
+  description: Wine/Proton prefix normalize, scan, build
+
+- name: "area:data-sync"
+  color: 006b75
+  description: Shared app-data symlinking across prefixes
+
+- name: "area:monitor"
+  color: 006b75
+  description: Process monitor integration and its gRPC contract
+
+- name: "area:interface"
+  color: 006b75
+  description: Pluggable GUI/CLI interface layer
+
+- name: "area:troubleshooter"
+  color: 006b75
+  description: Post-run recovery UI
+
+- name: "area:packaging"
+  color: 006b75
+  description: AppImage/PyInstaller build and distribution
+
+- name: "area:ci"
+  color: 006b75
+  description: Workflows, pre-commit, lint
+
+- name: "area:docs"
+  color: 006b75
+  description: README/ARCHITECTURE/GOALS/AGENTS documentation
+
+# --- milestone (tiers from docs/GOALS.md) ----------------------------------
+- name: "milestone:mvp"
+  color: "5319e7"
+  description: Must Have for the v2 MVP per GOALS.md
+
+- name: "milestone:post-mvp"
+  color: 8a63d2
+  description: Should Have, post-MVP per GOALS.md
+
+- name: "milestone:nice-to-have"
+  color: c5b3e6
+  description: Nice to Have per GOALS.md
+
+# --- status (replaces 8 overlapping ad-hoc workflow labels) ---------------
+- name: "status:needs-decision"
+  color: fef2c0
+  description: Open design question blocking progress
+  aliases: ["thinking about it", "under investigation", "investigate after current milestone"]
+
+- name: "status:ready"
+  color: c2e0c6
+  description: Scoped and actionable, no blockers
+
+- name: "status:in-progress"
+  color: bfdadc
+  description: Actively being worked on
+  aliases: ["under development"]
+
+- name: "status:blocked"
+  color: f9c4c4
+  description: Waiting on something external
+  aliases: ["later"]
+
+- name: "status:needs-review"
+  color: d4c5f9
+  description: PR awaiting review or manual testing before merge
+  aliases: ["test me", "needs nak or re-evaluation", "final details"]
+
+- name: "status:approved"
+  color: b4e7ce
+  description: Reviewed and about to merge
+  aliases: ["merging soon"]
+
+# --- priority (mirrors the Projects "Priority" field) ----------------------
+- name: "priority:urgent"
+  color: b60205
+  description: Drop everything else
+
+- name: "priority:high"
+  color: d93f0b
+  description: Action soon
+
+- name: "priority:medium"
+  color: fbca04
+  description: Normal priority
+
+- name: "priority:low"
+  color: 0e8a16
+  description: Nice to action eventually

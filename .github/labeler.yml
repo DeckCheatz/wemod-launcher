@@ -1,0 +1,31 @@
+# Config for actions/labeler, run by .github/workflows/labeler.yml.
+# Only covers what's honestly derivable from a file path today. The
+# `area:*` v2-phase labels (bootstrap, update, prefix-setup, etc.) stay
+# manual until src/wand_launcher/ grows the subpackages docs/ARCHITECTURE.md
+# describes -- right now it's just entrypoint.py, so there's no path to
+# glob against per-phase without guessing.
+
+"version:v1-legacy":
+  - changed-files:
+      - any-glob-to-any-file: "src/*.py"
+
+"version:v2-rewrite":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/wand_launcher/**"
+          - "docs/ARCHITECTURE.md"
+          - "docs/GOALS.md"
+
+"area:docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "README.md"
+          - "CONTRIBUTING.md"
+          - "AGENTS.md"
+
+"area:ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".pre-commit-config.yaml"
