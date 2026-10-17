@@ -73,10 +73,10 @@ jobs:
         if: steps.run_black.outcome == 'success'
         run: |
           current_ver=$(awk '/script_version = "/ {print $3}' src/coreutils.py | tr -d '"')
-          awk -v ver="$current_ver" '/The WeMod Launcher is currently on version / {
-            printf("**The WeMod Launcher is currently on version %.3f.**\n", ver);
+          awk -v ver="$current_ver" '/The Wand Launcher is currently on version / {
+            printf("**The Wand Launcher is currently on version %.3f.**\n", ver);
           }
-          !/The WeMod Launcher is currently on version / { print $0 }' README.md > README.tmp && mv README.tmp README.md
+          !/The Wand Launcher is currently on version / { print $0 }' README.md > README.tmp && mv README.tmp README.md
   
       - name: Stage and commit updated files
         if: steps.run_black.outcome == 'success'
