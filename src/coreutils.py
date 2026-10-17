@@ -285,10 +285,11 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
             return 99
         else:
             show_message(
-                "The pip inside the virtual environment reported an error.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wemod_venv\nand is located inside the wemod-launcher folder"
+                "The pip inside the virtual environment reported an error.\nThis may require the deletion of the virtual environment folder;\nby default the venv lives in 'wemod_venv/host' (or 'wemod_venv/flatpak')\ninside the wand-launcher folder.\nDeleting that subfolder is safe and the launcher will recreate it.",
+                "Pip Error",
             )
             log(
-                f"A pip error occurred.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wemod_venv\nand is located inside the wemod-launcher folder.\nError message:\n\t{stdout}\n\t{stderr}"
+                f"A pip error occurred.\nThis may require the deletion of the virtual environment folder;\nby default the venv lives in 'wemod_venv/host' (or 'wemod_venv/flatpak')\ninside the wemod-launcher folder.\nError message:\n\t{stdout}\n\t{stderr}"
             )
 
     # Try to use the built-in pip
