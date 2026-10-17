@@ -123,7 +123,7 @@ def ensure_wine(verstr: Optional[str] = None) -> str:
     else:
         exit_with_message(
             "Missing Prefix",
-            "Error: wine prefix is missing.\nMake sure you run the game without wemod-launcher once",
+            "Error: wine prefix is missing.\nMake sure you run the game without wand-launcher once",
             ask_for_log=True,
         )
 
@@ -268,7 +268,7 @@ def scanfolderforversions(
         )
         # ask the user to upload the prefix if they have one
         prresp = show_message(
-            f"In your scan folder, the online missing prefix version with GE-Proton 7 (.{protonconfminor}) was found.\nPlease, be so kind and click yes to zip the prefix\nand that upload it to something like https://www.sendgb.com/; \nlastly, paste the link in a WeMod-Launcher issue on GitHub",
+            f"In your scan folder, the online missing prefix version with GE-Proton 7 (.{protonconfminor}) was found.\nPlease, be so kind and click yes to zip the prefix\nand that upload it to something like https://www.sendgb.com/; \nlastly, paste the link in a wand-launcher issue on GitHub",
             "GE-Proton7 found",
             60,
             True,
@@ -365,7 +365,7 @@ def troubleshooter() -> None:
         log("Troubleshooter start loop")
         ret = popup_options(
             "Troubleshooter",
-            "Did WeMod work as expected?\nIf not, troubleshoot common problems with WeMod.\nDeleting the game prefix usually helps.\nDeleting Wemod.exe helps if wemod updates their program.\nTo use the Troubleshooter after it was disabled,\nyou can add TROUBLESHOOT=true in front of the launch command",
+            "Did Wand work as expected?\nIf not, troubleshoot common problems with Wand.\nDeleting the game prefix usually helps.\nDeleting Wand.exe helps if Wand updates their program.\nTo use the Troubleshooter after it was disabled,\nyou can add TROUBLESHOOT=true in front of the launch command",
             [
                 [
                     "Disable troubleshooter globally",
@@ -375,8 +375,8 @@ def troubleshooter() -> None:
                     "Enable troubleshooter globally",
                     "Enable troubleshooter for this game",
                 ],
-                ["Delete game prefix", "Delete WeMod.exe"],
-                ["Close wemod-launcher"],
+                ["Delete game prefix", "Delete Wand.exe"],
+                ["Close wand-launcher"],
             ],
             120,
         )
@@ -391,11 +391,11 @@ def troubleshooter() -> None:
         elif ret == "Enable troubleshooter for this game":
             with open(INIT_FILE, "w") as init:
                 init.write("true")
-        elif ret == "Delete WeMod.exe":
+        elif ret == "Delete Wand.exe":
             try:
                 os.remove(
                     os.path.join(
-                        SCRIPT_BASE, "wemod_data", "wemod_bin", "WeMod.exe"
+                        SCRIPT_BASE, "wemod_data", "wemod_bin", "Wand.exe"
                     )
                 )
             except Exception as e:
@@ -405,6 +405,6 @@ def troubleshooter() -> None:
                 shutil.rmtree(BASE_STEAM_COMPAT)
             except Exception as e:
                 pass
-        elif not ret or ret == "Close wemod-launcher":
+        elif not ret or ret == "Close wand-launcher":
             runtro = False
             log("Closing troubleshooter as requested")
