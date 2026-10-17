@@ -122,12 +122,3 @@ If you see a .net error in Wemod that means your prefix is messed up.
 ![WeModApp](https://cdn.discordapp.com/emojis/761419274945953842.webp?size=20&quality=lossless) **Video Tutorial:** [WeMod-launcher Setup Tutorial by Marvin1099](https://youtu.be/5UlVCZvIl1E)  
 ![WeModApp](https://cdn.discordapp.com/emojis/1113579884749529198.gif?size=20&quality=lossless) **Guide was created by Trippin and updated by Marvin1099.**  
 ![WeModApp](https://cdn.discordapp.com/emojis/1113579884749529198.gif?size=20&quality=lossless) **The WeMod Launcher was created by DaniAsh551, with the current maintainer Marvin1099.**  
-
-
-<a href="https://star-history.com/#DeckCheatz/wemod-launcher&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=DeckCheatz/wemod-launcher&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=DeckCheatz/wemod-launcher&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=DeckCheatz/wemod-launcher&type=Date" />
- </picture>
-</a>
