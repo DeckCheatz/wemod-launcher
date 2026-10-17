@@ -285,7 +285,7 @@ def pip(command: str, venv_path: Optional[str] = None) -> int:
             return 99
         else:
             show_message(
-                "The pip inside the virtual environment reported an error.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wemod_venv\nand is located inside the wemod-launcher folder"
+                "The pip inside the virtual environment reported an error.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wemod_venv\nand is located inside the wand-launcher folder"
             )
             log(
                 f"A pip error occurred.\nThis may require the deletion of the virtual environment folder;\nby default, the folder is named named wemod_venv\nand is located inside the wemod-launcher folder.\nError message:\n\t{stdout}\n\t{stderr}"
@@ -397,7 +397,7 @@ def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
         if bout != None:
             batresp = show_message(
                 returnmessage
-                + f'\nYou can still use wemod by clicking "Yes",\nthis will keep wemod open in the backround\nIf you want to close WeMod click "No"\nWeMod will automaticly close in {bout} seconds, if nothing is done',
+                + f'\nYou can still use Wand by clicking "Yes",\nthis will keep Wand open in the backround\nIf you want to close Wand click "No"\nWand will automaticly close in {bout} seconds, if nothing is done',
                 "BAT Warning",
                 bout,
                 True,
@@ -408,7 +408,7 @@ def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
         if bout == None or batresp == "Yes":
             show_message(
                 returnmessage
-                + '\nClick "OK" ONLY if you are ready to close WeMod\nTo KEEP it open, just minimize THIS message box.',
+                + '\nClick "OK" ONLY if you are ready to close Wand\nTo KEEP it open, just minimize THIS message box.',
                 "BAT Warning",
                 None,
                 False,
@@ -560,6 +560,6 @@ def script_manager() -> None:
     save_conf_setting("Version", script_version)
     log(f"The script {script_name} is running on version {script_version}")
     print(
-        f"The WeMod script {script_name} is running on version {script_version}"
+        f"The Wand script {script_name} is running on version {script_version}"
     )
     return

@@ -82,7 +82,7 @@ if __name__ == "__main__":
         if int(inf_protect) > 4:
             exit_with_message(
                 "Infinite rerun",
-                "Infinite script reruns were detected\nThe script was stopped\nCreate an issue on the wemod_laucher GitHub\nand attach this file",
+                "Infinite script reruns were detected\nThe script was stopped\nCreate an issue on the wand-launcher GitHub\nand attach this file",
             )
         os.environ["WeModInfProtect"] = str(int(inf_protect) + 1)
 
@@ -166,7 +166,7 @@ def syncwemod(
             log(f"Version is not set for {BASE_STEAM_COMPAT}, Error")
             exit_with_message(
                 "Prefix Version unknown",
-                "The prefix version is unknown. Please make sure the prefix works with WeMod before trying to zip it",
+                "The prefix version is unknown. Please make sure the prefix works with Wand before trying to zip it",
                 timeout=20,
             )
         cut_proton_version = parse_version(current_proton_version)
@@ -183,8 +183,8 @@ def syncwemod(
         if not os.path.isfile(INIT_FILE):
             log(f"WeMod is not installed in {BASE_STEAM_COMPAT}, error")
             exit_with_message(
-                "WeMod not installed",
-                "WeMod is not installed in the active prefix, exiting",
+                "Wand not installed",
+                "Wand is not installed in the active prefix, exiting",
                 timeout=20,
             )
 
@@ -328,8 +328,8 @@ def syncwemod(
         log("Old WeMod data migration complete.")
 
     WeModExternal = os.path.join(
-        folder, "pfx/drive_c/users/steamuser/AppData/Roaming/WeMod"
-    )  # WeMod's expected data location within the Wine prefix
+        folder, "pfx/drive_c/users/steamuser/AppData/Roaming/Wand"
+    )  # Wand's expected data location within the Wine prefix
 
     log(
         f"Starting WeMod data sync. Central: '{WeModData}', Prefix: '{WeModExternal}'"
@@ -377,11 +377,11 @@ def syncwemod(
         if wemod_data_has_content and wemod_external_has_content:
             # Both central and external directories contain data, prompt the user for preference.
             response = show_message(
-                "Warning: WeMod login data found in both the launcher's central directory "
+                "Warning: Wand login data found in both the launcher's central directory "
                 "and the game prefix directory.\nWhich account would you like to use?\n\n"
                 "  Yes: Use the account from the Launcher's central directory (recommended).\n"
                 "  No: Use the account from the game prefix directory (this will overwrite the central data).",
-                title="Multiple WeMod accounts found",
+                title="Multiple Wand accounts found",
                 yesno=True,
             )
 
@@ -443,18 +443,18 @@ def syncwemod(
             )
             exit_with_message(
                 "Symlink Force-Creation Failed",
-                f"Failed to force-create the symlink for WeMod data synchronization:\n{e}",
+                f"Failed to force-create the symlink for Wand data synchronization:\n{e}",
                 ask_for_log=True,
             )
 
     log("WeMod data synchronization complete.")
 
     if not os.path.exists(
-        os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin", "WeMod.exe")
+        os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin", "Wand.exe")
     ):
         setup_main()
 
-    # Installs made before this fix existed still have a WeMod.exe but no
+    # Installs made before this fix existed still have a Wand.exe but no
     # DWriteCore.dll, so check on every launch rather than only at setup.
     ensure_dwritecore(os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin"))
 
@@ -522,8 +522,8 @@ def init(proton: str, iswine: bool = False) -> None:
             and closest_version == current_version_parts
         ):
             response = show_message(
-                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have WeMod installed. Would you like to use the perfectly matched Proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is very likely going to work?",
-                title="Very likely compatible WeMod version detected",
+                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have Wand installed. Would you like to use the perfectly matched Proton version {cut_version[0]}.{cut_version[1]} that has Wand installed, which is very likely going to work?",
+                title="Very likely compatible Wand version detected",
                 yesno=True,
             )
             if response == None:
@@ -534,8 +534,8 @@ def init(proton: str, iswine: bool = False) -> None:
             and closest_version[0] == current_version_parts[0]
         ):
             response = show_message(
-                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have WeMod installed. Would you like to use the closest Proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which is likely going to work?",
-                title="Likely compatible WeMod version detected",
+                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have Wand installed. Would you like to use the closest Proton version {cut_version[0]}.{cut_version[1]} that has Wand installed, which is likely going to work?",
+                title="Likely compatible Wand version detected",
                 yesno=True,
             )
             if response == None:
@@ -546,8 +546,8 @@ def init(proton: str, iswine: bool = False) -> None:
             and closest_version[0] != current_version_parts[0]
         ):
             response = show_message(
-                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have WeMod installed. Would you like to attempt to use the closest Proton version {cut_version[0]}.{cut_version[1]} that has WeMod installed, which may result in some issues?",
-                title="Maybe compatible WeMod version detected",
+                f"The Proton version {current_version_parts[0]}.{current_version_parts[1]} doesn't have Wand installed. Would you like to attempt to use the closest Proton version {cut_version[0]}.{cut_version[1]} that has Wand installed, which may result in some issues?",
+                title="Maybe compatible Wand version detected",
                 yesno=True,
             )
         else:
@@ -644,7 +644,7 @@ def download_prefix(proton_dir: str) -> None:
         log(WINEPREFIX)
         exit_with_message(
             "First Launch",
-            "First Launch Detected: Please run the game once without WeMod first. Error.",
+            "First Launch Detected: Please run the game once without Wand first. Error.",
             ask_for_log=True,
         )
 
@@ -775,7 +775,7 @@ def download_prefix(proton_dir: str) -> None:
 
     syncwemod()
     if not os.path.isfile(
-        os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin", "WeMod.exe")
+        os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin", "Wand.exe")
     ):
         setup_main()
 
@@ -804,8 +804,8 @@ def build_prefix(proton_dir: str) -> None:
     # Choose method to install dotnet48
     dotnet48_method = popup_options(
         "dotnet48",
-        "Would you like to install dotnet48 with winetricks (default for GE-Proton8 or above)\nor with wemod-launcher (ONLY USE FOR GE-Proton7)\nWARNING: The WeMod Launcher option isn't working well, you can try using it anyway (ONLY ON GE-Proton7)",
-        [["winetricks", "wemod-launcher"]],
+        "Would you like to install dotnet48 with winetricks (default for GE-Proton8 or above)\nor with wand-launcher (ONLY USE FOR GE-Proton7)\nWARNING: The Wand Launcher option isn't working well, you can try using it anyway (ONLY ON GE-Proton7)",
+        [["winetricks", "wand-launcher"]],
     )
 
     # Add dependencies to the list
@@ -826,7 +826,7 @@ def build_prefix(proton_dir: str) -> None:
         response = winetricks(deps[dep_i], path)
 
     # Install dotnet48 using wemod-launcher if selected
-    if dotnet48_method and dotnet48_method == "wemod-launcher":
+    if dotnet48_method and dotnet48_method == "wand-launcher":
         log("Installing dotnet48...")
         dotnet48 = get_dotnet48()
         wine("winecfg -v win7", path)
@@ -1035,7 +1035,7 @@ def run(skip_init: bool = False) -> str:
             log(f"Error, the game executable '{GAME_EXE}' is missing")
             exit_with_message(
                 "Game Missing",
-                f"The game executable '{GAME_EXE}' is missing.\nMake sure the game runs without WeMod.\nIf not, use 'Verify Files' in Steam or ensure the game is installed correctly.",
+                f"The game executable '{GAME_EXE}' is missing.\nMake sure the game runs without Wand.\nIf not, use 'Verify Files' in Steam or ensure the game is installed correctly.",
                 ask_for_log=True,
             )
 

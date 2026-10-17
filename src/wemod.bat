@@ -1,8 +1,8 @@
 @echo off
-@title Wemod Launcher
+@title Wand Launcher
 
 SET mypath=%~dp0
-SET wemodname=WeMod.exe
+SET wemodname=Wand.exe
 
 IF "%mypath:~-5%" == "\src\" (
     SET wemodpath=%mypath:~0,-5%\wemod_data\wemod_bin\%wemodname%
@@ -13,9 +13,9 @@ IF "%mypath:~-5%" == "\src\" (
 SET temptime=%mypath:~0,-1%\.cache\early.tmp
 SET returnfile=%mypath:~0,-1%\.cache\return.tmp
 
-echo Hello from the WeMod Launcher, the WeMod bat was started successfully.
+echo Hello from the Wand Launcher, the Wand bat was started successfully.
 echo.
-echo WeMod EXE path:
+echo Wand EXE path:
 echo %wemodpath%
 echo.
 echo CWD:
@@ -27,20 +27,20 @@ echo %*
 echo.
 echo.
 
-REM Start WeMod.exe and get its PID
-echo Starting WeMod by using %wemodname%.
+REM Start Wand.exe and get its PID
+echo Starting Wand by using %wemodname%.
 start "" %wemodpath%
 
 set wemodPID=
 
-REM Get the WeMod launcher PID, loop until found, and exit subroutine when found.
+REM Get the Wand launcher PID, loop until found, and exit subroutine when found.
 set wemodPIDCounter=0
 
 :search
-echo Searching for WeMod PID...
+echo Searching for Wand PID...
 REM Check we haven't run this more than 3 times.
 if %wemodPIDCounter% GTR 3 (
-	echo WeMod not found in process list, defaulting to prevent infinite loop... > %returnfile%
+	echo Wand not found in process list, defaulting to prevent infinite loop... > %returnfile%
     type %returnfile%
 	pause
     goto :discovered
@@ -49,14 +49,14 @@ for /F "TOKENS=1,2 delims=," %%a in ('C:/windows/system32/tasklist /FO CSV /NH /
   set wemodPID=%%b
 )
 if defined wemodPID goto :discovered
-echo Continue search for WeMod PID...
+echo Continue search for Wand PID...
 set /A wemodPIDCounter+=1
 @ping localhost -n 6 >NUL
 goto :search
 
 :discovered
 
-echo WeMod found with pid %wemodPID%
+echo Wand found with pid %wemodPID%
 echo.
 
 REM start the game and wait for exit
@@ -70,15 +70,15 @@ if defined wemodPID (
     if exist %temptime% (
         del %temptime%
         echo Game closed too fast, Game detection may have failed. > %returnfile%
-        echo Keep in mind that wemod-launcher usually can`t detect game launchers. >> %returnfile%
+        echo Keep in mind that wand-launcher usually can`t detect game launchers. >> %returnfile%
         echo Only open an issue IF the game did not start, >> %returnfile%
-        echo or IF the game crashed, or IF WeMod exits unexpectedly. >> %returnfile%
+        echo or IF the game crashed, or IF Wand exits unexpectedly. >> %returnfile%
         type %returnfile%
         :WaitUser
         @ping localhost -n 2 >NUL
         if exist %returnfile% GOTO WaitUser
     )
-    echo Closing WeMod..
+    echo Closing Wand..
     C:/windows/system32/taskkill.exe /PID %wemodPID% /F >NUL
     C:/windows/system32/taskkill.exe /PID %wemodPID% /F >NUL
     echo Killed %wemodname% with pid %wemodPID%
