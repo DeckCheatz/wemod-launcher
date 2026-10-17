@@ -232,7 +232,7 @@ def download_progress(
 def popup_download(title: str, link: str, file_name: str) -> str:
     import FreeSimpleGUI as sg
 
-    def format_size(bytes_val: int) -> str:
+    def format_size(bytes_val: float) -> str:
         """Format bytes to human readable string."""
         for unit in ["B", "KB", "MB", "GB"]:
             if bytes_val < 1024:
@@ -262,16 +262,24 @@ def popup_download(title: str, link: str, file_name: str) -> str:
     if os.path.isfile(file_path):
         os.remove(file_path)
 
-    download_func = lambda: download_progress(
-        link, file_path, lambda dl, total: update_status(status, dl, total)
-    )
+    # Track worker errors so a failed download doesn't hang the window
+    errors: List[Exception] = []
 
-    window.perform_long_operation(download_func, "-DL COMPLETE-")
+    def download_worker() -> None:
+        try:
+            download_progress(
+                link,
+                file_path,
+                lambda dl, total: update_status(status, dl, total),
+            )
+        except Exception as e:
+            errors.append(e)
+
+    window.perform_long_operation(download_worker, "-DL COMPLETE-")
 
     while True:
         event, values = window.read(timeout=100)
         if event == "-DL COMPLETE-":
-            os.rename(file_path, file_path_end)
             break
         elif event is None:
             exit_with_message(
@@ -280,14 +288,21 @@ def popup_download(title: str, link: str, file_name: str) -> str:
                 timeout=5,
             )
         else:
-            if len(status) < 2:
-                continue
             dl, total = status
             perc = int(100 * (dl / total)) if total > 0 else 0
             text.update(f"{perc}% ({format_size(dl)} / {format_size(total)})")
             progress.update(perc)
 
     window.close()
+
+    if errors:
+        exit_with_message(
+            "Download Failed",
+            f"Failed to download '{file_name}': {errors[0]}",
+            ask_for_log=True,
+        )
+
+    os.rename(file_path, file_path_end)
     return file_path_end
 
 
@@ -428,49 +443,57 @@ def copy_folder_with_progress(
         status[1] = total
         status[2] = phase
 
+    # Track worker errors so a failed copy doesn't hang the window
+    errors: List[Exception] = []
+
     def copy_files() -> None:
-        files = traverse_folders(source)
-        copy = []
-        for f in files:
-            rfile = os.path.relpath(
-                f, source
-            )  # get file path relative to source
-            use = True  # by default, use the file
+        try:
+            files = traverse_folders(source)
+            copy = []
+            for f in files:
+                rfile = os.path.relpath(
+                    f, source
+                )  # get file path relative to source
+                use = True  # by default, use the file
 
-            # Check if the file is in one of the dirs to ignore
-            for i in ignore:
-                if os.path.commonprefix([rfile, i]) == i:
-                    use = False  # don't use the file if it's in an ignore directory
-                    break  # break out of the ignore loop
-
-            # If the file is not in any ignored directory, check if it's in one of the dirs to include
-            if not use:
-                for i in include_override:
+                # Check if the file is in one of the dirs to ignore
+                for i in ignore:
                     if os.path.commonprefix([rfile, i]) == i:
-                        use = True  # use the file if it's in an include_override directory
-                        break  # break out of the include_override loop
-            if use:
-                copy.append(rfile)
+                        use = False  # don't use the file if it's in an ignore directory
+                        break  # break out of the ignore loop
 
-        total_files = len(copy)
-        update_status(0, total_files, 1)
+                # If the file is not in any ignored directory, check if it's in one of the dirs to include
+                if not use:
+                    for i in include_override:
+                        if os.path.commonprefix([rfile, i]) == i:
+                            use = True  # use the file if it's in an include_override directory
+                            break  # break out of the include_override loop
+                if use:
+                    copy.append(rfile)
 
-        if zipup:
-            with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as zipf:
+            total_files = len(copy)
+            update_status(0, total_files, 1)
+
+            if zipup:
+                with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as zipf:
+                    for i, f in enumerate(copy):
+                        arcname = f
+                        zipf.write(os.path.join(source, f), arcname)
+                        update_status(i + 1, total_files, 1)
+            else:
                 for i, f in enumerate(copy):
-                    arcname = f
-                    zipf.write(os.path.join(source, f), arcname)
-                    update_status(i + 1, total_files, 1)
-        else:
-            for i, f in enumerate(copy):
-                src_path = os.path.join(source, f)
-                dest_path = os.path.join(dest, f)
-                try:
-                    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-                    shutil.copy2(src_path, dest_path, follow_symlinks=False)
-                    update_status(i + 1, total_files, 1)
-                except Exception as e:
-                    log(f"Failed to copy {src_path} to {dest_path}: {e}")
+                    src_path = os.path.join(source, f)
+                    dest_path = os.path.join(dest, f)
+                    try:
+                        os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                        shutil.copy2(
+                            src_path, dest_path, follow_symlinks=False
+                        )
+                        update_status(i + 1, total_files, 1)
+                    except Exception as e:
+                        log(f"Failed to copy {src_path} to {dest_path}: {e}")
+        except Exception as e:
+            errors.append(e)
 
     sg.theme("systemdefault")
 
@@ -487,6 +510,7 @@ def copy_folder_with_progress(
     window.refresh()
     window.perform_long_operation(copy_files, "-COPY DONE-")
 
+    last_phase = 0
     while True:
         event, values = window.read(timeout=100)
         if event == "-COPY DONE-":
@@ -500,15 +524,25 @@ def copy_folder_with_progress(
         else:
             current, total, phase = status
             if phase == 1 and total > 0:
+                # Only update the status text on the 0 -> 1 phase change
+                if phase != last_phase:
+                    if zipup:
+                        extra.update("Zipping files, please be patient...")
+                    else:
+                        extra.update("Copying files, please be patient...")
+                    last_phase = phase
                 perc = int(100 * current / total)
-                if zipup:
-                    extra.update("Zipping files, please be patient...")
-                else:
-                    extra.update("Copying files, please be patient...")
                 text.update(f"{perc}% ({current}/{total} files)")
                 progress.update(perc)
 
     window.close()
+
+    if errors:
+        exit_with_message(
+            "Copy Failed",
+            f"Failed to copy '{source}' to '{dest}': {errors[0]}",
+            ask_for_log=True,
+        )
 
 
 def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
@@ -518,6 +552,8 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
 
     # Track errors during extraction
     extraction_errors = []
+    # Fatal worker error (e.g. the zip couldn't be opened at all)
+    fatal_error = []
     critical_files = ["pfx/.wemod_installer", "version"]
 
     # Thread-safe status: [current, total, phase]
@@ -530,44 +566,54 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
         status[2] = phase
 
     def unpack_files() -> None:
-        with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            files = zip_ref.namelist()
-            total_files = len(files)
-            update_status(0, total_files, 1)
+        try:
+            with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                files = zip_ref.namelist()
+                total_files = len(files)
+                update_status(0, total_files, 1)
 
-            for i, file in enumerate(files):
-                full_file = os.path.join(dest_path, file)
-                try:  # try to create folder if missing
-                    if len(
-                        os.path.dirname(full_file)
-                    ) > 0 and not os.path.isdir(os.path.dirname(full_file)):
-                        os.makedirs(os.path.dirname(full_file), exist_ok=True)
-                except Exception as e:
-                    error_msg = f"failed to make dir '{os.path.dirname(full_file)}': {e}"
-                    log(error_msg)
-                    extraction_errors.append(error_msg)
-                try:  # try to delete old file
-                    if os.path.isfile(full_file) or os.path.islink(full_file):
-                        os.remove(full_file)
-                except Exception as e:
-                    error_msg = f"failed to remove file '{full_file}': {e}"
-                    log(error_msg)
-                    extraction_errors.append(error_msg)
-                try:
-                    zip_ref.extract(file, dest_path)
-                except Exception as e:
-                    error_msg = (
-                        f"Failed to extract '{file}' to '{dest_path}': {e}"
-                    )
-                    log(error_msg)
-                    extraction_errors.append(error_msg)
-                    # If this is a critical file, track it separately
-                    if file in critical_files:
-                        log(
-                            f"CRITICAL: Failed to extract required file '{file}'"
+                for i, file in enumerate(files):
+                    full_file = os.path.join(dest_path, file)
+                    try:  # try to create folder if missing
+                        if len(
+                            os.path.dirname(full_file)
+                        ) > 0 and not os.path.isdir(
+                            os.path.dirname(full_file)
+                        ):
+                            os.makedirs(
+                                os.path.dirname(full_file), exist_ok=True
+                            )
+                    except Exception as e:
+                        error_msg = f"failed to make dir '{os.path.dirname(full_file)}': {e}"
+                        log(error_msg)
+                        extraction_errors.append(error_msg)
+                    try:  # try to delete old file
+                        if os.path.isfile(full_file) or os.path.islink(
+                            full_file
+                        ):
+                            os.remove(full_file)
+                    except Exception as e:
+                        error_msg = (
+                            f"failed to remove file '{full_file}': {e}"
                         )
+                        log(error_msg)
+                        extraction_errors.append(error_msg)
+                    try:
+                        zip_ref.extract(file, dest_path)
+                    except Exception as e:
+                        error_msg = f"Failed to extract '{file}' to '{dest_path}': {e}"
+                        log(error_msg)
+                        extraction_errors.append(error_msg)
+                        # If this is a critical file, track it separately
+                        if file in critical_files:
+                            log(
+                                f"CRITICAL: Failed to extract required file '{file}'"
+                            )
 
-                update_status(i + 1, total_files, 1)
+                    update_status(i + 1, total_files, 1)
+        except Exception as e:
+            log(f"failed to unpack '{zip_path}': {e}")
+            fatal_error.append(str(e))
 
     sg.theme("systemdefault")
 
@@ -580,6 +626,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
 
     window.perform_long_operation(unpack_files, "-UNPACK DONE-")
 
+    last_phase = 0
     while True:
         event, values = window.read(timeout=100)
         if event == "-UNPACK DONE-":
@@ -593,12 +640,23 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
         else:
             current, total, phase = status
             if phase == 1 and total > 0:
+                # Only update the status text on the 0 -> 1 phase change
+                if phase != last_phase:
+                    extra.update("Extracting files, please be patient...")
+                    last_phase = phase
                 perc = int(100 * current / total)
-                extra.update("Extracting files, please be patient...")
                 text.update(f"{perc}% ({current}/{total} files)")
                 progress.update(perc)
 
     window.close()
+
+    # Surface a fatal worker error (e.g. the zip couldn't be opened)
+    if fatal_error:
+        exit_with_message(
+            "Unpack Failed",
+            f"Failed to unpack '{zip_path}': {fatal_error[0]}",
+            ask_for_log=True,
+        )
 
     # Fix permissions after unpacking
     myuser = None
@@ -647,9 +705,8 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
 def copytree_with_progress(
     source: str, dest: str, title: str = "Copying Files"
 ) -> None:
-    """Copy a directory tree with a GUI progress bar."""
+    """Copy a directory tree with a GUI progress bar (copytree semantics)."""
     import FreeSimpleGUI as sg
-    import pathlib
 
     # Thread-safe status: [current, total, phase]
     # phase: 0 = scanning, 1 = copying
@@ -660,34 +717,46 @@ def copytree_with_progress(
         status[1] = total
         status[2] = phase
 
+    # Track worker errors so a failed copy doesn't hang the window
+    errors: List[Exception] = []
+
     def copy_tree() -> None:
-        # First, count all files
-        files_to_copy = []
-        source_path = pathlib.Path(source)
-        for item in source_path.rglob("*"):
-            if item.is_file():
-                files_to_copy.append(item)
+        try:
+            # First, count all files
+            files_to_copy = []
+            source_path = pathlib.Path(source)
+            for item in source_path.rglob("*"):
+                if item.is_file():
+                    files_to_copy.append(item)
 
-        total_files = len(files_to_copy)
-        update_status(0, total_files, 1)
+            total_files = len(files_to_copy)
+            update_status(0, total_files, 1)
 
-        # Create destination directory if it doesn't exist
-        os.makedirs(dest, exist_ok=True)
+            # Create destination directory if it doesn't exist
+            os.makedirs(dest, exist_ok=True)
 
-        # Copy each file
-        for i, src_file in enumerate(files_to_copy):
-            rel_path = src_file.relative_to(source_path)
-            dest_file = os.path.join(dest, rel_path)
+            # Copy each file, following symlinks like shutil.copytree does
+            for i, src_file in enumerate(files_to_copy):
+                rel_path = src_file.relative_to(source_path)
+                dest_file = os.path.join(dest, rel_path)
 
-            # Create parent directories if needed
-            os.makedirs(os.path.dirname(dest_file), exist_ok=True)
+                # Create parent directories if needed
+                os.makedirs(os.path.dirname(dest_file), exist_ok=True)
 
-            try:
-                shutil.copy2(src_file, dest_file, follow_symlinks=False)
-            except Exception as e:
-                log(f"Failed to copy {src_file} to {dest_file}: {e}")
+                try:
+                    shutil.copy2(src_file, dest_file, follow_symlinks=True)
+                except Exception as e:
+                    log(f"Failed to copy {src_file} to {dest_file}: {e}")
 
-            update_status(i + 1, total_files, 1)
+                update_status(i + 1, total_files, 1)
+
+            # Reproduce empty directories, like shutil.copytree does
+            for dir_path in sorted(source_path.rglob("*")):
+                if dir_path.is_dir() and not dir_path.is_symlink():
+                    rel_dir = dir_path.relative_to(source_path)
+                    os.makedirs(os.path.join(dest, rel_dir), exist_ok=True)
+        except Exception as e:
+            errors.append(e)
 
     sg.theme("systemdefault")
 
@@ -700,6 +769,7 @@ def copytree_with_progress(
 
     window.perform_long_operation(copy_tree, "-COPY DONE-")
 
+    last_phase = 0
     while True:
         event, values = window.read(timeout=100)
         if event == "-COPY DONE-":
@@ -713,12 +783,22 @@ def copytree_with_progress(
         else:
             current, total, phase = status
             if phase == 1 and total > 0:
+                # Only update the status text on the 0 -> 1 phase change
+                if phase != last_phase:
+                    extra.update("Copying files...")
+                    last_phase = phase
                 perc = int(100 * current / total)
-                extra.update("Copying files...")
                 text.update(f"{perc}% ({current}/{total} files)")
                 progress.update(perc)
 
     window.close()
+
+    if errors:
+        exit_with_message(
+            "Copy Failed",
+            f"Failed to copy '{source}' to '{dest}': {errors[0]}",
+            ask_for_log=True,
+        )
 
 
 def is_flatpak() -> bool:
