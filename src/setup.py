@@ -163,29 +163,172 @@ def unpack_wemod(
         return False
 
 
-def mk_venv() -> Optional[str]:
-    from mainutils import is_flatpak
+def _venv_layout(forced_subdir: Optional[str] = None) -> tuple:
+    """Return (base_venv_path, venv_subdir, absolute_venv_dir).
 
-    # Use different venv subdirectories for Flatpak vs host to avoid conflicts
-    base_venv_path = load_conf_setting("VirtualEnvironment")
-    if not base_venv_path:
-        base_venv_path = "wemod_venv"
+    Centralises the Flatpak/host subdirectory choice so mk_venv(),
+    venv_manager() and check_flatpak() cannot drift apart, and sanitises the
+    saved config: builds before the base-path fix stored the already
+    subdirectory'd path (e.g. wemod_venv/host), which would otherwise nest
+    forever (wemod_venv/host/host/...).
+    """
+    raw = load_conf_setting("VirtualEnvironment")
+    base = raw or "wemod_venv"
 
-    # Determine which subdirectory to use based on environment
-    if is_flatpak() and not os.getenv("FROM_FLATPAK"):
+    # Strip trailing /host or /flatpak components written by older builds.
+    # Repeat, because a buggy build could append one per run (reported as
+    # wemod_venv/host/host/host/... on CachyOS).
+    stripped = True
+    while stripped:
+        stripped = False
+        for sub in ("host", "flatpak"):
+            suffix = os.sep + sub
+            if base.endswith(suffix):
+                base = base[: -len(suffix)]
+                stripped = True
+                break
+    base = base or "wemod_venv"
+
+    if base != (raw or "wemod_venv"):
+        log(f"Sanitised venv base path to '{base}'")
+        save_conf_setting("VirtualEnvironment", base)
+
+    if forced_subdir:
+        subdir = forced_subdir
+    elif is_flatpak() and not os.getenv("FROM_FLATPAK"):
         # Inside Flatpak sandbox (before escaping to host)
-        venv_subdir = "flatpak"
+        subdir = "flatpak"
     else:
         # On host system (or after escaping from Flatpak)
-        venv_subdir = "host"
+        subdir = "host"
 
-    # Construct full venv path: wemod_venv/flatpak or wemod_venv/host
-    if os.path.isabs(base_venv_path):
-        venv_path = os.path.join(base_venv_path, venv_subdir)
-        target_path = venv_path
+    venv_dir = os.path.join(base, subdir)
+    if not os.path.isabs(venv_dir):
+        venv_dir = os.path.abspath(os.path.join(SCRIPT_PATH, venv_dir))
+
+    return (base, subdir, venv_dir)
+
+
+def _migrate_legacy_venv(base: str, subdir: str) -> None:
+    """Move a pre-subdir venv into the new host/flatpak subdirectory.
+
+    Releases before the Flatpak/host split kept a single venv directly in the
+    base folder. Left alone it becomes orphaned dead weight (~30 MB), and the
+    pip-error advice to delete the venv folder would target the parent of the
+    live venv. Renaming it into place keeps the user's working environment and
+    avoids a reinstall.
+
+    A venv's bin/ wrappers (bin/pip, bin/activate, ...) embed the old absolute
+    path in their shebang, so after the rename we rewrite those references to
+    the new location; without this, invoking bin/pip directly fails with
+    "bad interpreter".
+    """
+    if os.path.isabs(base):
+        base_dir = base
     else:
-        venv_path = os.path.join(base_venv_path, venv_subdir)
-        target_path = os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))
+        base_dir = os.path.abspath(os.path.join(SCRIPT_PATH, base))
+    venv_dir = os.path.join(base_dir, subdir)
+
+    # Only migrate a genuine old-layout venv that has not been split yet.
+    if not os.path.isfile(os.path.join(base_dir, "pyvenv.cfg")):
+        return
+    if os.path.exists(venv_dir):
+        return
+
+    old_paths = {os.path.realpath(base_dir), base_dir}
+    tmp_dir = base_dir + ".migrate-tmp"
+    try:
+        if os.path.exists(tmp_dir):
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+        os.rename(base_dir, tmp_dir)
+        os.makedirs(base_dir, exist_ok=True)
+        os.rename(tmp_dir, venv_dir)
+    except OSError as e:
+        log(f"Could not migrate existing venv into '{venv_dir}': {e}")
+        # Roll back so we never leave a half-moved tree behind.
+        if os.path.exists(tmp_dir) and not os.path.exists(base_dir):
+            os.rename(tmp_dir, base_dir)
+        return
+
+    _rewrite_venv_shebangs(venv_dir, old_paths)
+    log(f"Migrated existing venv to '{venv_dir}'")
+
+
+def _rewrite_venv_shebangs(venv_dir: str, old_paths: set) -> None:
+    """Point venv bin/ wrappers at the venv's new location after a rename."""
+    bin_dir = os.path.join(venv_dir, "bin")
+    new_paths = {os.path.realpath(venv_dir), venv_dir}
+
+    for name in os.listdir(bin_dir):
+        wrapper = os.path.join(bin_dir, name)
+        # Skip symlinks (bin/python) and anything unreadable as text.
+        if os.path.islink(wrapper) or not os.path.isfile(wrapper):
+            continue
+        try:
+            with open(wrapper, "r") as f:
+                content = f.read()
+        except UnicodeDecodeError, OSError:
+            continue
+        if not content.startswith("#!"):
+            continue
+        updated = content
+        for old in old_paths:
+            if old in updated:
+                for new in new_paths:
+                    updated = updated.replace(old, new)
+                    break
+        if updated != content:
+            try:
+                with open(wrapper, "w") as f:
+                    f.write(updated)
+            except OSError as e:
+                log(f"Could not update shebang in '{wrapper}': {e}")
+
+
+def _requirements_hash(requirements_txt: str) -> str:
+    import hashlib
+
+    try:
+        with open(requirements_txt, "rb") as f:
+            return hashlib.sha256(f.read()).hexdigest()
+    except OSError:
+        return ""
+
+
+def _venv_deps_current(venv_dir: str, requirements_txt: str) -> bool:
+    """True if the venv was last filled from the current requirements.txt.
+
+    Existing venvs have no stamp file, so this returns False for them and
+    triggers a one-time idempotent reinstall that then stamps the venv. That
+    self-heals venvs missing a dependency added by a later release instead of
+    letting them crash with ImportError.
+    """
+    stamp = os.path.join(venv_dir, ".wemod_requirements.sha256")
+    try:
+        with open(stamp) as f:
+            recorded = f.read().strip()
+    except OSError:
+        return False
+    current = _requirements_hash(requirements_txt)
+    return bool(recorded) and recorded == current
+
+
+def _stamp_venv_deps(venv_dir: str, requirements_txt: str) -> None:
+    stamp = os.path.join(venv_dir, ".wemod_requirements.sha256")
+    try:
+        with open(stamp, "w") as f:
+            f.write(_requirements_hash(requirements_txt))
+    except OSError as e:
+        log(f"Could not write venv stamp '{stamp}': {e}")
+
+
+def mk_venv() -> Optional[str]:
+    # Use different venv subdirectories for Flatpak vs host to avoid conflicts
+    base_venv_path, venv_subdir, target_path = _venv_layout()
+    venv_path = os.path.join(base_venv_path, venv_subdir)
+
+    # Adopt a pre-subdir venv rather than leaving it orphaned beside the new one.
+    _migrate_legacy_venv(base_venv_path, venv_subdir)
 
     try:
         # Create venv using system Python in the appropriate subdirectory
@@ -202,7 +345,11 @@ def mk_venv() -> Optional[str]:
 
 def tk_check() -> None:
     try:
-        if not bool(check_flatpak(None)):
+        # Only skip the tkinter check when we will actually run outside the
+        # sandbox (where a different Python provides tkinter). This mirrors
+        # check_flatpak()'s escape condition without invoking it, so the
+        # predicate query never triggers venv creation side effects.
+        if not (is_flatpak() and not os.getenv("FROM_FLATPAK")):
             import tkinter
     except ImportError:
         exit_with_message(
@@ -212,31 +359,34 @@ def tk_check() -> None:
 
 
 def venv_manager() -> List[Optional[str]]:
-    from mainutils import is_flatpak
-
     requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
     tk_check()
 
-    # Check if venv already exists and use it
-    base_venv_path = load_conf_setting("VirtualEnvironment") or "wemod_venv"
+    # Resolve the venv location for this environment (Flatpak vs host)
+    base_venv_path, venv_subdir, existing_venv_path = _venv_layout()
 
-    # Determine which subdirectory based on environment
-    if is_flatpak() and not os.getenv("FROM_FLATPAK"):
-        venv_subdir = "flatpak"
-    else:
-        venv_subdir = "host"
-
-    # Check if venv exists
-    if os.path.isabs(base_venv_path):
-        existing_venv_path = os.path.join(base_venv_path, venv_subdir)
-    else:
-        existing_venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, base_venv_path, venv_subdir))
+    # Adopt a pre-subdir venv rather than nesting a new one inside it.
+    _migrate_legacy_venv(base_venv_path, venv_subdir)
 
     existing_venv_python = os.path.join(existing_venv_path, "bin", "python")
 
-    # If venv exists, use it
+    # If a venv already exists, make sure it still matches requirements.txt
+    # before reusing it, so a dependency added by a later release is never
+    # silently skipped.
     if os.path.isfile(existing_venv_python):
-        log(f"Using existing venv: {existing_venv_python}")
+        if _venv_deps_current(existing_venv_path, requirements_txt):
+            log(f"Using existing venv: {existing_venv_python}")
+            return [existing_venv_python]
+        log(
+            "Venv dependencies are out of date, reinstalling from requirements.txt"
+        )
+        if pip(f"install -r '{requirements_txt}'", existing_venv_path) == 0:
+            _stamp_venv_deps(existing_venv_path, requirements_txt)
+            log(f"Using existing venv: {existing_venv_python}")
+            return [existing_venv_python]
+        log(
+            "Could not update venv dependencies, continuing with the existing venv"
+        )
         return [existing_venv_python]
 
     # Venv doesn't exist, continue with dependency check
@@ -290,6 +440,7 @@ def venv_manager() -> List[Optional[str]]:
                     "Failed to install dependencies. Error.",
                     ask_for_log=True,
                 )
+            _stamp_venv_deps(venv_path, requirements_txt)
             return [venv_python]
 
 
@@ -427,11 +578,10 @@ def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
         return flatpak_cmd
     elif flatpak_start:
         # Escaping from Flatpak to host - ensure host venv exists
-        base_venv_path = load_conf_setting("VirtualEnvironment") or "wemod_venv"
-        host_venv_path = os.path.join(base_venv_path, "host")
+        base_venv_path, _, host_venv_path = _venv_layout(forced_subdir="host")
 
-        if not os.path.isabs(host_venv_path):
-            host_venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, host_venv_path))
+        # Adopt a pre-subdir host venv rather than nesting a new one inside it.
+        _migrate_legacy_venv(base_venv_path, "host")
 
         host_venv_python = os.path.join(host_venv_path, "bin", "python")
 
@@ -441,35 +591,60 @@ def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
 
             # Create venv on host
             create_cmd = flatpak_start + [
-                "python3", "-m", "venv", host_venv_path
+                "python3",
+                "-m",
+                "venv",
+                host_venv_path,
             ]
             try:
-                subprocess.run(create_cmd, check=True, capture_output=True, text=True)
+                subprocess.run(
+                    create_cmd, check=True, capture_output=True, text=True
+                )
                 log(f"Host venv created successfully at {host_venv_path}")
-            except subprocess.CalledProcessError as e:
-                log(f"Failed to create host venv: {e.stderr}")
+            except (subprocess.CalledProcessError, OSError) as e:
+                # OSError covers flatpak-spawn being missing (e.g. the host
+                # lacks flatpak-xdg-utils), which is a common Flatpak setup
+                # problem and must not surface as a raw traceback.
+                stderr = getattr(e, "stderr", None)
+                log(f"Failed to create host venv: {stderr or e}")
                 exit_with_message(
                     "Host venv creation failed",
-                    f"Failed to create host venv at {host_venv_path}",
-                    ask_for_log=True
+                    f"Failed to create host venv at {host_venv_path}\n"
+                    "If you are using Flatpak, make sure flatpak-xdg-utils is "
+                    "installed and system/session bus access is allowed (e.g. in Flatseal).",
+                    ask_for_log=True,
                 )
 
             # Install dependencies into the host venv
             requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
             if os.path.exists(requirements_txt):
-                log(f"Installing dependencies into host venv from {requirements_txt}")
+                log(
+                    f"Installing dependencies into host venv from {requirements_txt}"
+                )
                 install_cmd = flatpak_start + [
-                    host_venv_python, "-m", "pip", "install", "-r", requirements_txt
+                    host_venv_python,
+                    "-m",
+                    "pip",
+                    "install",
+                    "-r",
+                    requirements_txt,
                 ]
                 try:
-                    subprocess.run(install_cmd, check=True, capture_output=True, text=True)
+                    subprocess.run(
+                        install_cmd,
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
                     log(f"Successfully installed dependencies into host venv")
-                except subprocess.CalledProcessError as e:
-                    log(f"Failed to install dependencies: {e.stderr}")
+                    _stamp_venv_deps(host_venv_path, requirements_txt)
+                except (subprocess.CalledProcessError, OSError) as e:
+                    stderr = getattr(e, "stderr", None)
+                    log(f"Failed to install dependencies: {stderr or e}")
                     exit_with_message(
                         "Dependency installation failed",
                         f"Failed to install dependencies into host venv",
-                        ask_for_log=True
+                        ask_for_log=True,
                     )
 
         # Always use host venv Python
