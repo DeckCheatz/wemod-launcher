@@ -512,6 +512,7 @@ def copy_folder_with_progress(
     window.refresh()
     window.perform_long_operation(copy_files, "-COPY DONE-")
 
+    last_phase = 0
     while True:
         event, values = window.read(timeout=100)
         if event == "-COPY DONE-":
@@ -525,11 +526,14 @@ def copy_folder_with_progress(
         else:
             current, total, phase = status
             if phase == 1 and total > 0:
+                # Only update the status text on the 0 -> 1 phase change
+                if phase != last_phase:
+                    if zipup:
+                        extra.update("Zipping files, please be patient...")
+                    else:
+                        extra.update("Copying files, please be patient...")
+                    last_phase = phase
                 perc = int(100 * current / total)
-                if zipup:
-                    extra.update("Zipping files, please be patient...")
-                else:
-                    extra.update("Copying files, please be patient...")
                 text.update(f"{perc}% ({current}/{total} files)")
                 progress.update(perc)
 
@@ -624,6 +628,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
 
     window.perform_long_operation(unpack_files, "-UNPACK DONE-")
 
+    last_phase = 0
     while True:
         event, values = window.read(timeout=100)
         if event == "-UNPACK DONE-":
@@ -637,8 +642,11 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
         else:
             current, total, phase = status
             if phase == 1 and total > 0:
+                # Only update the status text on the 0 -> 1 phase change
+                if phase != last_phase:
+                    extra.update("Extracting files, please be patient...")
+                    last_phase = phase
                 perc = int(100 * current / total)
-                extra.update("Extracting files, please be patient...")
                 text.update(f"{perc}% ({current}/{total} files)")
                 progress.update(perc)
 
@@ -758,6 +766,7 @@ def copytree_with_progress(
 
     window.perform_long_operation(copy_tree, "-COPY DONE-")
 
+    last_phase = 0
     while True:
         event, values = window.read(timeout=100)
         if event == "-COPY DONE-":
@@ -771,8 +780,11 @@ def copytree_with_progress(
         else:
             current, total, phase = status
             if phase == 1 and total > 0:
+                # Only update the status text on the 0 -> 1 phase change
+                if phase != last_phase:
+                    extra.update("Copying files...")
+                    last_phase = phase
                 perc = int(100 * current / total)
-                extra.update("Copying files...")
                 text.update(f"{perc}% ({current}/{total} files)")
                 progress.update(perc)
 
