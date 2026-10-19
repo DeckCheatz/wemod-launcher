@@ -232,7 +232,7 @@ def download_progress(
 def popup_download(title: str, link: str, file_name: str) -> str:
     import FreeSimpleGUI as sg
 
-    def format_size(bytes_val: int) -> str:
+    def format_size(bytes_val: float) -> str:
         """Format bytes to human readable string."""
         for unit in ["B", "KB", "MB", "GB"]:
             if bytes_val < 1024:
@@ -288,8 +288,6 @@ def popup_download(title: str, link: str, file_name: str) -> str:
                 timeout=5,
             )
         else:
-            if len(status) < 2:
-                continue
             dl, total = status
             perc = int(100 * (dl / total)) if total > 0 else 0
             text.update(f"{perc}% ({format_size(dl)} / {format_size(total)})")
@@ -709,7 +707,6 @@ def copytree_with_progress(
 ) -> None:
     """Copy a directory tree with a GUI progress bar (copytree semantics)."""
     import FreeSimpleGUI as sg
-    import pathlib
 
     # Thread-safe status: [current, total, phase]
     # phase: 0 = scanning, 1 = copying
