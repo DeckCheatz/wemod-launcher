@@ -25,7 +25,12 @@
           - "AGENTS.md"
 
 "area:ci":
-  - changed-files:
-      - any-glob-to-any-file:
-          - ".github/workflows/**"
-          - ".pre-commit-config.yaml"
+  - all:
+      - changed-files:
+          - any-glob-to-any-file:
+              - ".github/actions/**"
+              - ".github/dependabot.yml"
+              - ".github/workflows/**"
+              - ".github/*.yml"
+              - ".pre-commit-config.yaml"
+          - all-globs-to-all-files: '!.github/FUNDING.yml'
