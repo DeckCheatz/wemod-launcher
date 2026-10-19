@@ -239,8 +239,14 @@ for pattern in ["tkinter", "_tkinter*"]:
 
 
 def tk_check() -> None:
+    from mainutils import is_nixos
+
     try:
-        if not bool(check_flatpak(None)):
+        # On a bare NixOS host there's no global tkinter package to import
+        # here; mk_venv() creates a self-contained venv with tkinter via
+        # nix-shell instead, so skip the check until we're running inside it.
+        already_in_venv = sys.prefix != sys.base_prefix
+        if not bool(check_flatpak(None)) and not (is_nixos() and not already_in_venv):
             import tkinter
     except ImportError:
         exit_with_message(
