@@ -46,6 +46,11 @@ jobs:
 
   # Keeps the repo's actual label set (names/colors/descriptions) in sync
   # with .github/labels.yml once a change lands on dev.
+  #
+  # delete-other-labels: true makes .github/labels.yml the single source of
+  # truth -- any label not listed there is deleted repo-wide on the next run,
+  # including labels added by hand or by other automation (e.g. a future
+  # Dependabot `dependencies` label). Add new labels to labels.yml first.
   sync-labels:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
