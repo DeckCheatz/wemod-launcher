@@ -707,7 +707,7 @@ def unpack_zip_with_progress(zip_path: str, dest_path: str) -> None:
 def copytree_with_progress(
     source: str, dest: str, title: str = "Copying Files"
 ) -> None:
-    """Copy a directory tree with a GUI progress bar."""
+    """Copy a directory tree with a GUI progress bar (copytree semantics)."""
     import FreeSimpleGUI as sg
     import pathlib
 
@@ -738,7 +738,7 @@ def copytree_with_progress(
             # Create destination directory if it doesn't exist
             os.makedirs(dest, exist_ok=True)
 
-            # Copy each file
+            # Copy each file, following symlinks like shutil.copytree does
             for i, src_file in enumerate(files_to_copy):
                 rel_path = src_file.relative_to(source_path)
                 dest_file = os.path.join(dest, rel_path)
@@ -747,11 +747,17 @@ def copytree_with_progress(
                 os.makedirs(os.path.dirname(dest_file), exist_ok=True)
 
                 try:
-                    shutil.copy2(src_file, dest_file, follow_symlinks=False)
+                    shutil.copy2(src_file, dest_file, follow_symlinks=True)
                 except Exception as e:
                     log(f"Failed to copy {src_file} to {dest_file}: {e}")
 
                 update_status(i + 1, total_files, 1)
+
+            # Reproduce empty directories, like shutil.copytree does
+            for dir_path in sorted(source_path.rglob("*")):
+                if dir_path.is_dir() and not dir_path.is_symlink():
+                    rel_dir = dir_path.relative_to(source_path)
+                    os.makedirs(os.path.join(dest, rel_dir), exist_ok=True)
         except Exception as e:
             errors.append(e)
 
