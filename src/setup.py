@@ -163,29 +163,34 @@ def unpack_wemod(
         return False
 
 
-def mk_venv() -> Optional[str]:
-    from mainutils import is_flatpak
+def _venv_layout(forced_subdir: Optional[str] = None) -> tuple:
+    """Return (base_venv_path, venv_subdir, absolute_venv_dir).
 
-    # Use different venv subdirectories for Flatpak vs host to avoid conflicts
-    base_venv_path = load_conf_setting("VirtualEnvironment")
-    if not base_venv_path:
-        base_venv_path = "wemod_venv"
+    Centralises the Flatpak/host subdirectory choice so mk_venv(),
+    venv_manager() and check_flatpak() cannot drift apart.
+    """
+    base = load_conf_setting("VirtualEnvironment") or "wemod_venv"
 
-    # Determine which subdirectory to use based on environment
-    if is_flatpak() and not os.getenv("FROM_FLATPAK"):
+    if forced_subdir:
+        subdir = forced_subdir
+    elif is_flatpak() and not os.getenv("FROM_FLATPAK"):
         # Inside Flatpak sandbox (before escaping to host)
-        venv_subdir = "flatpak"
+        subdir = "flatpak"
     else:
         # On host system (or after escaping from Flatpak)
-        venv_subdir = "host"
+        subdir = "host"
 
-    # Construct full venv path: wemod_venv/flatpak or wemod_venv/host
-    if os.path.isabs(base_venv_path):
-        venv_path = os.path.join(base_venv_path, venv_subdir)
-        target_path = venv_path
-    else:
-        venv_path = os.path.join(base_venv_path, venv_subdir)
-        target_path = os.path.abspath(os.path.join(SCRIPT_PATH, venv_path))
+    venv_dir = os.path.join(base, subdir)
+    if not os.path.isabs(venv_dir):
+        venv_dir = os.path.abspath(os.path.join(SCRIPT_PATH, venv_dir))
+
+    return (base, subdir, venv_dir)
+
+
+def mk_venv() -> Optional[str]:
+    # Use different venv subdirectories for Flatpak vs host to avoid conflicts
+    base_venv_path, venv_subdir, target_path = _venv_layout()
+    venv_path = os.path.join(base_venv_path, venv_subdir)
 
     try:
         # Create venv using system Python in the appropriate subdirectory
@@ -216,25 +221,11 @@ def tk_check() -> None:
 
 
 def venv_manager() -> List[Optional[str]]:
-    from mainutils import is_flatpak
-
     requirements_txt = os.path.join(SCRIPT_PATH, "requirements.txt")
     tk_check()
 
-    # Check if venv already exists and use it
-    base_venv_path = load_conf_setting("VirtualEnvironment") or "wemod_venv"
-
-    # Determine which subdirectory based on environment
-    if is_flatpak() and not os.getenv("FROM_FLATPAK"):
-        venv_subdir = "flatpak"
-    else:
-        venv_subdir = "host"
-
-    # Check if venv exists
-    if os.path.isabs(base_venv_path):
-        existing_venv_path = os.path.join(base_venv_path, venv_subdir)
-    else:
-        existing_venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, base_venv_path, venv_subdir))
+    # Resolve the venv location for this environment (Flatpak vs host)
+    base_venv_path, venv_subdir, existing_venv_path = _venv_layout()
 
     existing_venv_python = os.path.join(existing_venv_path, "bin", "python")
 
@@ -431,11 +422,7 @@ def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
         return flatpak_cmd
     elif flatpak_start:
         # Escaping from Flatpak to host - ensure host venv exists
-        base_venv_path = load_conf_setting("VirtualEnvironment") or "wemod_venv"
-        host_venv_path = os.path.join(base_venv_path, "host")
-
-        if not os.path.isabs(host_venv_path):
-            host_venv_path = os.path.abspath(os.path.join(SCRIPT_PATH, host_venv_path))
+        _, _, host_venv_path = _venv_layout(forced_subdir="host")
 
         host_venv_python = os.path.join(host_venv_path, "bin", "python")
 
