@@ -202,7 +202,11 @@ def mk_venv() -> Optional[str]:
 
 def tk_check() -> None:
     try:
-        if not bool(check_flatpak(None)):
+        # Only skip the tkinter check when we will actually run outside the
+        # sandbox (where a different Python provides tkinter). This mirrors
+        # check_flatpak()'s escape condition without invoking it, so the
+        # predicate query never triggers venv-creation side effects.
+        if not (is_flatpak() and not os.getenv("FROM_FLATPAK")):
             import tkinter
     except ImportError:
         exit_with_message(
