@@ -3,6 +3,10 @@ name: Labeler
 on:
   pull_request_target:
     types: [opened, synchronize, reopened]
+    # Only branches that actually carry .github/labeler.yml. Without this the
+    # job also fires for PRs into `main`, where the config is missing, and
+    # every one of those runs is a no-op that logs "config file not found".
+    branches: [dev, rewrite/v2]
   pull_request:
     paths:
       - ".github/labels.yml"
