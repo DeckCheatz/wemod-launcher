@@ -167,9 +167,31 @@ def _venv_layout(forced_subdir: Optional[str] = None) -> tuple:
     """Return (base_venv_path, venv_subdir, absolute_venv_dir).
 
     Centralises the Flatpak/host subdirectory choice so mk_venv(),
-    venv_manager() and check_flatpak() cannot drift apart.
+    venv_manager() and check_flatpak() cannot drift apart, and sanitises the
+    saved config: builds before the base-path fix stored the already
+    subdirectory'd path (e.g. wemod_venv/host), which would otherwise nest
+    forever (wemod_venv/host/host/...).
     """
-    base = load_conf_setting("VirtualEnvironment") or "wemod_venv"
+    raw = load_conf_setting("VirtualEnvironment")
+    base = raw or "wemod_venv"
+
+    # Strip trailing /host or /flatpak components written by older builds.
+    # Repeat, because a buggy build could append one per run (reported as
+    # wemod_venv/host/host/host/... on CachyOS).
+    stripped = True
+    while stripped:
+        stripped = False
+        for sub in ("host", "flatpak"):
+            suffix = os.sep + sub
+            if base.endswith(suffix):
+                base = base[: -len(suffix)]
+                stripped = True
+                break
+    base = base or "wemod_venv"
+
+    if base != (raw or "wemod_venv"):
+        log(f"Sanitised venv base path to '{base}'")
+        save_conf_setting("VirtualEnvironment", base)
 
     if forced_subdir:
         subdir = forced_subdir
