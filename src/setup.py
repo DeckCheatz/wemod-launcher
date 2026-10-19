@@ -286,6 +286,43 @@ def _rewrite_venv_shebangs(venv_dir: str, old_paths: set) -> None:
                 log(f"Could not update shebang in '{wrapper}': {e}")
 
 
+def _requirements_hash(requirements_txt: str) -> str:
+    import hashlib
+
+    try:
+        with open(requirements_txt, "rb") as f:
+            return hashlib.sha256(f.read()).hexdigest()
+    except OSError:
+        return ""
+
+
+def _venv_deps_current(venv_dir: str, requirements_txt: str) -> bool:
+    """True if the venv was last filled from the current requirements.txt.
+
+    Existing venvs have no stamp file, so this returns False for them and
+    triggers a one-time idempotent reinstall that then stamps the venv. That
+    self-heals venvs missing a dependency added by a later release instead of
+    letting them crash with ImportError.
+    """
+    stamp = os.path.join(venv_dir, ".wemod_requirements.sha256")
+    try:
+        with open(stamp) as f:
+            recorded = f.read().strip()
+    except OSError:
+        return False
+    current = _requirements_hash(requirements_txt)
+    return bool(recorded) and recorded == current
+
+
+def _stamp_venv_deps(venv_dir: str, requirements_txt: str) -> None:
+    stamp = os.path.join(venv_dir, ".wemod_requirements.sha256")
+    try:
+        with open(stamp, "w") as f:
+            f.write(_requirements_hash(requirements_txt))
+    except OSError as e:
+        log(f"Could not write venv stamp '{stamp}': {e}")
+
+
 def mk_venv() -> Optional[str]:
     # Use different venv subdirectories for Flatpak vs host to avoid conflicts
     base_venv_path, venv_subdir, target_path = _venv_layout()
@@ -334,9 +371,23 @@ def venv_manager() -> List[Optional[str]]:
 
     existing_venv_python = os.path.join(existing_venv_path, "bin", "python")
 
-    # If venv exists, use it
+    # If a venv already exists, make sure it still matches requirements.txt
+    # before reusing it, so a dependency added by a later release is never
+    # silently skipped.
     if os.path.isfile(existing_venv_python):
-        log(f"Using existing venv: {existing_venv_python}")
+        if _venv_deps_current(existing_venv_path, requirements_txt):
+            log(f"Using existing venv: {existing_venv_python}")
+            return [existing_venv_python]
+        log(
+            "Venv dependencies are out of date, reinstalling from requirements.txt"
+        )
+        if pip(f"install -r '{requirements_txt}'", existing_venv_path) == 0:
+            _stamp_venv_deps(existing_venv_path, requirements_txt)
+            log(f"Using existing venv: {existing_venv_python}")
+            return [existing_venv_python]
+        log(
+            "Could not update venv dependencies, continuing with the existing venv"
+        )
         return [existing_venv_python]
 
     # Venv doesn't exist, continue with dependency check
@@ -390,6 +441,7 @@ def venv_manager() -> List[Optional[str]]:
                     "Failed to install dependencies. Error.",
                     ask_for_log=True,
                 )
+            _stamp_venv_deps(venv_path, requirements_txt)
             return [venv_python]
 
 
@@ -580,6 +632,7 @@ def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
                         text=True,
                     )
                     log(f"Successfully installed dependencies into host venv")
+                    _stamp_venv_deps(host_venv_path, requirements_txt)
                 except subprocess.CalledProcessError as e:
                     log(f"Failed to install dependencies: {e.stderr}")
                     exit_with_message(
