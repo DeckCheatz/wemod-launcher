@@ -602,11 +602,18 @@ def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
                     create_cmd, check=True, capture_output=True, text=True
                 )
                 log(f"Host venv created successfully at {host_venv_path}")
-            except subprocess.CalledProcessError as e:
-                log(f"Failed to create host venv: {e.stderr}")
+            except (subprocess.CalledProcessError, OSError) as e:
+                # OSError covers flatpak-spawn being missing (no
+                # flatpak-xdg-utils on the host), which must not surface as a
+                # raw traceback.
+                log(
+                    f"Failed to create host venv: {getattr(e, 'stderr', None) or e}"
+                )
                 exit_with_message(
                     "Host venv creation failed",
-                    f"Failed to create host venv at {host_venv_path}",
+                    f"Failed to create host venv at {host_venv_path}\n"
+                    "If you are using Flatpak, make sure flatpak-xdg-utils is "
+                    "installed and system bus access is allowed (e.g. in Flatseal).",
                     ask_for_log=True,
                 )
 
@@ -633,8 +640,10 @@ def check_flatpak(flatpak_cmd: Optional[List[str]]) -> List[str]:
                     )
                     log(f"Successfully installed dependencies into host venv")
                     _stamp_venv_deps(host_venv_path, requirements_txt)
-                except subprocess.CalledProcessError as e:
-                    log(f"Failed to install dependencies: {e.stderr}")
+                except (subprocess.CalledProcessError, OSError) as e:
+                    log(
+                        f"Failed to install dependencies: {getattr(e, 'stderr', None) or e}"
+                    )
                     exit_with_message(
                         "Dependency installation failed",
                         f"Failed to install dependencies into host venv",
