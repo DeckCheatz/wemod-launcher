@@ -1,0 +1,65 @@
+name: Labeler
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    # Only branches that actually carry .github/labeler.yml. Without this the
+    # job also fires for PRs into `main`, where the config is missing, and
+    # every one of those runs is a no-op that logs "config file not found".
+    branches: [dev, rewrite/v2]
+  pull_request:
+    paths:
+      - ".github/labels.yml"
+  push:
+    branches: [dev]
+    paths:
+      - ".github/labels.yml"
+  workflow_dispatch:
+
+jobs:
+  # Applies version:*/area:* labels to a PR based on which files it touches.
+  pr-labeler:
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/labeler@v7
+        with:
+          configuration-path: .github/labeler.yml
+          sync-labels: false
+
+  # Previews the label-set diff when a PR touches labels.yml, without
+  # applying anything -- lets a reviewer see the effect before it merges.
+  preview-label-sync:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: EndBug/label-sync@v2
+        with:
+          config-file: .github/labels.yml
+          dry-run: true
+
+  # Keeps the repo's actual label set (names/colors/descriptions) in sync
+  # with .github/labels.yml once a change lands on dev.
+  #
+  # delete-other-labels: true makes .github/labels.yml the single source of
+  # truth -- any label not listed there is deleted repo-wide on the next run,
+  # including labels added by hand or by other automation (e.g. a future
+  # Dependabot `dependencies` label). Add new labels to labels.yml first.
+  sync-labels:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: EndBug/label-sync@v2
+        with:
+          config-file: .github/labels.yml
+          delete-other-labels: true
