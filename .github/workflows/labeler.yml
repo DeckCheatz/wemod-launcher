@@ -3,6 +3,10 @@ name: Labeler
 on:
   pull_request_target:
     types: [opened, synchronize, reopened]
+    # Only branches that actually carry .github/labeler.yml. Without this the
+    # job also fires for PRs into `main`, where the config is missing, and
+    # every one of those runs is a no-op that logs "config file not found".
+    branches: [dev, rewrite/v2]
   pull_request:
     paths:
       - ".github/labels.yml"
@@ -21,7 +25,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/labeler@v5
+      - uses: actions/labeler@v7
         with:
           configuration-path: .github/labeler.yml
           sync-labels: false
@@ -34,7 +38,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: EndBug/label-sync@v2
         with:
           config-file: .github/labels.yml
@@ -42,6 +46,11 @@ jobs:
 
   # Keeps the repo's actual label set (names/colors/descriptions) in sync
   # with .github/labels.yml once a change lands on dev.
+  #
+  # delete-other-labels: true makes .github/labels.yml the single source of
+  # truth -- any label not listed there is deleted repo-wide on the next run,
+  # including labels added by hand or by other automation (e.g. a future
+  # Dependabot `dependencies` label). Add new labels to labels.yml first.
   sync-labels:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -49,7 +58,7 @@ jobs:
       contents: read
       issues: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: EndBug/label-sync@v2
         with:
           config-file: .github/labels.yml

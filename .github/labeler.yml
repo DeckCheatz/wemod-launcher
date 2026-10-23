@@ -4,6 +4,12 @@
 # manual until src/wand_launcher/ grows the subpackages docs/ARCHITECTURE.md
 # describes -- right now it's just entrypoint.py, so there's no path to
 # glob against per-phase without guessing.
+#
+# Note on branches: on `dev` the v1 layout is what exists, so only the
+# version:v1-legacy glob (and README/CONTRIBUTING for area:docs) can match.
+# The v2 paths below -- src/wand_launcher/**, docs/ARCHITECTURE.md,
+# docs/GOALS.md, AGENTS.md, .pre-commit-config.yaml -- live on rewrite/v2
+# and only start firing once this is cherry-picked there.
 
 "version:v1-legacy":
   - changed-files:
@@ -25,7 +31,12 @@
           - "AGENTS.md"
 
 "area:ci":
-  - changed-files:
-      - any-glob-to-any-file:
-          - ".github/workflows/**"
-          - ".pre-commit-config.yaml"
+  - all:
+      - changed-files:
+          - any-glob-to-any-file:
+              - ".github/actions/**"
+              - ".github/dependabot.yml"
+              - ".github/workflows/**"
+              - ".github/*.yml"
+              - ".pre-commit-config.yaml"
+          - all-globs-to-all-files: '!.github/FUNDING.yml'
