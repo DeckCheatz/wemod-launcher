@@ -1,6 +1,6 @@
 # Contribution Policy
 
-Thanks for considering contributing to the WeMod Launcher. This document describes what this project strives for and what a good PR looks like. It's short on purpose.
+Thanks for considering contributing to the Wand Launcher. This document describes what this project strives for and what a good PR looks like. It's short on purpose.
 
 ## What This Project Strives For
 
