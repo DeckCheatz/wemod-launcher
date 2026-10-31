@@ -1,6 +1,6 @@
 name: User Issue
-description: 'Report a problem where WeMod doesn’t work correctly for you'
-title: '[BUG]: The Wemod Launcher fails to (fill in)'
+description: 'Report a problem where the Wand Launcher doesn’t work correctly for you'
+title: '[BUG]: The Wand Launcher fails to (fill in)'
 labels: ["bug"]
 body:
   - type: textarea

@@ -57,8 +57,8 @@ def welcome() -> bool:
     sg.theme("systemdefault")
 
     ret = sg.popup_ok_cancel(
-        "Welcome to WeMod Installer!\nPress OK to start the setup.",
-        title="WeMod Launcher Setup",
+        "Welcome to the Wand Installer!\nPress OK to start the setup.",
+        title="Wand Launcher Setup",
         image=wemod_logo.content,
         icon=wemod_logo.content,
     )
@@ -76,7 +76,7 @@ def download_wemod(temp_dir: str) -> str:
     text = sg.Text("0%")
     # text = sg.Multiline(str.join("", log), key="-LOG-", autoscroll=True, size=(50,50), disabled=True)
     layout = [[progress], [text]]
-    window = sg.Window("Downloading WeMod", layout, finalize=True)
+    window = sg.Window("Downloading Wand", layout, finalize=True)
 
     def update_log(status: list[int], dl: int, total: int) -> None:
         status.clear()
@@ -120,13 +120,13 @@ def get_wemod_exe_url():
     SCOOP_METADATA_URL = (
         "https://raw.githubusercontent.com/"
         "Calinou/scoop-games/refs/heads/master/bucket/"
-        "wemod.json"
+        "wand.json"
     )
     raw = http_get(SCOOP_METADATA_URL).json()
 
     if not raw["architecture"]["64bit"]["url"]:
         exit_with_message(
-            "Unable to find WeMod EXE URL from Scoop",
+            "Unable to find Wand EXE URL from Scoop",
             "Please raise on GitHub!",
             timeout=120,
         )
@@ -393,16 +393,16 @@ DWRITECORE_MEMBER = "runtimes-framework/win-x64/native/DWriteCore.dll"
 
 
 def ensure_dwritecore(install_location: str) -> None:
-    """Place Microsoft's DWriteCore.dll next to WeMod.exe.
+    """Place Microsoft's DWriteCore.dll next to Wand.exe.
 
     Wine's builtin dwrite.dll raises EXCEPTION_ACCESS_VIOLATION (0xc0000005)
     when Chromium asks it to map characters for certain pages. That kills
-    WeMod's renderer process, so panels such as the in-app Map stay blank
+    Wand's renderer process, so panels such as the in-app Map stay blank
     forever while the rest of the client keeps working.
 
     Chromium loads a DWriteCore.dll placed next to its executable in
     preference to the system dwrite.dll, so dropping the redistributable in
-    the WeMod directory avoids Wine's broken implementation entirely. No
+    the Wand directory avoids Wine's broken implementation entirely. No
     command line flag is needed.
     """
     import tempfile
@@ -482,7 +482,7 @@ def setup_main() -> None:
 
     if (
         not os.path.isdir(install_location)
-        or not os.path.isfile(os.path.join(install_location, "WeMod.exe"))
+        or not os.path.isfile(os.path.join(install_location, "Wand.exe"))
         or os.getenv("FORCE_UPDATE_WEMOD", "0") == "1"
     ):
         if os.path.isdir(install_location):
@@ -497,14 +497,14 @@ def setup_main() -> None:
             'Setup completed successfully.\nMake sure the "LAUNCH OPTIONS" of the game say \''
             + str(os.path.join(SCRIPT_PATH, "wemod"))
             + " %command%'",
-            title="WeMod Downloaded",
+            title="Wand Downloaded",
             timeout=5,
         )
 
         if not unpacked:
             exit_with_message(
                 "Failed Unpack",
-                "Failed to unpack WeMod, exiting",
+                "Failed to unpack Wand, exiting",
                 1,
                 timeout=10,
                 ask_for_log=True,

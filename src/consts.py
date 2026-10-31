@@ -23,7 +23,12 @@ SCRIPT_PATH = os.path.dirname(SCRIPT_IMP_FILE)
 
 
 def getbatcmd():
-    batf = os.path.join(SCRIPT_PATH, "wemod.bat")
+    # `wand.bat` is canonical since the rebrand; `wemod.bat` is a symlink kept
+    # for compatibility with pre-rebrand installs, so either name resolves.
+    batf = os.path.join(SCRIPT_PATH, "wand.bat")
+    if not os.path.isfile(batf):
+        batf = os.path.join(SCRIPT_PATH, "wemod.bat")
+
     if not os.path.isfile(batf):
         try:
             repo_user = load_conf_setting("RepoUser")
@@ -48,8 +53,9 @@ def getbatcmd():
 
             repo_concat = repo_user + "/" + repo_name
 
-            url = f"https://raw.githubusercontent.com/{repo_concat}/refs/heads/main/wemod.bat"
+            url = f"https://raw.githubusercontent.com/{repo_concat}/refs/heads/main/wand.bat"
             response = http_get(url)
+            batf = os.path.join(SCRIPT_PATH, "wand.bat")
             with open(batf, "wb") as f:
                 f.write(response.content)
 
@@ -58,7 +64,7 @@ def getbatcmd():
         if not os.path.isfile(batf):
             exit_with_message(
                 "Missing bat",
-                "The 'wemod.bat' file is missing and could not be downloaded. Exiting",
+                "The 'wand.bat' file is missing and could not be downloaded. Exiting",
             )
 
     return ["start", winpath(batf)]
