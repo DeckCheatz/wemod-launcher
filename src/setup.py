@@ -56,13 +56,31 @@ def welcome() -> bool:
 
     sg.theme("systemdefault")
 
-    ret = sg.popup_ok_cancel(
-        "Welcome to the Wand Installer!\nPress OK to start the setup.",
-        title="Wand Setup",
-        image=wemod_logo.content,
+    layout = [
+        [sg.Image(data=wemod_logo.content)],
+        [
+            sg.Text(
+                "Welcome to the Wand Installer!\nPress OK to start the setup.",
+                justification="center",
+            )
+        ],
+        [sg.Button("OK", bind_return_key=True), sg.Button("Cancel")],
+    ]
+    window = sg.Window(
+        "Wand Setup",
+        layout,
         icon=wemod_logo.content,
+        modal=True,
+        element_justification="center",
+        finalize=True,
     )
-    return ret == "OK"
+    # Keep the content-driven height while giving the title bar enough width.
+    window.set_size((420, window.size[1]))
+    try:
+        event, _ = window.read()
+    finally:
+        window.close()
+    return event == "OK"
 
 
 def download_wemod(temp_dir: str) -> str:
