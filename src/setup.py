@@ -58,7 +58,7 @@ def welcome() -> bool:
 
     ret = sg.popup_ok_cancel(
         "Welcome to the Wand Installer!\nPress OK to start the setup.",
-        title="Wand Launcher Setup",
+        title="Wand Setup",
         image=wemod_logo.content,
         icon=wemod_logo.content,
     )
