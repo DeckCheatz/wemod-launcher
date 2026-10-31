@@ -5,6 +5,7 @@ import os
 import sys
 import json
 import subprocess
+import threading
 from urllib import request
 
 from typing import (
@@ -193,6 +194,55 @@ def show_message(
                 auto_close_duration=timeout,
             )
         return response
+
+
+def _show_message_safely(
+    message: str,
+    title: str,
+    timeout: Optional[int],
+    yesno: bool,
+) -> Optional[str]:
+    """Show a Tk dialog safely when called from a worker thread.
+
+    The early-close monitor runs in a worker while the main thread waits for
+    the game process. Run the dialog in a short-lived Python process in that
+    case so Tk is created and used on that process's main thread.
+    """
+    if threading.current_thread() is threading.main_thread():
+        return show_message(message, title, timeout, yesno)
+
+    marker = "__WEMOD_DIALOG_RESULT__"
+    helper = (
+        "import json, sys\n"
+        "sys.path.insert(0, sys.argv[1])\n"
+        "from coreutils import show_message\n"
+        "args = json.loads(sys.argv[2])\n"
+        f"print({marker!r} + json.dumps(show_message(*args)))\n"
+    )
+    payload = json.dumps([message, title, timeout, yesno])
+    try:
+        process = subprocess.run(
+            [sys.executable, "-c", helper, SCRIPT_PATH, payload],
+            capture_output=True,
+            text=True,
+        )
+    except Exception as e:
+        log(f"Failed to start dialog helper process: {e}")
+        return None
+
+    for line in reversed(process.stdout.splitlines()):
+        if line.startswith(marker):
+            try:
+                return json.loads(line[len(marker) :])
+            except Exception as e:
+                log(f"Failed to read dialog helper response: {e}")
+                return None
+
+    log(
+        "Dialog helper process failed"
+        + (f": {process.stderr.strip()}" if process.stderr else "")
+    )
+    return None
 
 
 # Function to display a message and exit
@@ -394,27 +444,33 @@ def bat_respond(responsefile: str, bout: Optional[int]) -> Optional[bool]:
     if os.path.isfile(responsefile):
         log("Detected abrupt game closure. User should select what they want")
         returnmessage = read_file(responsefile)
-        if bout != None:
-            batresp = show_message(
-                returnmessage
-                + f'\nYou can still use wemod by clicking "Yes",\nthis will keep wemod open in the backround\nIf you want to close WeMod click "No"\nWeMod will automaticly close in {bout} seconds, if nothing is done',
-                "BAT Warning",
-                bout,
-                True,
-            )
-            log(
-                f"The user selected {batresp} after being asked to wait longer for WeMod"
-            )
-        if bout == None or batresp == "Yes":
-            show_message(
-                returnmessage
-                + '\nClick "OK" ONLY if you are ready to close WeMod\nTo KEEP it open, just minimize THIS message box.',
-                "BAT Warning",
-                None,
-                False,
-            )
-            log("The user accepted to close WeMod")
-        os.remove(responsefile)
+        try:
+            batresp = None
+            if bout is not None:
+                batresp = _show_message_safely(
+                    returnmessage
+                    + f'\nYou can still use wemod by clicking "Yes",\nthis will keep wemod open in the backround\nIf you want to close WeMod click "No"\nWeMod will automaticly close in {bout} seconds, if nothing is done',
+                    "BAT Warning",
+                    bout,
+                    True,
+                )
+                log(
+                    f"The user selected {batresp} after being asked to wait longer for WeMod"
+                )
+            if bout is None or batresp == "Yes":
+                _show_message_safely(
+                    returnmessage
+                    + '\nClick "OK" ONLY if you are ready to close WeMod\nTo KEEP it open, just minimize THIS message box.',
+                    "BAT Warning",
+                    None,
+                    False,
+                )
+                log("The user accepted to close WeMod")
+        finally:
+            try:
+                os.remove(responsefile)
+            except FileNotFoundError:
+                pass
         return True
     return None
 
