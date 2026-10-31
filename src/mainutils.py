@@ -747,6 +747,7 @@ def copytree_with_progress(
                     shutil.copy2(src_file, dest_file, follow_symlinks=True)
                 except Exception as e:
                     log(f"Failed to copy {src_file} to {dest_file}: {e}")
+                    errors.append(e)
 
                 update_status(i + 1, total_files, 1)
 
@@ -865,51 +866,47 @@ def create_symlink(
     dst: Union[str, pathlib.Path],
     replace: Optional[bool] = None,
 ) -> None:
-    # Needs src, dest;  replace can be True (replace all), None (replace only files and symlinks) or False (don't replace anything)
+    """Create a symlink at ``dst`` pointing to ``src``.
+
+    Relative source paths are resolved from the destination's parent. By
+    default, existing files and symlinks can be replaced, but directories
+    require ``replace=True``.
+    """
     src_path = pathlib.Path(src)
     dst_path = pathlib.Path(dst)
 
-    # Resolve source relative to destination parent
-    # because relative symlink targets are interpreted there
-    check_src = (dst_path.parent / src_path).resolve()
+    # Relative symlink targets are interpreted from the destination's parent.
+    source_path = (
+        src_path if src_path.is_absolute() else dst_path.parent / src_path
+    )
+    resolved_source = source_path.resolve()
 
-    if not check_src.exists():
-        raise FileNotFoundError(f"Source does not exist: '{src_path}'")
+    if not resolved_source.exists():
+        raise FileNotFoundError(f"Source does not exist: '{resolved_source}'")
 
-    # Destination does not exist -> create directly
-    if not dst_path.is_symlink():
-        src_path.symlink_to(dst_path)
-        return
-
-    # Existing symlink
     if dst_path.is_symlink():
         current = (dst_path.parent / os.readlink(dst_path)).resolve()
-
-        if current == check_src:
+        if current == resolved_source:
             return
-
         if replace is False:
             raise OSError(
-                f"Symlink '{dst_path}' points to '{current}', expected '{check_src}'"
+                f"Symlink '{dst_path}' points to '{current}', "
+                f"expected '{resolved_source}'"
             )
-
         dst_path.unlink()
-        src_path.symlink_to(dst_path)
-        return
+    elif dst_path.exists():
+        if dst_path.is_dir():
+            if replace is not True:
+                raise OSError(
+                    f"Path '{dst_path}' exists and is a directory"
+                )
+            shutil.rmtree(dst_path)
+        else:
+            if replace is False:
+                raise OSError(
+                    f"Path '{dst_path}' exists and is not a symlink"
+                )
+            dst_path.unlink()
 
-    # Existing non-symlink
-    if not replace:
-        raise OSError(f"Path '{dst_path}' exists and is not a symlink")
-
-    if dst_path.is_dir() and not replace:
-        raise OSError(
-            f"Path '{dst_path}' exists and is not a file or symlink"
-        )
-        shutil.rmtree(dst_path)
-    elif dst_path().is_dir() and replace:
-        dst_path.unlink()
-
-        src_path.symlink_to(dst_path)
-        return
-
-    src_path.symlink_to(dst_path)
+    dst_path.parent.mkdir(parents=True, exist_ok=True)
+    dst_path.symlink_to(src_path)
