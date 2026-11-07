@@ -322,10 +322,14 @@ def get_dotnet48() -> str:
 def deref(path: str) -> None:
     import FreeSimpleGUI as sg
 
+    # Worker thread only updates status; all Tk calls stay on the main thread.
+    status = [0, 0, 0]
+
     def dereference_links() -> None:
         links = find_symlinks(path)
         total_links = len(links)
-        extra.update("De-referencing links, please be patient...")
+        status[1] = total_links
+        status[2] = 1
         for i, link in enumerate(links):
             target, src = link
             try:
@@ -339,7 +343,7 @@ def deref(path: str) -> None:
                     os.remove(target)  # Remove the broken link
             except Exception as e:
                 log(f"Failed to de-reference {target}: {e}")
-            update_progress(int((i + 1) / total_links * 100))
+            status[0] = i + 1
 
     def find_symlinks(path: str) -> List[List[str]]:
         links = []
@@ -350,11 +354,6 @@ def deref(path: str) -> None:
                 src = os.readlink(target)
                 links.append([target, src])
         return links
-
-    def update_progress(percentage: int) -> None:
-        progress.update(percentage)
-        text.update(f"{percentage}%")
-        window.refresh()
 
     sg.theme("systemdefault")
 
@@ -367,6 +366,7 @@ def deref(path: str) -> None:
 
     window.perform_long_operation(dereference_links, "-DEREF DONE-")
 
+    last_phase = 0
     while True:
         event, values = window.read(timeout=1000)
         if event == "-DEREF DONE-":
@@ -377,6 +377,15 @@ def deref(path: str) -> None:
                 "The window was closed. Exiting...",
                 timeout=5,
             )
+        else:
+            current, total, phase = status
+            if phase == 1 and total > 0:
+                if phase != last_phase:
+                    extra.update("De-referencing links, please be patient...")
+                    last_phase = phase
+                percentage = int(100 * current / total)
+                progress.update(percentage)
+                text.update(f"{percentage}%")
 
     window.close()
 
