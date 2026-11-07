@@ -878,7 +878,7 @@ def create_symlink(
 
     # Destination does not exist -> create directly
     if not dst_path.is_symlink():
-        src_path.symlink_to(dst_path)
+        dst_path.symlink_to(src_path)
         return
 
     # Existing symlink
@@ -894,7 +894,7 @@ def create_symlink(
             )
 
         dst_path.unlink()
-        src_path.symlink_to(dst_path)
+        dst_path.symlink_to(src_path)
         return
 
     # Existing non-symlink
@@ -909,7 +909,7 @@ def create_symlink(
     elif dst_path().is_dir() and replace:
         dst_path.unlink()
 
-        src_path.symlink_to(dst_path)
+        dst_path.symlink_to(src_path)
         return
 
-    src_path.symlink_to(dst_path)
+    dst_path.symlink_to(src_path)
