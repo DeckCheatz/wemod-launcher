@@ -153,6 +153,8 @@ def syncwemod(
                         package_prefix -= 1
                         save_conf_setting("PackagePrefix", package_prefix)
                         package_prefix = "true"
+                    else:
+                        package_prefix = "false"
     if package_prefix and folder is None and package_prefix.lower() == "true":
         from mainutils import copy_folder_with_progress
 
