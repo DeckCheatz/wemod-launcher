@@ -26,17 +26,21 @@ jobs:
   
       - name: Get changed files
         id: changed_files
+        continue-on-error: true
         uses: jitterbit/get-changed-files@v1
         with:
           format: space-delimited
           token: ${{ secrets.GITHUB_TOKEN }}
-  
+
       - name: Check if Python files or wemod file changed
         id: check_files
         run: |
           echo "PYTHON_FILES_CHANGED=false" >> $GITHUB_ENV
           if [[ ${{ github.ref }} == 'refs/heads/dev' ]] || [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
-            if echo "${{ steps.changed_files.outputs.added_modified }}" | grep -E '\.py$' > /dev/null; then
+            if [[ "${{ steps.changed_files.outcome }}" != "success" ]]; then
+              echo "Changed-files detection failed (e.g. a non-fast-forward push); assuming Python files changed."
+              echo "PYTHON_FILES_CHANGED=true" >> $GITHUB_ENV
+            elif echo "${{ steps.changed_files.outputs.added_modified }}" | grep -E '\.py$' > /dev/null; then
               echo "PYTHON_FILES_CHANGED=true" >> $GITHUB_ENV
             fi
           fi
