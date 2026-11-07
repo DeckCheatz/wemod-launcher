@@ -261,7 +261,7 @@ def scanfolderforversions(
         from mainutils import copy_folder_with_progress
 
         prefixesfolder = os.path.join(SCAN_FOLDER, "prefix")
-        os.makedirs(prefixesfolder, exists_ok=True)
+        os.makedirs(prefixesfolder, exist_ok=True)
         protonconfminor = load_conf_setting("ProtonMinorSeven")
         prefixesfile = os.path.join(
             prefixesfolder, f"Proton7.{protonconfminor}.zip"
