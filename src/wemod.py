@@ -4,6 +4,7 @@
 import json
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import threading
@@ -1114,6 +1115,28 @@ def run(skip_init: bool = False) -> str:
         flatpakrunfile = os.path.join(cachedir, "insideflatpak.tmp")
         errorfile = os.path.join(cachedir, "flatpakerror.tmp")
         warnfile = os.path.join(cachedir, "flatpakwarn.tmp")
+        hostpidfile = os.path.join(cachedir, "hostpid.tmp")
+
+        # This process was spawned with flatpak-spawn --host, so it keeps running
+        # on the host even if Steam is closed or restarted. If a prior session left
+        # one behind (e.g. stuck waiting on the troubleshooter prompt), kill it here
+        # so it doesn't linger and surface a stale popup on the next launch.
+        if os.path.isfile(hostpidfile):
+            old_pid = read_file(hostpidfile)
+            if old_pid and old_pid.isdigit() and int(old_pid) != os.getpid():
+                try:
+                    os.kill(int(old_pid), signal.SIGTERM)
+                    log(
+                        f"Killed stale host-side process {old_pid} left over from a previous session"
+                    )
+                except ProcessLookupError:
+                    pass
+                except Exception as e:
+                    log(
+                        f"Failed to kill stale host-side process {old_pid}:\n\t{e}"
+                    )
+        with open(hostpidfile, "w") as hpf:
+            hpf.write(str(os.getpid()))
 
         log("Save flatpak command to, inside flatpak run file")
         with open(flatpakrunfile, "w") as frf:
@@ -1209,6 +1232,9 @@ def run(skip_init: bool = False) -> str:
     ttime_thread.join()
 
     troubleshooter()
+
+    if fromflat and os.path.isfile(hostpidfile):
+        os.remove(hostpidfile)
 
     log(f"Exit command with {response}")
     return "EXIT"
