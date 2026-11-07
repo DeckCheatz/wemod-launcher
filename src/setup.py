@@ -4,6 +4,7 @@
 import os
 import sys
 import stat
+import glob
 import shutil
 import subprocess
 
@@ -326,9 +327,11 @@ def self_update(path: List[Optional[str]]) -> List[Optional[str]]:
             )
             subprocess.run(flatpak_cmd + ["git", "pull"], text=True)
 
-            # Set executable permissions (replace with specific file names if needed)
+            # Set executable permissions. Globbed in Python since this runs
+            # without a shell, so a literal "*.py" argument would never expand.
+            py_files = glob.glob("**/*.py", recursive=True)
             subprocess.run(
-                flatpak_cmd + ["chmod", "-R", "ug+x", "*.py", "wemod.bat"],
+                flatpak_cmd + ["chmod", "ug+x"] + py_files + ["wemod.bat"],
                 text=True,
             )
 
