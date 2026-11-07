@@ -906,16 +906,8 @@ def run(skip_init: bool = False) -> str:
 
     # Original logic for finding the Proton tool path if delimiter is present
     tools = os.getenv("STEAM_COMPAT_TOOL_PATHS").split(os.pathsep)
-    if fnr <= 0 and tools:
-        for tool in tools:
-            for nr, aarg in enumerate(ARGS):
-                if aarg and len(aarg) > 2 and aarg[0] == os.sep:
-                    if tool == os.path.dirname(aarg):
-                        if nr > fnr:
-                            fnr = nr
-                            break
     # find the first argument that has the Proton tool path
-    if tools:
+    if fnr <= 0 and tools:
         for tool in tools:
             for nr, aarg in enumerate(ARGS):
                 if aarg and len(aarg) > 2 and aarg[0] == os.sep:
