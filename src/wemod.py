@@ -691,9 +691,10 @@ def download_prefix(proton_dir: str) -> None:
         closest_version, url = find_closest_compatible_release(
             releases, current_version_parts
         )
-        file_name = (
-            f"wemod_prefix{closest_version[0]}.{closest_version[1]}.zip"
-        )
+        if closest_version:
+            file_name = (
+                f"wemod_prefix{closest_version[0]}.{closest_version[1]}.zip"
+            )
 
     if (
         closest_version
