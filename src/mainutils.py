@@ -467,14 +467,14 @@ def copy_folder_with_progress(
 
                 # Check if the file is in one of the dirs to ignore
                 for i in ignore:
-                    if os.path.commonprefix([rfile, i]) == i:
+                    if rfile == i or rfile.startswith(i + os.sep):
                         use = False  # don't use the file if it's in an ignore directory
                         break  # break out of the ignore loop
 
                 # If the file is not in any ignored directory, check if it's in one of the dirs to include
                 if not use:
                     for i in include_override:
-                        if os.path.commonprefix([rfile, i]) == i:
+                        if rfile == i or rfile.startswith(i + os.sep):
                             use = True  # use the file if it's in an include_override directory
                             break  # break out of the include_override loop
                 if use:
