@@ -88,6 +88,7 @@ def get_compat() -> str:
             if (
                 tools
                 and len(tools.strip(os.pathsep)) > 0
+                and wine
                 and os.path.dirname(wine) not in tools.split(os.pathsep)
             ):
                 if wine:
