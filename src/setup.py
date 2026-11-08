@@ -74,8 +74,9 @@ def welcome() -> bool:
         element_justification="center",
         finalize=True,
     )
-    # Keep the content-driven height while giving the title bar enough width.
-    window.set_size((420, window.size[1]))
+    # Keep the content-driven size while ensuring the title bar has enough width.
+    width, height = window.size
+    window.set_size((max(420, width), height))
     try:
         event, _ = window.read()
     finally:
