@@ -461,7 +461,7 @@ def setup_main() -> None:
         winetricks
     ):
         if os.path.isfile(winetricks):
-            shutil.rmtree(winetricks)
+            os.remove(winetricks)
         log("Winetricks not found...")
         log("Downloading latest winetricks...")
 
