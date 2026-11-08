@@ -38,9 +38,10 @@ _cached_user_agent = None
 # Function for logging messages
 def log(message: Optional[str] = None, open_log: bool = False) -> None:
     oswemodlog = os.getenv("WEMOD_LOG")
-    wemodlog = oswemodlog
     cowemodlog = load_conf_setting("WeModLog")
-    if not wemodlog:
+    if oswemodlog is not None:
+        wemodlog = oswemodlog
+    else:
         wemodlog = cowemodlog
     if wemodlog != "":
         try:
