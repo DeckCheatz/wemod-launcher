@@ -1001,7 +1001,7 @@ def run(skip_init: bool = False) -> str:
 
         fnr_p = 0  # Use a different variable for index within PROTON_CMD to avoid confusion
         # If there is a file then it's a custom runner so don't use a verb
-        if PROTON[(fnr_p + 1)].find(".") >= 0:
+        if PROTON_CMD[(fnr_p + 1)].find(".") >= 0:
             fnr_p -= 1
             verb = []
             tout = 60
