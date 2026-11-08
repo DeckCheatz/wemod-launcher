@@ -905,7 +905,7 @@ def run(skip_init: bool = False) -> str:
     fnr = -1
 
     # Original logic for finding the Proton tool path if delimiter is present
-    tools = os.getenv("STEAM_COMPAT_TOOL_PATHS").split(os.pathsep)
+    tools = (os.getenv("STEAM_COMPAT_TOOL_PATHS") or "").split(os.pathsep)
     if fnr <= 0 and tools:
         for tool in tools:
             for nr, aarg in enumerate(ARGS):
