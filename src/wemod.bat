@@ -24,7 +24,7 @@ echo.
 
 REM Start Wand.exe and get its PID
 echo Starting Wand by using %wemodname%.
-start "" %wemodpath%
+start "" /D "%LOCALAPPDATA%\Wand" %wemodpath%
 
 set wemodPID=
 
