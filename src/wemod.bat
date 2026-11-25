@@ -3,12 +3,7 @@
 
 SET mypath=%~dp0
 SET wemodname=Wand.exe
-
-IF "%mypath:~-5%" == "\src\" (
-    SET wemodpath=%mypath:~0,-5%\wemod_data\wemod_bin\%wemodname%
-) ELSE (
-    SET wemodpath=%mypath:~0,-1%\wemod_data\wemod_bin\%wemodname%
-)
+SET wemodpath=%LOCALAPPDATA%\Wand\%wemodname%
 
 SET temptime=%mypath:~0,-1%\.cache\early.tmp
 SET returnfile=%mypath:~0,-1%\.cache\return.tmp
