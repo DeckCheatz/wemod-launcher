@@ -446,42 +446,40 @@ def syncwemod(
 
     log("WeMod data synchronization complete.")
 
-    # Wand's own install tooling (Squirrel.Windows) expects to run from
-    # %LocalAppData%\Wand, i.e. inside the prefix's C: drive. Launching the
-    # same files straight off the Z: drive (the host filesystem passthrough)
-    # trips Wand's integrity check, so expose wemod_bin at that Windows path
-    # via a symlink, the same way WeModExternal does for login data above.
     WandBinData = os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin")
+
+    # Ensure the central Wand install exists before mirroring it into the prefix.
+    if not os.path.isfile(os.path.join(WandBinData, "Wand.exe")):
+        setup_main()
+
+    # Wand's own install tooling (Squirrel.Windows) expects to run from
+    # %LocalAppData%\Wand, i.e. genuinely inside the prefix's C: drive. A
+    # symlink there pointing out to wemod_data doesn't work: Wine resolves a
+    # symlink to its real target before reporting a process's module path,
+    # so Wand would still see itself as running off the Z: drive and trip
+    # its integrity check. Copy the files for real instead.
     WandBinExternal = os.path.join(
         folder, "pfx/drive_c/users/steamuser/AppData/Local/Wand"
     )
-
-    if os.path.islink(WandBinExternal):
-        if os.path.realpath(WandBinExternal) != WandBinData:
-            os.remove(WandBinExternal)
-    elif os.path.exists(WandBinExternal):
-        # Real directory/file left over from Z:-drive launches, or a broken link.
-        if os.path.isdir(WandBinExternal):
-            shutil.rmtree(WandBinExternal, ignore_errors=True)
-        else:
-            os.remove(WandBinExternal)
-
-    if not os.path.exists(WandBinExternal):
-        try:
-            os.symlink(WandBinData, WandBinExternal)
-        except Exception as e:
-            log(
-                f"Failed to create symlink '{WandBinExternal}' -> '{WandBinData}': {e}"
-            )
-
-    if not os.path.exists(
-        os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin", "Wand.exe")
+    if os.getenv("FORCE_UPDATE_WEMOD", "0") == "1" or not os.path.isfile(
+        os.path.join(WandBinExternal, "Wand.exe")
     ):
-        setup_main()
+        if os.path.lexists(WandBinExternal):
+            if os.path.isdir(WandBinExternal) and not os.path.islink(
+                WandBinExternal
+            ):
+                shutil.rmtree(WandBinExternal, ignore_errors=True)
+            else:
+                os.remove(WandBinExternal)
+        log(f"Copying Wand into the prefix at '{WandBinExternal}'...")
+        shutil.copytree(WandBinData, WandBinExternal)
 
     # Installs made before this fix existed still have a Wand.exe but no
     # DWriteCore.dll, so check on every launch rather than only at setup.
-    ensure_dwritecore(os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin"))
+    # Wand actually runs from WandBinExternal now, so that copy needs the
+    # DLL too, not just the central store it was copied from.
+    ensure_dwritecore(WandBinData)
+    ensure_dwritecore(WandBinExternal)
 
 
 # Initialize the environment
