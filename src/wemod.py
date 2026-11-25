@@ -446,6 +446,34 @@ def syncwemod(
 
     log("WeMod data synchronization complete.")
 
+    # Wand's own install tooling (Squirrel.Windows) expects to run from
+    # %LocalAppData%\Wand, i.e. inside the prefix's C: drive. Launching the
+    # same files straight off the Z: drive (the host filesystem passthrough)
+    # trips Wand's integrity check, so expose wemod_bin at that Windows path
+    # via a symlink, the same way WeModExternal does for login data above.
+    WandBinData = os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin")
+    WandBinExternal = os.path.join(
+        folder, "pfx/drive_c/users/steamuser/AppData/Local/Wand"
+    )
+
+    if os.path.islink(WandBinExternal):
+        if os.path.realpath(WandBinExternal) != WandBinData:
+            os.remove(WandBinExternal)
+    elif os.path.exists(WandBinExternal):
+        # Real directory/file left over from Z:-drive launches, or a broken link.
+        if os.path.isdir(WandBinExternal):
+            shutil.rmtree(WandBinExternal, ignore_errors=True)
+        else:
+            os.remove(WandBinExternal)
+
+    if not os.path.exists(WandBinExternal):
+        try:
+            os.symlink(WandBinData, WandBinExternal)
+        except Exception as e:
+            log(
+                f"Failed to create symlink '{WandBinExternal}' -> '{WandBinData}': {e}"
+            )
+
     if not os.path.exists(
         os.path.join(SCRIPT_BASE, "wemod_data", "wemod_bin", "Wand.exe")
     ):
