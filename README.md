@@ -1,72 +1,38 @@
 # WeMod Launcher (Wemod for Linux)
 
-**The WeMod Launcher is currently on version 1.544.**
+**The legacy 1.x launcher is currently on version 1.544.**
 
-![Alert](https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=20&quality=lossless) **The 1.x line is in bugfix-only mode.** It is no longer getting new features, only bug fixes.  
-Active development is happening in the rewrite (see the [Rework Project](#rework-project) below).
+## Project Status (November 2026)
+
+> [!WARNING]
+> This project is being wound down. The app is now called Wand (formerly WeMod). Wand 12.x introduced integrity checks that depend on Windows file-signing certificate APIs that Wine/Proton do not implement. As a result, this launcher cannot load game mods with Wand 12.x. The Wand team has said it does not plan to reverse these changes and has its own plans for official Linux support. The pre-rename WeMod 11.x release is being deprecated and will not work with Wand's services indefinitely. The Wand team has not said how long it will continue to work, so this launcher cannot offer a lasting workaround.
+>
+> We do not plan to continue the launcher or its rewrite. The repository has not yet been archived; remaining closeout work is tracked in [issue #362](https://github.com/DeckCheatz/wemod-launcher/issues/362).
 
 ## Quick Jump
 
+* [Project Status](#project-status-november-2026)
 * [Disclaimer](#disclaimer)
-* [Support & Contributions](#support--contributions)
-* [Rework Project](#rework-project)
-* [Quick Guide](#quick-guide)
-* [Common Issues](#common-issues)
-* [Additional](#-additional)
+* [Official Wand Support](#official-wand-support)
+* [Legacy Setup Guide](#legacy-setup-guide-unsupported)
+* [Legacy Common Issues](#legacy-common-issues)
+* [Credits](#credits)
 
 ## DISCLAIMER
-This project is *NOT* affiliated with, funded by, or paid by WeMod.  
-The work done here is purely from the contributors who donate their time and effort.  
-WeMod (the company) makes WeMod (the mod tool).  
-We (`wemod-launcher`) enable you to run it on Linux (and by extension, the Steam Deck).
+This is an independent community project, not affiliated with, funded by, or paid by Wand (formerly WeMod). The Wand company makes the Wand mod tool. This repository historically provided a community launcher for running it on Linux; it does not provide official Wand support.
 
-## Support & Contributions
-If this tool helps you, please consider one or more of the following:
+## Official Wand Support
 
-* **Star the project** to show support and visibility.  
-* **Read the [Contribution Policy](CONTRIBUTING.md)** to learn what the project strives for, what a good PR looks like, and how AI-assisted contributions are handled.
-* **Contribute code** we are actively looking for developers to improve the current launcher, to help with the modern rework in areas like GUI, Wine handling, config logic, and Python code structure, and to improve Flatpak compatibility (see [Rework Project](#rework-project) below).
-* **Help with docs and issues** — document known issues, write new guides, or help others by referencing existing solutions. See the [Wiki](https://github.com/DeckCheatz/wemod-launcher/wiki) or [file / answer an Issue](https://github.com/DeckCheatz/wemod-launcher/issues).
-* **Financial and regular support for developers**:
-  * Support Marvin1099 (current maintainer):  
-    [Buymeacoffee](https://www.buymeacoffee.com/marvin1099), [Patreon](https://www.patreon.com/marvin1099), [Tipeeestream](https://www.tipeeestream.com/marvin1099/tip)
-  * Support shymega (rework leader):  
-    [GitHub Sponsors](https://github.com/sponsors/shymega)
-  * Support DaniAsh551 (original creator):  
-    [Buymeacoffee](https://www.buymeacoffee.com/TIjUvF1), [Patreon](https://www.patreon.com/daniash551), [PayPal](https://www.paypal.com/donate/?hosted_button_id=D7Y43PT9HUEUY)
-  * Support JohnHamwi (contributor):  
-    [GitHub](https://github.com/JohnHamwi)
+For questions about Wand (formerly WeMod) or its official Linux plans, use [Wand's official community forums](https://community.wemod.com/), including the [Wand Linux discussion](https://community.wemod.com/t/wand-linux/378772). This project cannot provide support for the Wand app or its future Linux client.
 
-For more help:
-* Suggest improvements via [GitHub Discussions](https://github.com/DeckCheatz/wemod-launcher/discussions)
-* See the [Wiki Suggestions](https://github.com/DeckCheatz/wemod-launcher/wiki/Suggestions) and [Changes](https://github.com/DeckCheatz/wemod-launcher/wiki/Changes)
+## Legacy Setup Guide (Unsupported)
 
-## Rework Project
-
-The project has a **rework**, currently on the /rewrite/v2 branch (NOT USEABLE).  
-This rework focuses on **modular design, better maintainability, improved UX, and modern code practices**.
-
-We are calling for contributors to assist with:
-* **Python developers**: Help refactor or implement core modules (GUI, Wine prefix handling, config, launch logic).
-* **Testers**: Provide feedback, test new code, and report issues across different distros and devices (especially Steam Deck).
-* **Wiki writers & documenters**: Help write guides and technical documentation for the rework.
-
-Want to get involved?
-* [Join the Discussion on GitHub](https://github.com/DeckCheatz/wemod-launcher/discussions)
-* [Track the Rework Progress](https://github.com/orgs/DeckCheatz/projects/3/)
-* Or reach out to the maintainers directly via GitHub.
-
-## Quick Guide
-![Alert](https://cdn.discordapp.com/emojis/1049837871772729354.gif?size=20&quality=lossless) **This guide only includes the most relevant info and might not be enough to run WeMod;**  
-in which case, check out the [Full Guide](https://github.com/DeckCheatz/wemod-launcher/wiki/Full-Guide) **OR** the [video tutorial by Marvin1099](https://youtu.be/5UlVCZvIl1E).
+> **Historical reference only:** These instructions are no longer maintained and are not a way to get current Wand releases working on Linux. Wand 12.x is incompatible with this launcher under Wine/Proton, and the pre-rename WeMod 11.x release is being deprecated. The old guide and troubleshooting notes below may not apply to current versions.
 
 - **Optional:** If you have access to another PC and wish to control the Steam Deck remotely,  
 consider using **[RustDesk](https://github.com/rustdesk/rustdesk/releases/latest)** for easier setup (the `.AppImage` is easiest).
 
 - **Info:** [License Change to AGPL3](https://github.com/DeckCheatz/wemod-launcher/discussions/131)
-
-- **Info:** Games no longer seem to be detected by **Wemod**. If anyone has info on how **Wemod** finds games, please make a new issue. If you have no idea, please **don't** make a bug report.  
-  We can't fix this if we don't know how. You will have to add the game manually for now.
 
 1. Python `python-venv` (or `python3-venv` or `venv` or `virtualenv`; use first one found)  
    and `Tk` need to be installed.  
@@ -105,9 +71,11 @@ wemod-launcher will automatically update if you installed it using step 4.
 **Like**: Check how to [Use External Launchers](https://github.com/DeckCheatz/wemod-launcher/wiki/Using-External-Launchers) (Use The WeMod Launcher outside of Steam)  
 **OR**: Check out how to [Edit The Config](https://github.com/DeckCheatz/wemod-launcher/wiki/Config-Usage)
 
-## Common Issues
+## Legacy Common Issues
 
 ### Dot Net Error
+
+These troubleshooting steps are also kept for historical reference and may not work with current Wand releases.
 
 If you see a .net error in Wemod that means your prefix is messed up.  
 1. After you close the game the troubleshooter should come up (close ingame not from steam).
@@ -117,8 +85,12 @@ If you see a .net error in Wemod that means your prefix is messed up.
 5. After you managed to find and click download, a tested prefix will be downloaded.
 6. After that it should work.
 
-## ![Heart](https://cdn.discordapp.com/emojis/1113579886439833690.gif?size=20&quality=lossless) Additional
+## Credits
 
-![WeModApp](https://cdn.discordapp.com/emojis/761419274945953842.webp?size=20&quality=lossless) **Video Tutorial:** [WeMod-launcher Setup Tutorial by Marvin1099](https://youtu.be/5UlVCZvIl1E)  
-![WeModApp](https://cdn.discordapp.com/emojis/1113579884749529198.gif?size=20&quality=lossless) **Guide was created by Trippin and updated by Marvin1099.**  
-![WeModApp](https://cdn.discordapp.com/emojis/1113579884749529198.gif?size=20&quality=lossless) **The WeMod Launcher was created by DaniAsh551, with the current maintainer Marvin1099.**  
+- **Launcher creator:** DaniAsh551.
+- **Legacy launcher maintainer:** Marvin1099.
+- **Planned rewrite lead:** shymega; the rewrite has since been stopped.
+- **Project contributor:** JohnHamwi.
+- **Guide:** Created by Trippin and later updated by Marvin1099.
+
+Historical setup video: [WeMod Launcher setup tutorial by Marvin1099](https://youtu.be/5UlVCZvIl1E) (may be outdated).
